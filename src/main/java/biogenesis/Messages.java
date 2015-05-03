@@ -15,7 +15,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package biogenesis;
+package main.java.biogenesis;
 
 import java.util.MissingResourceException;
 import java.util.Locale;
@@ -28,7 +28,7 @@ public class Messages {
 	/**
 	 * The root name of files containing localized messages.
 	 */
-	private static final String BUNDLE_NAME = "biogenesis/messages/messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "main/resources/biogenesis/messages/messages"; //$NON-NLS-1$
 	/**
 	 * The selected locale to be used.
 	 */

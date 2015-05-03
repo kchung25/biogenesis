@@ -16,13 +16,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package biogenesis;
+package main.java.biogenesis;
 
-import biogenesis.event.*;
+import main.java.biogenesis.event.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.awt.geom.*;
-import biogenesis.music.*;
+import main.java.biogenesis.music.*;
 import org.apache.commons.lang3.event.EventListenerSupport;
 /**
  * This class implements an organism.

@@ -15,7 +15,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package biogenesis;
+package main.java.biogenesis;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;

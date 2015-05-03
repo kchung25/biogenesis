@@ -1,4 +1,4 @@
-package biogenesis;
+package main.java.biogenesis;
 
 ////////////////////////////////////////////////////////
 //Bare Bones Browser Launch                          //

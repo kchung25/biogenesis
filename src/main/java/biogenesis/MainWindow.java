@@ -16,9 +16,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package biogenesis;
+package main.java.biogenesis;
 
-import biogenesis.scripting.ScriptHandler;
+import main.java.biogenesis.scripting.ScriptHandler;
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 

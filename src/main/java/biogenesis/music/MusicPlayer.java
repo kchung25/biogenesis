@@ -15,12 +15,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package biogenesis.music;
+package main.java.biogenesis.music;
 
-import biogenesis.event.OrganismCollidedEvent;
-import biogenesis.event.OrganismCollidedListener;
-import biogenesis.event.OrganismCreatedEvent;
-import biogenesis.event.OrganismCreatedListener;
+import main.java.biogenesis.event.OrganismCollidedEvent;
+import main.java.biogenesis.event.OrganismCollidedListener;
+import main.java.biogenesis.event.OrganismCreatedEvent;
+import main.java.biogenesis.event.OrganismCreatedListener;
 import java.util.Random;
 import org.jfugue.Player;
 

@@ -1,4 +1,4 @@
-package biogenesis;
+package main.java.biogenesis;
 
 import java.awt.Color;
 
