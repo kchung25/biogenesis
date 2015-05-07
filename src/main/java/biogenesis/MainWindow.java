@@ -79,7 +79,7 @@ public class MainWindow extends JFrame {
 	protected StatisticsWindow _statisticsWindow = null;
 	// Count frames to know when to update the info window
 	protected long nFrames = 0;
-	private ImageIcon imageIcon = new ImageIcon(getClass().getResource("images/bullet.jpg")); //$NON-NLS-1$
+	//private ImageIcon imageIcon = new ImageIcon(getClass().getResource("images/bullet.jpg")); //$NON-NLS-1$
 
 	public JFileChooser getWorldChooser() {
 		return worldChooser;
@@ -743,11 +743,11 @@ public class MainWindow extends JFrame {
 				Messages.getString("T_COPYRIGHT") + "joanq@users.sourceforge.net\n" + //$NON-NLS-1$ //$NON-NLS-2$
 				Messages.getString("T_ARTWORK_BY") + " Ananda Daydream, Florian Haag (http://toolbaricons.sourceforge.net/)";  //$NON-NLS-1$//$NON-NLS-2$
 		JOptionPane.showMessageDialog(this, aboutString, Messages.getString("T_ABOUT"), //$NON-NLS-1$
-				JOptionPane.INFORMATION_MESSAGE, imageIcon);
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void setControls() {
-		setIconImage(imageIcon.getImage());
+		//setIconImage(imageIcon.getImage());
 		JPanel centralPanel = new JPanel();
 		centralPanel.setLayout(new BorderLayout());
 
