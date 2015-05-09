@@ -515,6 +515,12 @@ public class Organism extends Rectangle {
 		centerY = (top+bottom)>>1;
 		_mass = 0;
 		_I = 0;
+		i = positionImage(centerX, centerY);
+	}
+	public int positionImage(int centerX, int centerY) {
+		int i;
+		double cx;
+		double cy;
 		for (i=0; i<_segments; i++) {
 			// express points relative to the image center
 			_startPointX[i]-=centerX;
@@ -535,6 +541,7 @@ public class Organism extends Rectangle {
 			_I += Math.pow(_m[i],3)/12d +
 				_m[i] * cx*cx + cy*cy;// mass * length^2 (center is at 0,0)
 		}
+		return i;
 	}
 	/**
 	 * Given a vector, calculates the resulting vector after a rotation, a scalation and possibly
@@ -701,7 +708,7 @@ public class Organism extends Rectangle {
 			/* Save calculation: if rotation hasn't changed and it is not forced,
 			 * don't calculate points again.
 			 */
-			if (_lastTheta != _theta || force) {
+			if ((Math.abs(_lastTheta - _theta) > 0.00001) || force) {
 				theta=_theta+Math.atan2(_startPointY[i] ,_startPointX[i]);
 				x1[i]=(int)(_m1[i]*Math.cos(theta));
 				y1[i]=(int)(_m1[i]*Math.sin(theta));
@@ -821,6 +828,14 @@ public class Organism extends Rectangle {
 			}
 		}
 		// Substract one to the time needed to reproduce
+		subtractReproduction();
+		// Maintenance
+		breath();
+		// Check that the organism has energy after this frame
+		return _energy > Utils.tol;
+	}
+	
+	public void subtractReproduction() {
 		if (_timeToReproduce > 0)
 			_timeToReproduce--;
 		// Check if it can reproduce: it needs enough energy and to be adult
@@ -830,10 +845,6 @@ public class Organism extends Rectangle {
 		// Check that it don't exceed the maximum chemical energy
 		if (_energy > 2*_geneticCode.getReproduceEnergy())
 			useEnergy(_energy - 2*_geneticCode.getReproduceEnergy());
-		// Maintenance
-		breath();
-		// Check that the organism has energy after this frame
-		return _energy > Utils.tol;
 	}
 	/**
 	 * Makes the organism spend an amount of energy using the
