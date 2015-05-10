@@ -1,0 +1,671 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>World.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">World.java</span></div><h1>World.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ * Copyright (c) 2012 Sebastien Le Callonnec
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Collections;
+import java.io.*;
+import java.awt.*;
+import java.util.Observable;
+/**
+ * This class contains all the information needed to run a world:
+ * the organisms, the substances and the biological corridors. It
+ * also contains a reference to the visible part of the world,
+ * {@link VisibleWorld}, and its statistics {@link WorldStatistics}.
+ * There are methods to do all needed operations to the world: manage
+ * organisms and substances.
+ */
+public class World extends Observable implements Serializable {
+	/**
+	 * Version number of the class
+	 */
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+	/**
+	 * World width
+	 */
+	protected int _width;
+	/**
+	 * World height
+	 */
+	protected int _height;
+	/**
+	 * A list of the organisms in the world, even dead ones.
+	 * Note that this must be a synchronized list so it is mandatory to
+	 * manually synchronize when iterating over it. 
+	 */
+	protected List&lt;Organism&gt; _organisms;
+	/**
+	 * A list of all input biological corridors from where organisms
+	 * of other hosts will arrive.
+	 * Note that this must be a synchronized list so it is mandatory to
+	 * manually synchronize when iterating over it.
+	 */
+	transient protected List&lt;InCorridor&gt; inCorridors;
+	/**
+	 * A list of all output biological corridors to send organisms
+	 * to other hosts.
+	 * Note that this must be a synchronized list so it is mandatory to
+	 * manually synchronize when iterating over it.
+	 */
+	transient protected List&lt;OutCorridor&gt; outCorridors;
+	/**
+	 * Number of living organisms in the world
+	 */
+<span class="fc" id="L72">	protected int _population = 0;</span>
+	/**
+	 * The next identification number that will be assigned to an organism
+	 * in this world
+	 */
+	protected int NEXT_ID;
+	/**
+	 * A reference to the visible world part of this world used basically
+	 * to indicate which parts of the world should be repainted due to
+	 * events in the world.
+	 */
+	transient protected VisibleWorld _visibleWorld;
+	/**
+	 * Frame counter. 256 frames are a time unit. This value is used to count
+	 * time and to trigger some window updating at regular intervals.
+	 */
+	private int nFrames;
+	/**
+	 * The amount of O2 in the atmosphere of this world. 
+	 */
+	protected double _O2;
+	/**
+	 * The amount of CO2 in the atmosphere of this world.
+	 */
+	protected double _CO2;
+	/**
+	 * Reference to the object that keeps track of all world statistics. 
+	 */
+	protected WorldStatistics worldStatistics;
+	
+	/**
+	 * keeps track of all the organisms that ever lived in the world.
+	 */
+<span class="fc" id="L105">	private final WorldMemory memory = new WorldMemory();</span>
+	/**
+	 * Called by the JRE when an instance of this class is read from a file
+	 * 
+	 * @param in  The stream from where the object comes from
+	 * @throws IOException
+	 * @throws ClassNotFoundException 
+	 */
+	private void readObject(java.io.ObjectInputStream in)
+    throws IOException, ClassNotFoundException {
+<span class="nc" id="L115">		in.defaultReadObject();</span>
+<span class="nc" id="L116">		inCorridors = Collections.synchronizedList(new ArrayList&lt;InCorridor&gt;());</span>
+<span class="nc" id="L117">		outCorridors = Collections.synchronizedList(new ArrayList&lt;OutCorridor&gt;());</span>
+<span class="nc" id="L118">	}</span>
+	/**
+	 * Returns a new StatisticsWindow refering to this world.
+	 * 
+	 * @return  A newly created StatisticsWindow.
+	 */
+	public StatisticsWindow createStatisticsWindow() {
+<span class="nc" id="L125">		return new StatisticsWindow(_visibleWorld._mainWindow, worldStatistics, _organisms);</span>
+	}
+	/**
+	 * Finds an organism that has the given coordinates inside its bounding box and
+	 * returns a reference to it. If more than on organism satisfies this condition,
+	 * if possible, an alive organism is returned. If non organism satisfies this
+	 * condition, this method returns null.
+	 * 
+	 * @param x  X coordinate
+	 * @param y  Y coordinate
+	 * @return  An organism with the point (x,y) inside its bounding box, or null
+	 * if such organism doesn't exist.
+	 */
+	public Organism findOrganismFromPosition(int x, int y) {
+		Organism b;
+<span class="nc" id="L140">		Organism deadOrganism = null;</span>
+<span class="nc" id="L141">		synchronized(_organisms) {</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">			for (Iterator&lt;Organism&gt; it = _organisms.iterator(); it.hasNext(); ) {</span>
+<span class="nc" id="L143">				b = it.next();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">				if (b.contains(x,y)) {</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">					if (b.isAlive())</span>
+<span class="nc" id="L146">						return b;</span>
+<span class="nc" id="L147">					deadOrganism = b;</span>
+				}
+			}
+		}
+<span class="nc" id="L151">		return deadOrganism;</span>
+	}
+	
+	/**
+	 * returns an organism by its ID.
+	 * @param id - ID of the organism we are looking for.
+	 * @return Organism - Organism if found, &lt;code&gt;null&lt;/code&gt; otherwise.
+	 */
+	public Organism findOrganismById(int id) {
+<span class="nc" id="L160">		synchronized (_organisms) {</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">			for (Organism organism: _organisms) {</span>
+<span class="nc bnc" id="L162" title="All 2 branches missed.">				if (id == organism.getID()) {</span>
+<span class="nc" id="L163">					return organism;</span>
+				}
+			}
+		}
+		
+<span class="nc" id="L168">		return null;</span>
+	}
+	
+	/**
+	 * Returns the world's width.
+	 * 
+	 * @return  The world's width.
+	 */
+	public int getWidth() {
+<span class="fc" id="L177">		return _width;</span>
+	}
+	/**
+	 * Returns the world's height.
+	 * 
+	 * @return  The world's height.
+	 */
+	public int getHeight() {
+<span class="fc" id="L185">		return _height;</span>
+	}
+	/**
+	 * Returns the next available organism identification number.
+	 * 
+	 * @return  A unique number used to identify an organism.
+	 */
+	public int getNewId() {
+<span class="fc" id="L193">		return NEXT_ID++;</span>
+	}
+	/**
+	 * Returns the actual time.
+	 * 
+	 * @return  The actual time.
+	 */
+	public long getTime() {
+<span class="fc" id="L201">		return worldStatistics.getTime();</span>
+	}
+	/**
+	 * Returns the number of corpses that still have energy and drawn in the
+	 * world.
+	 * 
+	 * @return  The number of corpses in the world.
+	 */
+	public int getNCorpses() {
+<span class="nc" id="L210">		return _organisms.size() - _population;</span>
+	}
+	
+	/**
+	 * returns the {@link WorldMemory} for this world
+	 * to retrieve family trees of organisms.
+	 * @return  WorldMemory.
+	 */
+	public WorldMemory getWorldMemory() {
+<span class="nc" id="L219">		return this.memory;</span>
+	}
+	
+	/**
+	 * Returns the number of alive organisms that populate the world.
+	 * 
+	 * @return  The number of alive organisms in the world.
+	 */
+	public int getPopulation() {
+<span class="fc" id="L228">		return _population;</span>
+	}
+	/**
+	 * Increase the population counter by one.
+	 * 
+	 * This method should be called every time a new organism is
+	 * created. Normally, it is called by addOrganism, but in some
+	 * cases it may be used directly.
+	 */
+	public void increasePopulation() {
+<span class="fc" id="L238">		_population++;</span>
+<span class="fc" id="L239">		worldStatistics.eventPopulationIncrease(_population);</span>
+<span class="fc" id="L240">	}</span>
+	/**
+	 * Decrease the population counter by one.
+	 * 
+	 * This method should be called every time an organism dies.
+	 * Normally, it is called by Organism.die or Organism.breath,
+	 * but in some cases it may be used directly.
+	 */
+	public void decreasePopulation() {
+<span class="fc" id="L249">		_population--;</span>
+<span class="fc" id="L250">		worldStatistics.eventPopulationDecrease(_population);</span>
+<span class="fc" id="L251">	}</span>
+	/**
+	 * Returns the amount of O2 that exist in the atmosphere.
+	 * 
+	 * @return  The amount of O2.
+	 */
+	public double getO2() {
+<span class="fc" id="L258">		return _O2;</span>
+	}
+	/**
+	 * Returns the amount of CO2 that exist in the atmosphere.
+	 * 
+	 * @return  The amount of CO2.
+	 */
+	public double getCO2() {
+<span class="fc" id="L266">		return _CO2;</span>
+	}
+	/**
+	 * Add O2 to the atmosphere.
+	 * 
+	 * @param q  The amount of O2 to add.
+	 */
+	public void addO2(double q) {
+<span class="fc" id="L274">		_O2 += q;</span>
+<span class="fc" id="L275">	}</span>
+	/**
+	 * Add CO2 to the atmosphere.
+	 * 
+	 * @param q  The amount of CO2 to add.
+	 */
+	public void addCO2(double q) {
+<span class="nc" id="L282">		_CO2 += q;</span>
+<span class="nc" id="L283">	}</span>
+	/**
+	 * Substracts O2 from the atmosphere.
+	 * 
+	 * @param q  The amount of O2 to substract.
+	 */
+	public void decreaseO2(double q) {
+<span class="nc" id="L290">		_O2 -= Math.min(q, _O2);</span>
+<span class="nc" id="L291">	}</span>
+	/**
+	 * Substract CO2 from the atmosphere.
+	 * 
+	 * @param q  The amount of CO2 to substract.
+	 */
+	public void decreaseCO2(double q) {
+<span class="fc" id="L298">		_CO2 -= Math.min(q, _CO2);</span>
+<span class="fc" id="L299">	}</span>
+	/**
+	 * Consume O2 from the atmosphere to realize the respiration process
+	 * needed to consume accumulated chemical energy. Frees the same
+	 * amount of CO2 to the atmosphere than O2 consumed.
+	 * 
+	 * @param q  The amount of O2 required.
+	 * @return  The amount of O2 obtained. This is always &lt;code&gt;q&lt;/code&gt;
+	 * unless there weren't enough O2 in the atmosphere.
+	 */
+	public double respiration(double q) {
+<span class="fc" id="L310">		double d = Math.min(q,_O2);</span>
+<span class="fc" id="L311">		_O2 -= d;</span>
+<span class="fc" id="L312">		_CO2 += d;</span>
+<span class="fc" id="L313">		return d;</span>
+	}
+	/**
+	 * Consume CO2 from the atmosphere to realize the photosynthesis process
+	 * needed to obtain chemical energy from the Sun. Frees the same amount
+	 * of O2 to the atmosphere than CO2 consumed.
+	 * 
+	 * The CO2 obtained is calculated as follows: the total length of the
+	 * organism's green segments is divided by a fixed parameter that indicates
+	 * green segment effectiveness. Then, the result is multiplied by the total
+	 * CO2 in the atmosphere and divided by another parameter that indicates
+	 * the concentration of CO2 needed to absorve it. The result is the total
+	 * amount of CO2 that the organism can get. This value can't be greater than
+	 * the total amount of CO2 in the atmosphere, nor the effectiveness of the
+	 * initial length.
+	 * 
+	 * @param q  The total length of the organism's green segments.
+	 * @return  The amount of CO2 obtained. 
+	 */
+	public double photosynthesis(double q) {
+<span class="fc" id="L333">		q /= Utils.GREEN_OBTAINED_ENERGY_DIVISOR;</span>
+<span class="fc" id="L334">		q = Utils.min(q,q*_CO2/Utils.DRAIN_SUBS_DIVISOR,_CO2);</span>
+<span class="fc" id="L335">		_CO2 -= q;</span>
+<span class="fc" id="L336">		_O2 += q;</span>
+<span class="fc" id="L337">		return q;</span>
+	}
+	/**
+	 * Constructor of the World class. All internal structures are initialized and
+	 * the world's size is obtained from parameters.
+	 * 
+	 * @param visibleWorld  A reference to the visual representation of this world.
+	 */
+<span class="fc" id="L345">	public World(VisibleWorld visibleWorld) {</span>
+<span class="fc" id="L346">		_visibleWorld = visibleWorld;</span>
+<span class="fc" id="L347">		_width = Utils.WORLD_WIDTH;</span>
+<span class="fc" id="L348">		_height = Utils.WORLD_HEIGHT;</span>
+<span class="fc" id="L349">		_organisms = Collections.synchronizedList(new ArrayList&lt;Organism&gt;(Utils.ORGANISMS_VECTOR_SIZE));</span>
+<span class="fc" id="L350">		inCorridors = Collections.synchronizedList(new ArrayList&lt;InCorridor&gt;());</span>
+<span class="fc" id="L351">		outCorridors = Collections.synchronizedList(new ArrayList&lt;OutCorridor&gt;());</span>
+<span class="fc" id="L352">		worldStatistics = new WorldStatistics();</span>
+<span class="fc" id="L353">	}</span>
+	/**
+	 * When a world object is read from a file, it must be linked with its visualization.
+	 * That is what this method does.
+	 * 
+	 * @param visibleWorld  A reference to the visual representation of this world.
+	 */
+	public void init(VisibleWorld visibleWorld) {
+<span class="nc" id="L361">		_visibleWorld = visibleWorld;</span>
+<span class="nc" id="L362">		_visibleWorld.setPreferredSize(new Dimension(getWidth(), getHeight()));</span>
+<span class="nc" id="L363">	}</span>
+	/**
+	 * Populate the word with a new set of organisms.
+	 * This is used to destroy a world and create a new one.
+	 */
+	public void genesis() {
+		// Reset atributs
+<span class="fc" id="L370">		nFrames = 0;</span>
+<span class="fc" id="L371">		_O2 = Utils.INITIAL_O2;</span>
+<span class="fc" id="L372">		_CO2 = Utils.INITIAL_CO2;</span>
+<span class="fc" id="L373">		NEXT_ID = 0;</span>
+<span class="fc" id="L374">		_population = 0;</span>
+<span class="fc" id="L375">		_visibleWorld.setSelectedOrganism(null);</span>
+<span class="fc" id="L376">		_organisms.clear();</span>
+		// Initialize size
+<span class="fc" id="L378">		_width = Utils.WORLD_WIDTH;</span>
+<span class="fc" id="L379">		_height = Utils.WORLD_HEIGHT;</span>
+<span class="fc" id="L380">		_visibleWorld.setPreferredSize(new Dimension(Utils.WORLD_WIDTH, Utils.WORLD_HEIGHT));</span>
+		// Create statistics
+<span class="fc" id="L382">		worldStatistics = new WorldStatistics();</span>
+		// Create organisms
+<span class="fc bfc" id="L384" title="All 2 branches covered.">		for (int i=0; i&lt;Utils.INITIAL_ORGANISMS; i++) {</span>
+<span class="fc" id="L385">			Organism b = new Organism(this);</span>
+			// Only add the new organism if it can be placed in the world
+<span class="pc bpc" id="L387" title="1 of 2 branches missed.">			if (b.randomCreate())</span>
+<span class="fc" id="L388">				addOrganism(b,null);</span>
+		}
+<span class="fc" id="L390">	}</span>
+	/**
+	 * Remove all corpses from the world and return their organic matter to
+	 * the atmosphere in the form of CO2.
+	 */
+	public void disperseAll() {
+		Organism b;
+<span class="nc" id="L397">		synchronized (_organisms) {</span>
+<span class="nc bnc" id="L398" title="All 2 branches missed.">			for (Iterator&lt;Organism&gt; it = _organisms.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L399">				b = it.next();</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">				if (!b.isAlive())</span>
+<span class="nc" id="L401">					b.useEnergy(b.getEnergy());</span>
+			}
+		}
+<span class="nc" id="L404">	}</span>
+	/**
+	 * Kill all organisms in the world.
+	 */
+	public void killAll() {
+		Organism org;
+<span class="nc" id="L410">		synchronized (_organisms) {</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">			for (Iterator&lt;Organism&gt; it = _organisms.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L412">				org = it.next();</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">				if (org.isAlive())</span>
+<span class="nc" id="L414">					org.die(null);</span>
+			}
+		}
+<span class="nc" id="L417">	}</span>
+	/**
+	 * Draws all visible components of the world to a graphic context.
+	 * This includes organisms and corridors. Called from {@link biogenesis.VisibleWorld.paintComponents}.
+	 * 
+	 * @param g  The graphic context to draw to.
+	 */
+	public void draw(Graphics g) {
+		Organism b;
+		Corridor c;
+<span class="pc" id="L427">		synchronized (inCorridors) {</span>
+<span class="pc bpc" id="L428" title="1 of 2 branches missed.">			for (Iterator&lt;InCorridor&gt; it = inCorridors.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L429">				c = it.next();</span>
+<span class="nc" id="L430">				c.draw(g);</span>
+			}
+		}
+<span class="pc" id="L433">		synchronized (outCorridors) {</span>
+<span class="pc bpc" id="L434" title="1 of 2 branches missed.">			for (Iterator&lt;OutCorridor&gt; it = outCorridors.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L435">				c = it.next();</span>
+<span class="nc" id="L436">				c.draw(g);</span>
+			}
+		}
+<span class="pc" id="L439">		synchronized (_organisms) {</span>
+<span class="fc bfc" id="L440" title="All 2 branches covered.">			for (Iterator&lt;Organism&gt; it = _organisms.iterator(); it.hasNext();) {</span>
+<span class="fc" id="L441">				b = it.next();</span>
+<span class="fc" id="L442">				b.draw(g);</span>
+			}
+		}
+<span class="fc" id="L445">	}</span>
+	/**
+	 * Determines the world's region that needs to be repainted in the associated
+	 * {@link biogenesis.VisualWorld} and instructs it to do it.
+	 * 
+	 * For optimization, only paints organisms that has moved in the last frame.
+	 */
+	public void setPaintingRegion() {
+		Organism b;
+		Corridor c;
+<span class="pc" id="L455">		synchronized (inCorridors) {</span>
+<span class="pc bpc" id="L456" title="1 of 2 branches missed.">			for (Iterator&lt;InCorridor&gt; it = inCorridors.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L457">				c = it.next();</span>
+<span class="nc" id="L458">				_visibleWorld.repaint(c);</span>
+			}
+		}
+<span class="pc" id="L461">		synchronized (outCorridors) {</span>
+<span class="pc bpc" id="L462" title="1 of 2 branches missed.">			for (Iterator&lt;OutCorridor&gt; it = outCorridors.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L463">				c = it.next();</span>
+<span class="nc" id="L464">				_visibleWorld.repaint(c);</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">				if (c.getTravellingOrganism() != null)</span>
+<span class="nc" id="L466">					_visibleWorld.repaint(c.getTravellingOrganism());</span>
+			}
+		}
+<span class="pc" id="L469">		synchronized (_organisms) {</span>
+<span class="fc bfc" id="L470" title="All 2 branches covered.">			for (Iterator&lt;Organism&gt; it = _organisms.iterator(); it.hasNext();) {</span>
+<span class="fc" id="L471">				b = it.next();</span>
+<span class="fc bfc" id="L472" title="All 2 branches covered.">				if (b.hasMoved) {</span>
+<span class="fc" id="L473">					_visibleWorld.repaint(b.lastFrame);</span>
+<span class="fc" id="L474">					_visibleWorld.repaint(b);</span>
+				}
+			}
+		}
+<span class="fc" id="L478">	}</span>
+	/**
+	 * Executes a frame. This method iterates through all objects in the world
+	 * and make them to execute a movement. Here is the place where all action
+	 * occurs: organism movement, interaction, birth and death.
+	 * 
+	 * Additionally, every 20 frames the {@link InfoWindow} is updated, if showed,
+	 * and every 256 frames the time counter is increased by 1.
+	 */
+	public void time() {
+		int i;
+		Organism b;
+		InCorridor c;
+<span class="pc" id="L491">		synchronized (inCorridors) {</span>
+<span class="pc bpc" id="L492" title="1 of 2 branches missed.">			for (Iterator&lt;InCorridor&gt; it = inCorridors.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L493">				c = it.next();</span>
+<span class="nc" id="L494">				c.frame();</span>
+			}
+		}
+<span class="pc" id="L497">		synchronized (_organisms) {</span>
+			/* We can't use an Iterator here because this list has to be changed
+			 * inside Organism.move (when new organisms are born) and we need to
+			 * remove organisms with no energy, so a ConcurrentModificationException
+			 * will be thrown.
+			 */
+<span class="fc" id="L503">			int l = _organisms.size();</span>
+<span class="fc bfc" id="L504" title="All 2 branches covered.">			for (i=0; i&lt;l; i++) {</span>
+<span class="fc" id="L505">				b = _organisms.get(i);</span>
+<span class="fc bfc" id="L506" title="All 2 branches covered.">				if (!b.move()) {</span>
+					// Organism has no energy -&gt; remove from the list
+<span class="fc" id="L508">					_visibleWorld.repaint(b);</span>
+<span class="fc" id="L509">					_organisms.remove(i);</span>
+<span class="pc bpc" id="L510" title="1 of 2 branches missed.">					if (_visibleWorld.getSelectedOrganism() == b)</span>
+<span class="nc" id="L511">						_visibleWorld.setSelectedOrganism(null);</span>
+<span class="fc" id="L512">					l--;</span>
+<span class="fc" id="L513">					i--;</span>
+				}
+			}
+		}
+<span class="fc bfc" id="L517" title="All 2 branches covered.">		if (nFrames++ % 20 == 0)</span>
+<span class="fc" id="L518">			_visibleWorld._mainWindow.getInfoPanel().recalculate();</span>
+<span class="fc bfc" id="L519" title="All 2 branches covered.">		if (nFrames % 256 == 0) {</span>
+<span class="fc" id="L520">			nFrames = 0;</span>
+<span class="fc" id="L521">			worldStatistics.eventTime(_population, _O2, _CO2);</span>
+		}
+		
+<span class="fc" id="L524">		setChanged();</span>
+<span class="fc" id="L525">		notifyObservers();</span>
+<span class="fc" id="L526">	}</span>
+	/**
+	 * Add a pair of biological corridors to the world.
+	 * This method is called by {@link biogenesis.Connection.setState} when
+	 * a new connection is stablished in order to activate the pair
+	 * of corridors associated with the new connection.
+	 * 
+	 * @param in  The corridor where organisms will arrive from another world.
+	 * @param out  The corridor where organisms will leave this world.
+	 */
+	public void addCorridors(InCorridor in, OutCorridor out) {
+<span class="nc" id="L537">		inCorridors.add(in);</span>
+<span class="nc" id="L538">		outCorridors.add(out);</span>
+<span class="nc" id="L539">	}</span>
+	/**
+	 * Remove a pair of biological corridors from the world.
+	 * This method is called by {@link biogenesis.Connection.setState} when
+	 * a connection is closed in order to remove the pair of corridors
+	 * associated with the closing connection.
+	 * 
+	 * @param in  The corridor where organisms were arriving from the other world.
+	 * @param out  The corridor where organisms were leaving from this world.
+	 */
+	public void removeCorridors(InCorridor in, OutCorridor out) {
+<span class="nc" id="L550">		inCorridors.remove(in);</span>
+<span class="nc" id="L551">		outCorridors.remove(out);</span>
+<span class="nc" id="L552">		in.width++;</span>
+<span class="nc" id="L553">		in.height++;</span>
+<span class="nc" id="L554">		out.width++;</span>
+<span class="nc" id="L555">		out.height++;</span>
+<span class="nc" id="L556">		_visibleWorld.repaint(in);</span>
+<span class="nc" id="L557">		_visibleWorld.repaint(out);</span>
+<span class="nc" id="L558">	}</span>
+	/**
+	 * Checks if an organism enters an output corridor. It is considered
+	 * that the organism has entered a corridor if its center is inside
+	 * the corridor.
+	 * 
+	 * @param org  The organism that is being checked.
+	 * @return  The corridor that the organism is in, or null if it is not
+	 * inside any corridor.
+	 */
+	public OutCorridor checkHitCorridor(Organism org) {
+		OutCorridor c;
+<span class="pc" id="L570">		synchronized (outCorridors) {</span>
+<span class="pc bpc" id="L571" title="1 of 2 branches missed.">			for (Iterator&lt;OutCorridor&gt; it = outCorridors.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L572">				c = it.next();</span>
+<span class="nc bnc" id="L573" title="All 2 branches missed.">				if (c.contains(org._centerX, org._centerY))</span>
+<span class="nc" id="L574">					return c;</span>
+			}
+		}
+<span class="fc" id="L577">		return null;</span>
+	}
+	/**
+	 * Checks if an organism has a high probability of being in touch with
+	 * another organism. This is done by checking if the bounding rectangles
+	 * of both organisms overlaps. 
+	 * 
+	 * @param b1  The organism that is being checked.
+	 * @return  The organism which bounding rectangle is touching the bounding
+	 * rectangle of {@code b1} or null if there is no such organism. 
+	 */
+	public Organism fastCheckHit(Organism b1) {
+		Organism b;
+<span class="pc" id="L590">		synchronized (_organisms) {</span>
+<span class="fc bfc" id="L591" title="All 2 branches covered.">			for (Iterator&lt;Organism&gt; it = _organisms.iterator(); it.hasNext(); ) { </span>
+<span class="fc" id="L592">				b = it.next();</span>
+<span class="pc bpc" id="L593" title="1 of 2 branches missed.">				if (b1 != b) {</span>
+<span class="fc bfc" id="L594" title="All 2 branches covered.">					if (b1.intersects(b)) {</span>
+<span class="fc" id="L595">						return b1;</span>
+					}
+				}
+			}
+		}
+<span class="fc" id="L600">		return null;</span>
+	}
+	/**
+	 * Checks if an organism hits another organism.
+	 * 
+	 * @param org1  The organism to check.
+	 * @return  The organism that is touching {@code org1} or null if not such
+	 * organism exists. 
+	 */
+	public Organism checkHit(Organism org1) {
+		Organism org;
+<span class="pc" id="L611">		synchronized(_organisms) {</span>
+<span class="fc bfc" id="L612" title="All 2 branches covered.">			for (Iterator&lt;Organism&gt; it = _organisms.iterator(); it.hasNext(); ) { </span>
+<span class="fc" id="L613">				org = it.next();</span>
+<span class="fc bfc" id="L614" title="All 2 branches covered.">				if (org1 != org) {</span>
+					// First check if the bounding boxes intersect
+<span class="fc bfc" id="L616" title="All 2 branches covered.">					if (org1.intersects(org)) {</span>
+						// Check if they are touching
+<span class="fc bfc" id="L618" title="All 2 branches covered.">						if (org1.contact(org))</span>
+<span class="fc" id="L619">							return org1;</span>
+					}
+				}
+			}
+		}
+<span class="fc" id="L624">		return null;</span>
+	}
+	/**
+	 * Adds an organism to the world. Once added, the new organism will move at every
+	 * frame and interact with other organisms in the world.
+	 * 
+	 * Updates world statistics, population and the {@link biogenesis.InfoWindow}, if necessary.
+	 * 
+	 * @param child  The organism that needs to be added.
+	 * @param parent  The parent of the added organism, or null if there is no parent.
+	 */
+	public void addOrganism(Organism child, Organism parent) {
+<span class="fc" id="L636">		_organisms.add(child);</span>
+<span class="fc" id="L637">		memory.addOrganism(child);</span>
+<span class="fc bfc" id="L638" title="All 2 branches covered.">		if (parent == _visibleWorld.getSelectedOrganism())</span>
+<span class="fc" id="L639">			_visibleWorld._mainWindow.getInfoPanel().changeNChildren();</span>
+<span class="fc bfc" id="L640" title="All 2 branches covered.">		if (parent != null) {</span>
+<span class="fc" id="L641">			worldStatistics.eventOrganismBorn(child, parent);</span>
+		}
+<span class="fc" id="L643">		worldStatistics.eventOrganismCreated();</span>
+<span class="fc" id="L644">		increasePopulation();</span>
+<span class="fc" id="L645">	}</span>
+	/**
+	 * Informs the world of a defunction event. This will update statistics.
+	 * 
+	 * @param dyingOrganism  The organism that has just died.
+	 * @param killingOrganism  The organism that has killed the other organism, if any.
+	 */
+	public void organismHasDied(Organism dyingOrganism, Organism killingOrganism) {
+<span class="fc" id="L653">		worldStatistics.eventOrganismDie(dyingOrganism, killingOrganism);</span>
+<span class="fc bfc" id="L654" title="All 2 branches covered.">		if (killingOrganism == _visibleWorld.getSelectedOrganism())</span>
+<span class="fc" id="L655">			_visibleWorld._mainWindow.getInfoPanel().changeNKills();</span>
+<span class="pc bpc" id="L656" title="1 of 2 branches missed.">		if (dyingOrganism == _visibleWorld.getSelectedOrganism())</span>
+<span class="nc" id="L657">			_visibleWorld.showDeadToolbar();</span>
+<span class="fc" id="L658">	}</span>
+	/**
+	 * Informs the world of an infection event. This will update statistics.
+	 * 
+	 * @param infectedOrganism  The organism that has just been infected.
+	 * @param infectingOrganism  The organism that has infected the other organism.
+	 */
+	public void organismHasBeenInfected(Organism infectedOrganism, Organism infectingOrganism) {
+<span class="fc" id="L666">		worldStatistics.eventOrganismInfects(infectedOrganism, infectingOrganism);</span>
+<span class="pc bpc" id="L667" title="1 of 2 branches missed.">		if (infectingOrganism == _visibleWorld.getSelectedOrganism())</span>
+<span class="nc" id="L668">			_visibleWorld._mainWindow.getInfoPanel().changeNInfected();</span>
+<span class="fc" id="L669">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

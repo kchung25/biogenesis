@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>BioXMLParser.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">BioXMLParser.java</span></div><h1>BioXMLParser.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.awt.Color;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+public class BioXMLParser implements ErrorHandler {
+<span class="fc" id="L39">	protected DocumentBuilder builder = null;</span>
+<span class="fc" id="L40">	protected Document doc = null;</span>
+	
+<span class="fc" id="L42">	public BioXMLParser() {</span>
+<span class="fc" id="L43">		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();</span>
+<span class="fc" id="L44">		factory.setValidating(true);</span>
+		try {
+<span class="fc" id="L46">			builder = factory.newDocumentBuilder();</span>
+<span class="fc" id="L47">			builder.setErrorHandler(this);</span>
+<span class="pc" id="L48">		} catch (ParserConfigurationException e) {</span>
+<span class="nc" id="L49">			e.printStackTrace();</span>
+		}
+<span class="fc" id="L51">	}</span>
+	
+	public static void writeGeneticCode(PrintStream ps, GeneticCode geneticCode) {
+<span class="fc" id="L54">		ps.println(&quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L55">		ps.println(&quot;&lt;!DOCTYPE genetic_code [&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L56">		ps.println(&quot;&lt;!ELEMENT genetic_code (gene+)&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L57">		ps.println(&quot;&lt;!ATTLIST genetic_code symmetry (1|2|3|4|5|6|7|8) #REQUIRED&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L58">		ps.println(&quot;&lt;!ATTLIST genetic_code mirror (yes|no) #REQUIRED&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L59">		ps.println(&quot;&lt;!ATTLIST genetic_code disperse (yes|no) #REQUIRED&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L60">		ps.println(&quot;&lt;!ELEMENT gene EMPTY&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L61">		ps.println(&quot;&lt;!ATTLIST gene length CDATA #REQUIRED&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L62">		ps.println(&quot;&lt;!ATTLIST gene theta CDATA #REQUIRED&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L63">		ps.println(&quot;&lt;!ATTLIST gene color (red|green|blue|cyan|yellow|gray|white) #REQUIRED&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L64">		ps.println(&quot;]&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L65">		ps.println(&quot;&lt;genetic_code symmetry=\&quot;&quot;+Integer.toString(geneticCode.getSymmetry())+ //$NON-NLS-1$</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">				&quot;\&quot; mirror=\&quot;&quot;+(geneticCode.getMirror()==0?&quot;no&quot;:&quot;yes&quot;)+ //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">				&quot;\&quot; disperse=\&quot;&quot;+(geneticCode.getDisperseChildren()?&quot;yes&quot;:&quot;no&quot;)+  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$</span>
+<span class="fc" id="L68">				&quot;\&quot;&gt;&quot;); //$NON-NLS-1$</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">		for (int i=0; i&lt;geneticCode.getNGenes(); i++)</span>
+<span class="nc" id="L70">			writeGene(ps,geneticCode.getGene(i));</span>
+<span class="fc" id="L71">		ps.println(&quot;&lt;/genetic_code&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L72">	}</span>
+	
+	public static void writeGene(PrintStream ps, Gene gene) {
+<span class="fc" id="L75">		ps.println(&quot;\t&lt;gene length=\&quot;&quot;+Double.toString(gene.getLength())+&quot;\&quot; theta=\&quot;&quot;+ //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L76">				Double.toString(gene.getTheta())+&quot;\&quot; color=\&quot;&quot;+ //$NON-NLS-1$</span>
+<span class="fc" id="L77">				colorToString(gene.getColor())+&quot;\&quot; /&gt;&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L78">	}</span>
+	
+	public GeneticCode parseGeneticCode(File f) throws SAXException, IOException {
+		int symmetry, mirror;
+		boolean disperse;
+<span class="nc" id="L83">		List&lt;Gene&gt; genes = new ArrayList&lt;Gene&gt;();</span>
+		String s;
+<span class="nc" id="L85">		doc = builder.parse(f);</span>
+<span class="nc" id="L86">		Element geneticCode = doc.getDocumentElement();</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">		if (geneticCode.getNodeName().equals(&quot;genetic_code&quot;)) { //$NON-NLS-1$</span>
+<span class="nc" id="L88">			s = geneticCode.getAttribute(&quot;symmetry&quot;); //$NON-NLS-1$</span>
+			try {
+<span class="nc" id="L90">				symmetry = Integer.parseInt(s); //$NON-NLS-1$</span>
+<span class="nc" id="L91">			} catch (NumberFormatException e) {</span>
+<span class="nc" id="L92">				throw new SAXException(&quot;Symmetry has not an allowed value.&quot;); //$NON-NLS-1$</span>
+			}
+<span class="nc bnc" id="L94" title="All 4 branches missed.">			if (symmetry&lt;1 || symmetry&gt;8)</span>
+<span class="nc" id="L95">				throw new SAXException(&quot;Symmetry has not an allowed value.&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L96">			s = geneticCode.getAttribute(&quot;mirror&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">			if (s.equals(&quot;yes&quot;)) //$NON-NLS-1$</span>
+<span class="nc" id="L98">				mirror = 1;</span>
+			else
+<span class="nc bnc" id="L100" title="All 2 branches missed.">				if (s.equals(&quot;no&quot;)) //$NON-NLS-1$</span>
+<span class="nc" id="L101">					mirror = 0;</span>
+				else
+<span class="nc" id="L103">					throw new SAXException(&quot;Mirror has not an allowed value.&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L104">			s = geneticCode.getAttribute(&quot;disperse&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">			if (s.equals(&quot;yes&quot;)) //$NON-NLS-1$</span>
+<span class="nc" id="L106">				disperse = true;</span>
+			else
+<span class="nc bnc" id="L108" title="All 2 branches missed.">				if (s.equals(&quot;no&quot;)) //$NON-NLS-1$</span>
+<span class="nc" id="L109">					disperse = false;</span>
+				else
+<span class="nc" id="L111">					throw new SAXException(&quot;Disperse has not an allowed value.&quot;); //$NON-NLS-1$</span>
+			
+<span class="nc" id="L113">			Node gene = geneticCode.getFirstChild();</span>
+<span class="nc" id="L114">			gene = getNextElement(gene);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">			while (gene != null) {</span>
+<span class="nc" id="L116">				genes.add(parseGene((Element)gene));</span>
+<span class="nc" id="L117">				gene = getNextElement(gene.getNextSibling());</span>
+			}
+<span class="nc" id="L119">			return new GeneticCode(genes, symmetry, mirror, disperse);</span>
+		}
+<span class="nc" id="L121">		throw new SAXException(&quot;This file does not contain a genetic_code.&quot;); //$NON-NLS-1$</span>
+	}
+	
+	private static Node getNextElement(Node n) {
+<span class="nc bnc" id="L125" title="All 4 branches missed.">		while (n != null &amp;&amp; n.getNodeType() != Node.ELEMENT_NODE) </span>
+<span class="nc" id="L126">			n = n.getNextSibling();</span>
+<span class="nc" id="L127">		return n;</span>
+	}
+	
+	public Gene parseGene(Element gene) throws SAXException {
+		double length, theta;
+		Color color;
+<span class="nc bnc" id="L133" title="All 2 branches missed.">		if (gene.getNodeName().equals(&quot;gene&quot;)) { //$NON-NLS-1$</span>
+			try {
+<span class="nc" id="L135">				length = Double.parseDouble(gene.getAttribute(&quot;length&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L136">				theta = Double.parseDouble(gene.getAttribute(&quot;theta&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L137">			} catch (NumberFormatException e) {</span>
+<span class="nc" id="L138">				throw new SAXException(&quot;Attributes length and theta do not exist or have not an allowed value.&quot;); //$NON-NLS-1$</span>
+			}
+			try {
+<span class="nc" id="L141">				color = stringToColor(gene.getAttribute(&quot;color&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L142">			} catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L143">				throw new SAXException(&quot;Attribute color does not exist or has not an allowed value.&quot;); //$NON-NLS-1$</span>
+			}
+<span class="nc" id="L145">			return new Gene(length,theta,color);</span>
+		}
+<span class="nc" id="L147">		throw new SAXException(&quot;Parse error. &quot;+gene.getNodeName()+&quot; found but gene expected.&quot;);  //$NON-NLS-1$//$NON-NLS-2$</span>
+	}
+	
+	private static Color stringToColor(String s) throws IllegalArgumentException {
+<span class="nc bnc" id="L151" title="All 2 branches missed.">		if (s.equals(&quot;green&quot;)) return Color.GREEN; //$NON-NLS-1$</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">		if (s.equals(&quot;red&quot;)) return Color.RED; //$NON-NLS-1$</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">		if (s.equals(&quot;blue&quot;)) return Color.BLUE; //$NON-NLS-1$</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">		if (s.equals(&quot;cyan&quot;)) return Color.CYAN; //$NON-NLS-1$</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">		if (s.equals(&quot;gray&quot;)) return Color.GRAY; //$NON-NLS-1$</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">		if (s.equals(&quot;white&quot;)) return Color.WHITE; //$NON-NLS-1$</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">		if (s.equals(&quot;yellow&quot;)) return Color.YELLOW; //$NON-NLS-1$</span>
+<span class="nc" id="L158">		throw new IllegalArgumentException();</span>
+	}
+	
+	private static String colorToString(Color c) {
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">		if (c.equals(Color.RED)) return &quot;red&quot;; //$NON-NLS-1$</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">		if (c.equals(Color.GREEN)) return &quot;green&quot;; //$NON-NLS-1$</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">		if (c.equals(Color.BLUE)) return &quot;blue&quot;; //$NON-NLS-1$</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">		if (c.equals(Color.CYAN)) return &quot;cyan&quot;; //$NON-NLS-1$</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">		if (c.equals(Color.WHITE)) return &quot;white&quot;; //$NON-NLS-1$</span>
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">		if (c.equals(Color.GRAY)) return &quot;gray&quot;; //$NON-NLS-1$</span>
+<span class="pc bpc" id="L168" title="1 of 2 branches missed.">		if (c.equals(Color.YELLOW)) return &quot;yellow&quot;; //$NON-NLS-1$</span>
+<span class="fc" id="L169">		return &quot;&quot;; //$NON-NLS-1$</span>
+	}
+
+	public void warning(SAXParseException arg0) throws SAXException {
+<span class="fc" id="L173">		throw new SAXException(arg0.getMessage());</span>
+	}
+
+	public void error(SAXParseException arg0) throws SAXException {
+<span class="fc" id="L177">		throw new SAXException(arg0.getMessage());</span>
+	}
+
+	public void fatalError(SAXParseException arg0) throws SAXException {
+<span class="fc" id="L181">		throw new SAXException(arg0.getMessage());</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

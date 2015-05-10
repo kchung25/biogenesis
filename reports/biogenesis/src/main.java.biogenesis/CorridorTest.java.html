@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>CorridorTest.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">CorridorTest.java</span></div><h1>CorridorTest.java</h1><pre class="source lang-java linenums">package main.java.biogenesis;
+
+import java.net.InetAddress;
+import org.junit.*;
+import static org.junit.Assert.*;
+
+/**
+ * The class &lt;code&gt;CorridorTest&lt;/code&gt; contains tests for the class &lt;code&gt;{@link Corridor}&lt;/code&gt;.
+ *
+ * @generatedBy CodePro at 5/9/15 3:16 PM
+ * @author User
+ * @version $Revision: 1.0 $
+ */
+<span class="fc" id="L14">public class CorridorTest {</span>
+	/**
+	 * Run the Organism getTravellingOrganism() method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:16 PM
+	 */
+	@Test
+	public void testGetTravellingOrganism_1()
+		throws Exception {
+<span class="fc" id="L25">		InCorridor fixture = new InCorridor(new World(new VisibleWorld(new MainWindow())));</span>
+<span class="fc" id="L26">		fixture.x = 1;</span>
+<span class="fc" id="L27">		fixture.y = 1;</span>
+<span class="fc" id="L28">		fixture.width = 1;</span>
+<span class="fc" id="L29">		fixture.connection = new Connection(new MainWindow(), InetAddress.getLocalHost(), 1);</span>
+<span class="fc" id="L30">		fixture.travellingOrganism = new Organism(new World(new VisibleWorld(new MainWindow())));</span>
+<span class="fc" id="L31">		fixture.height = 1;</span>
+<span class="fc" id="L32">		fixture.world = new World(new VisibleWorld(new MainWindow()));</span>
+
+<span class="fc" id="L34">		Organism result = fixture.getTravellingOrganism();</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.SecurityException: Cannot write to files while generating test cases
+		//       at com.instantiations.assist.eclipse.junit.CodeProJUnitSecurityManager.checkWrite(CodeProJUnitSecurityManager.java:76)
+		//       at java.io.File.canWrite(Unknown Source)
+		//       at sun.awt.shell.ShellFolder.canWrite(Unknown Source)
+		//       at sun.swing.FilePane.canWrite(Unknown Source)
+		//       at sun.swing.FilePane.doDirectoryChanged(Unknown Source)
+		//       at sun.swing.FilePane.propertyChange(Unknown Source)
+		//       at java.beans.PropertyChangeSupport.fire(Unknown Source)
+		//       at java.beans.PropertyChangeSupport.firePropertyChange(Unknown Source)
+		//       at java.beans.PropertyChangeSupport.firePropertyChange(Unknown Source)
+		//       at java.awt.Component.firePropertyChange(Unknown Source)
+		//       at javax.swing.JFileChooser.setCurrentDirectory(Unknown Source)
+		//       at javax.swing.JFileChooser.&lt;init&gt;(Unknown Source)
+		//       at javax.swing.JFileChooser.&lt;init&gt;(Unknown Source)
+		//       at main.java.biogenesis.MainWindow.&lt;init&gt;(MainWindow.java:41)
+<span class="fc" id="L53">		assertNotNull(result);</span>
+<span class="fc" id="L54">	}</span>
+
+	/**
+	 * Perform pre-test initialization.
+	 *
+	 * @throws Exception
+	 *         if the initialization fails for some reason
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:16 PM
+	 */
+	@Before
+	public void setUp()
+		throws Exception {
+		// add additional set up code here
+<span class="fc" id="L68">	}</span>
+
+	/**
+	 * Perform post-test clean-up.
+	 *
+	 * @throws Exception
+	 *         if the clean-up fails for some reason
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:16 PM
+	 */
+	@After
+	public void tearDown()
+		throws Exception {
+		// Add additional tear down code here
+<span class="fc" id="L82">	}</span>
+
+	/**
+	 * Launch the test.
+	 *
+	 * @param args the command line arguments
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:16 PM
+	 */
+	public static void main(String[] args) {
+<span class="nc" id="L92">		new org.junit.runner.JUnitCore().run(CorridorTest.class);</span>
+<span class="nc" id="L93">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

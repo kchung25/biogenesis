@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>ColorComboBox.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">ColorComboBox.java</span></div><h1>ColorComboBox.java</h1><pre class="source lang-java linenums">package main.java.biogenesis;
+
+import java.awt.Color;
+
+import javax.swing.JComboBox;
+
+public class ColorComboBox extends JComboBox {
+	private static final long serialVersionUID = Utils.VERSION;
+<span class="nc" id="L9">	private static final String[] colorValues = {Messages.getString(&quot;T_RED&quot;),Messages.getString(&quot;T_GREEN&quot;),  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc" id="L10">		Messages.getString(&quot;T_BLUE&quot;),Messages.getString(&quot;T_CYAN&quot;),Messages.getString(&quot;T_WHITE&quot;),  //$NON-NLS-1$ //$NON-NLS-2$//$NON-NLS-3$</span>
+<span class="nc" id="L11">		Messages.getString(&quot;T_GRAY&quot;),Messages.getString(&quot;T_YELLOW&quot;)};  //$NON-NLS-1$//$NON-NLS-2$</span>
+	
+	public ColorComboBox(Color c) {
+<span class="nc" id="L14">		super(colorValues);</span>
+<span class="nc" id="L15">		setSelectedColor(c);</span>
+<span class="nc" id="L16">	}</span>
+	
+	public Color getSelectedColor() {
+<span class="nc bnc" id="L19" title="All 8 branches missed.">		switch (getSelectedIndex()) {</span>
+<span class="nc" id="L20">		case 0: return Color.RED;</span>
+<span class="nc" id="L21">		case 1: return Color.GREEN;</span>
+<span class="nc" id="L22">		case 2: return Color.BLUE;</span>
+<span class="nc" id="L23">		case 3: return Color.CYAN;</span>
+<span class="nc" id="L24">		case 4: return Color.WHITE;</span>
+<span class="nc" id="L25">		case 5: return Color.GRAY;</span>
+<span class="nc" id="L26">		case 6: return Color.YELLOW;</span>
+<span class="nc" id="L27">		default: return Utils.ColorBROWN;</span>
+		}
+	}
+	
+	public void setSelectedColor(Color c) {
+<span class="nc bnc" id="L32" title="All 2 branches missed.">		if (c.equals(Color.RED)) setSelectedIndex(0);</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">		if (c.equals(Color.GREEN)) setSelectedIndex(1);</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">		if (c.equals(Color.BLUE)) setSelectedIndex(2);</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">		if (c.equals(Color.CYAN)) setSelectedIndex(3);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">		if (c.equals(Color.WHITE)) setSelectedIndex(4);</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">		if (c.equals(Color.GRAY)) setSelectedIndex(5);</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">		if (c.equals(Color.YELLOW)) setSelectedIndex(6);</span>
+<span class="nc" id="L39">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

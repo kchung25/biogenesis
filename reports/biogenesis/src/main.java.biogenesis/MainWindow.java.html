@@ -1,0 +1,1060 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>MainWindow.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">MainWindow.java</span></div><h1>MainWindow.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">/* Copyright (C) 2006-2010  Joan Queralt Molina</span>
+ * Copyright (c) 2012 Sebastien Le Callonnec
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import main.java.biogenesis.scripting.ScriptHandler;
+import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.awt.*;
+import java.awt.event.*;
+import java.text.NumberFormat;
+import java.util.*;
+import org.jruby.embed.ScriptingContainer;
+
+public class MainWindow extends JFrame {
+
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+	protected VisibleWorld _visibleWorld;
+	protected World _world;
+<span class="fc" id="L38">	protected boolean _isProcessActive = false;</span>
+	protected transient java.util.Timer _timer;
+<span class="fc" id="L40">	protected transient TimerTask updateTask = null;</span>
+<span class="fc" id="L41">	protected JFileChooser worldChooser = new JFileChooser();</span>
+<span class="fc" id="L42">	protected JFileChooser geneticCodeChooser = new JFileChooser();</span>
+<span class="fc" id="L43">	protected File _gameFile = null;</span>
+	protected JScrollPane scrollPane;
+	protected StdAction newGameAction;
+	protected StartStopAction startStopAction;
+	protected StdAction saveGameAction;
+	protected StdAction increaseCO2Action;
+	protected StdAction decreaseCO2Action;
+	protected StdAction manageConnectionsAction;
+	protected StdAction abortTrackingAction;
+	protected StdAction openGameAction;
+	protected StdAction saveGameAsAction;
+	protected StdAction quitAction;
+	protected StdAction statisticsAction;
+	protected StdAction labAction;
+	protected StdAction killAllAction;
+	protected StdAction disperseAllAction;
+	protected StdAction parametersAction;
+	protected StdAction aboutAction;
+	protected StdAction manualAction;
+	protected StdAction checkLastVersionAction;
+	protected StdAction netConfigAction;
+	protected JMenuItem _menuStartStopGame;
+	protected JMenu _menuGame;
+	protected JMenu _menuWorld;
+	protected JMenu _menuHelp;
+	protected JMenu _menuNet;
+	protected NumberFormat _nf;
+	protected JLabel _statusLabel;
+<span class="fc" id="L71">	protected JToolBar toolBar = new JToolBar(Messages.getString(&quot;T_PROGRAM_NAME&quot;)); //$NON-NLS-1$</span>
+	protected InfoToolbar infoToolbar;
+<span class="fc" id="L73">	private String statusMessage = &quot;&quot;; //$NON-NLS-1$</span>
+<span class="fc" id="L74">	private StringBuilder statusLabelText = new StringBuilder(100);</span>
+<span class="fc" id="L75">	protected Organism _trackedOrganism = null;</span>
+<span class="fc" id="L76">	protected transient NetServerThread serverThread = null;</span>
+<span class="fc" id="L77">	private final ScriptingContainer _scriptingContainer = new ScriptingContainer();</span>
+<span class="fc" id="L78">	private final FamilyTreePanel _familyTree = new FamilyTreePanel();</span>
+<span class="fc" id="L79">	protected StatisticsWindow _statisticsWindow = null;</span>
+	// Count frames to know when to update the info window
+<span class="fc" id="L81">	protected long nFrames = 0;</span>
+	//private ImageIcon imageIcon = new ImageIcon(getClass().getResource(&quot;images/bullet.jpg&quot;)); //$NON-NLS-1$
+
+	public JFileChooser getWorldChooser() {
+<span class="fc" id="L85">		return worldChooser;</span>
+	}
+
+	public JFileChooser getGeneticCodeChooser() {
+<span class="nc" id="L89">		return geneticCodeChooser;</span>
+	}
+
+	public void setStatusMessage(String str) {
+<span class="fc" id="L93">		statusMessage = str;</span>
+<span class="fc" id="L94">		updateStatusLabel();</span>
+<span class="fc" id="L95">	}</span>
+
+	public String getStatusMessage() {
+<span class="fc" id="L98">		return statusMessage;</span>
+	}
+
+	public World getWorld() {
+<span class="fc" id="L102">		return _world;</span>
+	}
+
+	public VisibleWorld getVisibleWorld() {
+<span class="fc" id="L106">		return _visibleWorld;</span>
+	}
+
+	public boolean isProcessActive() {
+<span class="nc" id="L110">		return _isProcessActive;</span>
+	}
+
+	public InfoToolbar getInfoPanel() {
+<span class="fc" id="L114">		return infoToolbar;</span>
+	}
+
+<span class="fc" id="L117">	public MainWindow() {</span>
+<span class="fc" id="L118">		createActions();</span>
+<span class="fc" id="L119">		createMenu();</span>
+<span class="fc" id="L120">		createToolBar();</span>
+<span class="fc" id="L121">		setControls();</span>
+<span class="fc" id="L122">		configureApp();</span>
+<span class="fc" id="L123">		_world = new World(_visibleWorld);</span>
+<span class="fc" id="L124">		createScriptingContainer();</span>
+
+<span class="fc" id="L126">		startApp();</span>
+<span class="fc" id="L127">		_world.genesis();</span>
+<span class="fc" id="L128">		scrollPane.setViewportView(_visibleWorld);</span>
+<span class="fc" id="L129">	}</span>
+
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">		if (args.length &gt; 1) {</span>
+<span class="nc" id="L136">			System.err.println(&quot;java -jar biogenesis.jar [random seed]&quot;);</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">		} else if (args.length == 1) {</span>
+			try {
+<span class="nc" id="L139">				long seed = Long.parseLong(args[0]);</span>
+<span class="nc" id="L140">				Utils.random.setSeed(seed);</span>
+<span class="nc" id="L141">			} catch (NumberFormatException e) {</span>
+<span class="nc" id="L142">				System.err.println(&quot;java -jar biogenesis.jar [random seed]&quot;);</span>
+			}
+		}
+<span class="fc" id="L145">		Utils.readPreferences();</span>
+<span class="fc" id="L146">		new MainWindow();</span>
+<span class="fc" id="L147">	}</span>
+
+	private void createActions() {
+<span class="fc" id="L150">		newGameAction = new NewGameAction(&quot;T_NEW&quot;, &quot;images/menu_new.png&quot;, //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L151">				&quot;T_NEW_WORLD&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L152">		startStopAction = new StartStopAction(&quot;T_RESUME&quot;, &quot;T_PAUSE&quot;, &quot;images/menu_start.png&quot;, //$NON-NLS-1$ //$NON-NLS-2$//$NON-NLS-3$</span>
+<span class="fc" id="L153">				&quot;images/menu_stop.png&quot;, &quot;T_RESUME_PROCESS&quot;, &quot;T_PAUSE_PROCESS&quot;); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$</span>
+<span class="fc" id="L154">		saveGameAction = new SaveGameAction(&quot;T_SAVE&quot;, &quot;images/menu_save.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L155">				&quot;T_SAVE_WORLD&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L156">		increaseCO2Action = new IncreaseCO2Action(&quot;T_INCREASE_CO2&quot;, &quot;images/menu_increase_co2.png&quot;, //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L157">				&quot;T_INCREASE_CO2&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L158">		decreaseCO2Action = new DecreaseCO2Action(&quot;T_DECREASE_CO2&quot;, &quot;images/menu_decrease_co2.png&quot;, //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L159">				&quot;T_DECREASE_CO2&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L160">		manageConnectionsAction = new ManageConnectionsAction(&quot;T_MANAGE_CONNECTIONS&quot;, &quot;images/menu_manage_connections.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L161">				&quot;T_MANAGE_CONNECTIONS&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L162">		abortTrackingAction = new AbortTrackingAction(&quot;T_ABORT_TRACKING&quot;, &quot;images/menu_stop_tracking.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L163">				&quot;T_ABORT_TRACKING&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L164">		openGameAction = new OpenGameAction(&quot;T_OPEN&quot;, null, &quot;T_OPEN_WORLD&quot;);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L165">		saveGameAsAction = new SaveGameAsAction(&quot;T_SAVE_AS&quot;, null, &quot;T_SAVE_WORLD_AS&quot;);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L166">		quitAction = new QuitAction(&quot;T_QUIT&quot;, null, &quot;T_QUIT_PROGRAM&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L167">		statisticsAction = new StatisticsAction(&quot;T_STATISTICS&quot;, null, &quot;T_WORLD_STATISTICS&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L168">		labAction = new LabAction(&quot;T_GENETIC_LABORATORY&quot;, null, &quot;T_GENETIC_LABORATORY&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L169">		killAllAction = new KillAllAction(&quot;T_KILL_ALL&quot;, null, &quot;T_KILL_ALL_ORGANISMS&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L170">		disperseAllAction = new DisperseAllAction(&quot;T_DISPERSE_ALL&quot;, null, &quot;T_DISPERSE_ALL_DEAD_ORGANISMS&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L171">		parametersAction = new ParametersAction(&quot;T_PARAMETERS&quot;, null, &quot;T_EDIT_PARAMETERS&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L172">		aboutAction = new AboutAction(&quot;T_ABOUT&quot;, null, &quot;T_ABOUT&quot;);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L173">		manualAction = new ManualAction(&quot;T_USER_MANUAL&quot;, null, &quot;T_USER_MANUAL&quot;);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L174">		checkLastVersionAction = new CheckLastVersionAction(&quot;T_CHECK_LAST_VERSION&quot;, null, &quot;T_CHECK_LAST_VERSION&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L175">		netConfigAction = new NetConfigAction(&quot;T_CONFIGURE_NETWORK&quot;, null, &quot;T_CONFIGURE_NETWORK&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L176">	}</span>
+
+	public void createToolBar() {
+<span class="fc" id="L179">		toolBar.removeAll();</span>
+<span class="fc" id="L180">		toolBar.add(newGameAction);</span>
+<span class="fc" id="L181">		toolBar.add(startStopAction);</span>
+<span class="fc" id="L182">		toolBar.add(saveGameAction);</span>
+<span class="fc" id="L183">		toolBar.add(increaseCO2Action);</span>
+<span class="fc" id="L184">		toolBar.add(decreaseCO2Action);</span>
+<span class="fc" id="L185">		toolBar.add(manageConnectionsAction);</span>
+<span class="fc" id="L186">		toolBar.add(abortTrackingAction);</span>
+<span class="pc bpc" id="L187" title="1 of 2 branches missed.">		abortTrackingAction.setEnabled(_trackedOrganism != null);</span>
+<span class="fc" id="L188">		toolBar.invalidate();</span>
+<span class="fc" id="L189">		toolBar.repaint();</span>
+<span class="fc" id="L190">	}</span>
+
+	private void createMenu() {
+		JMenuItem menuItem;
+<span class="fc" id="L194">		JMenuBar menuBar = new JMenuBar();</span>
+<span class="fc" id="L195">		_menuGame = new JMenu(Messages.getString(&quot;T_GAME&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L196">		_menuGame.setMnemonic(Messages.getMnemonic(&quot;T_GAME&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="fc" id="L197">		menuBar.add(_menuGame);</span>
+<span class="fc" id="L198">		menuItem = new JMenuItem(newGameAction);</span>
+<span class="fc" id="L199">		menuItem.setIcon(null);</span>
+<span class="fc" id="L200">		_menuGame.add(menuItem);</span>
+<span class="fc" id="L201">		_menuStartStopGame = new JMenuItem(startStopAction);</span>
+<span class="fc" id="L202">		_menuStartStopGame.setIcon(null);</span>
+<span class="fc" id="L203">		_menuGame.add(_menuStartStopGame);</span>
+<span class="fc" id="L204">		_menuGame.add(new JMenuItem(openGameAction));</span>
+<span class="fc" id="L205">		menuItem = new JMenuItem(saveGameAction);</span>
+<span class="fc" id="L206">		menuItem.setIcon(null);</span>
+<span class="fc" id="L207">		_menuGame.add(menuItem);</span>
+<span class="fc" id="L208">		_menuGame.add(new JMenuItem(saveGameAsAction));</span>
+<span class="fc" id="L209">		_menuGame.add(new JMenuItem(quitAction));</span>
+<span class="fc" id="L210">		_menuWorld = new JMenu(Messages.getString(&quot;T_WORLD&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L211">		_menuWorld.setMnemonic(Messages.getMnemonic(&quot;T_WORLD&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="fc" id="L212">		menuBar.add(_menuWorld);</span>
+<span class="fc" id="L213">		_menuWorld.add(new JMenuItem(statisticsAction));</span>
+<span class="fc" id="L214">		_menuWorld.add(new JMenuItem(labAction));</span>
+<span class="fc" id="L215">		menuItem = new JMenuItem(increaseCO2Action);</span>
+<span class="fc" id="L216">		menuItem.setIcon(null);</span>
+<span class="fc" id="L217">		_menuWorld.add(menuItem);</span>
+<span class="fc" id="L218">		menuItem = new JMenuItem(decreaseCO2Action);</span>
+<span class="fc" id="L219">		menuItem.setIcon(null);</span>
+<span class="fc" id="L220">		_menuWorld.add(menuItem);</span>
+<span class="fc" id="L221">		_menuWorld.add(new JMenuItem(killAllAction));</span>
+<span class="fc" id="L222">		_menuWorld.add(new JMenuItem(disperseAllAction));</span>
+<span class="fc" id="L223">		_menuWorld.add(new JMenuItem(parametersAction));</span>
+<span class="fc" id="L224">		_menuNet = new JMenu(Messages.getString(&quot;T_NETWORK&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L225">		_menuNet.setMnemonic(Messages.getMnemonic(&quot;T_NETWORK&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="fc" id="L226">		menuBar.add(_menuNet);</span>
+<span class="fc" id="L227">		_menuNet.add(new JMenuItem(netConfigAction));</span>
+<span class="fc" id="L228">		menuItem = new JMenuItem(manageConnectionsAction);</span>
+<span class="fc" id="L229">		menuItem.setIcon(null);</span>
+<span class="fc" id="L230">		_menuNet.add(menuItem);</span>
+<span class="fc" id="L231">		_menuHelp = new JMenu(Messages.getString(&quot;T_HELP&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L232">		_menuHelp.setMnemonic(Messages.getMnemonic(&quot;T_HELP&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="fc" id="L233">		menuBar.add(_menuHelp);</span>
+<span class="fc" id="L234">		_menuHelp.add(new JMenuItem(manualAction));</span>
+<span class="fc" id="L235">		_menuHelp.add(new JMenuItem(checkLastVersionAction));</span>
+<span class="fc" id="L236">		_menuHelp.add(new JMenuItem(aboutAction));</span>
+
+		// Only enable file management menu options if at least there is 
+		//permission to read user's home directory
+<span class="fc" id="L240">		SecurityManager sec = System.getSecurityManager();</span>
+		try {
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">			if (sec != null) {</span>
+<span class="nc" id="L243">				sec.checkPropertyAccess(&quot;user.home&quot;); //$NON-NLS-1$</span>
+			}
+<span class="nc" id="L245">		} catch (SecurityException ex) {</span>
+<span class="nc" id="L246">			openGameAction.setEnabled(false);</span>
+<span class="nc" id="L247">			saveGameAsAction.setEnabled(false);</span>
+<span class="nc" id="L248">			saveGameAction.setEnabled(false);</span>
+<span class="nc" id="L249">			manualAction.setEnabled(false);</span>
+<span class="nc" id="L250">			netConfigAction.setEnabled(false);</span>
+<span class="nc" id="L251">			manageConnectionsAction.setEnabled(false);</span>
+		}
+<span class="fc" id="L253">		setJMenuBar(menuBar);</span>
+<span class="fc" id="L254">	}</span>
+
+	protected void checkLastVersion() {
+<span class="nc" id="L257">		CheckVersionThread thread = new CheckVersionThread(this);</span>
+<span class="nc" id="L258">		thread.start();</span>
+<span class="nc" id="L259">	}</span>
+
+	protected void netConfig() {
+<span class="nc" id="L262">		new NetConfigWindow(this);</span>
+<span class="nc" id="L263">	}</span>
+
+	public void setAcceptConnections(boolean newAcceptConnections) {
+<span class="nc bnc" id="L266" title="All 2 branches missed.">		if (newAcceptConnections != Utils.ACCEPT_CONNECTIONS) {</span>
+<span class="nc" id="L267">			Utils.ACCEPT_CONNECTIONS = newAcceptConnections;</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">			if (newAcceptConnections) {</span>
+<span class="nc" id="L269">				startServer();</span>
+<span class="nc" id="L270">			} else {</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">				if (serverThread.getConnections().isEmpty()) {</span>
+<span class="nc" id="L272">					stopServer();</span>
+				}
+			}
+		}
+<span class="nc" id="L276">	}</span>
+
+	public boolean isAcceptingConnections() {
+<span class="fc" id="L279">		return Utils.ACCEPT_CONNECTIONS;</span>
+	}
+
+	public NetServerThread getNetServer() {
+<span class="nc" id="L283">		return serverThread;</span>
+	}
+
+	public NetServerThread startServer() {
+<span class="nc bnc" id="L287" title="All 4 branches missed.">		if (serverThread == null || !serverThread.isActive()) {</span>
+<span class="nc" id="L288">			serverThread = new NetServerThread(this);</span>
+<span class="nc" id="L289">			serverThread.start();</span>
+		}
+<span class="nc" id="L291">		return serverThread;</span>
+	}
+
+	public void stopServer() {
+<span class="nc bnc" id="L295" title="All 2 branches missed.">		if (serverThread != null) {</span>
+<span class="nc" id="L296">			serverThread.closeServer();</span>
+		}
+<span class="nc" id="L298">	}</span>
+
+	private void createScriptingContainer() {
+<span class="fc" id="L301">		_scriptingContainer.put(&quot;world&quot;, _world);</span>
+<span class="fc" id="L302">		_scriptingContainer.put(&quot;window&quot;, this);</span>
+<span class="fc" id="L303">	}</span>
+
+	class NewGameAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L309">		public NewGameAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L310">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L311">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="fc" id="L315">			_trackedOrganism = null;</span>
+<span class="fc" id="L316">			_world.genesis();</span>
+<span class="fc" id="L317">			scrollPane.setViewportView(_visibleWorld);</span>
+<span class="fc" id="L318">			_isProcessActive = true;</span>
+<span class="fc" id="L319">			startStopAction.setActive(true);</span>
+<span class="fc" id="L320">			_menuStartStopGame.setIcon(null);</span>
+<span class="fc" id="L321">			setStatusMessage(Messages.getString(&quot;T_NEW_WORLD_CREATED&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L322">		}</span>
+	}
+
+	class StartStopAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+		protected String name2;
+		protected String description2;
+		protected Integer mnemonic2;
+		protected ImageIcon icon2;
+		protected String name2_key;
+		protected String desc2_key;
+		protected boolean active;
+
+		public StartStopAction(String text1, String text2, String icon_path1,
+<span class="fc" id="L337">				String icon_path2, String desc1, String desc2) {</span>
+<span class="fc" id="L338">			super(text1, icon_path1, desc1);</span>
+<span class="fc" id="L339">			name2 = Messages.getString(text2);</span>
+<span class="fc" id="L340">			description2 = Messages.getString(desc2);</span>
+<span class="fc" id="L341">			icon2 = createIcon(icon_path2);</span>
+<span class="fc" id="L342">			mnemonic2 = Messages.getMnemonic(text2);</span>
+<span class="fc" id="L343">			name2_key = text2;</span>
+<span class="fc" id="L344">			desc2_key = desc2;</span>
+<span class="fc" id="L345">			active = false;</span>
+
+<span class="fc" id="L347">			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(Messages.getString(&quot;T_PAUSE_ACCELERATOR&quot;)));</span>
+<span class="fc" id="L348">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="pc bpc" id="L352" title="1 of 2 branches missed.">			if (_isProcessActive) {</span>
+<span class="nc" id="L353">				pauseGame();</span>
+<span class="nc" id="L354">			} else {</span>
+<span class="fc" id="L355">				playGame();</span>
+			}
+<span class="fc" id="L357">		}</span>
+
+		public void toggle() {
+			String aux;
+			ImageIcon auxicon;
+			Integer auxmnemonic;
+<span class="fc" id="L363">			aux = (String) getValue(NAME);</span>
+<span class="fc" id="L364">			putValue(NAME, name2);</span>
+<span class="fc" id="L365">			name2 = aux;</span>
+<span class="fc" id="L366">			aux = (String) getValue(SHORT_DESCRIPTION);</span>
+<span class="fc" id="L367">			putValue(SHORT_DESCRIPTION, description2);</span>
+<span class="fc" id="L368">			description2 = aux;</span>
+<span class="fc" id="L369">			auxicon = (ImageIcon) getValue(SMALL_ICON);</span>
+<span class="fc" id="L370">			putValue(SMALL_ICON, icon2);</span>
+<span class="fc" id="L371">			icon2 = auxicon;</span>
+<span class="fc" id="L372">			auxmnemonic = (Integer) getValue(MNEMONIC_KEY);</span>
+<span class="fc" id="L373">			putValue(MNEMONIC_KEY, mnemonic2);</span>
+<span class="fc" id="L374">			mnemonic2 = auxmnemonic;</span>
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">			active = !active;</span>
+<span class="fc" id="L376">		}</span>
+
+		@Override
+		public void changeLocale() {
+<span class="nc" id="L380">			super.changeLocale();</span>
+<span class="nc" id="L381">			name2 = Messages.getString(name2_key);</span>
+<span class="nc" id="L382">			description2 = Messages.getString(desc2_key);</span>
+<span class="nc" id="L383">			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(Messages.getString(&quot;T_PAUSE_ACCELERATOR&quot;)));</span>
+<span class="nc" id="L384">		}</span>
+
+		public void setActive(boolean newState) {
+<span class="pc bpc" id="L387" title="1 of 2 branches missed.">			if (newState != active) {</span>
+<span class="fc" id="L388">				toggle();</span>
+<span class="fc" id="L389">				active = newState;</span>
+			}
+<span class="fc" id="L391">		}</span>
+
+		public boolean isActive() {
+<span class="nc" id="L394">			return active;</span>
+		}
+	}
+
+	class SaveGameAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L402">		public SaveGameAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L403">			super(text, icon_path, desc);</span>
+<span class="fc" id="L404">			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(Messages.getString(&quot;T_SAVE_ACCELERATOR&quot;)));</span>
+<span class="fc" id="L405">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="pc bpc" id="L409" title="1 of 2 branches missed.">			if (_gameFile != null) {</span>
+<span class="nc" id="L410">				saveObject(_world, _gameFile);</span>
+<span class="nc" id="L411">			} else {</span>
+<span class="fc" id="L412">				saveGameAs();</span>
+			}
+<span class="fc" id="L414">		}</span>
+
+		@Override
+		public void changeLocale() {
+<span class="nc" id="L418">			super.changeLocale();</span>
+<span class="nc" id="L419">			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(Messages.getString(&quot;T_SAVE_ACCELERATOR&quot;)));</span>
+<span class="nc" id="L420">		}</span>
+	}
+
+	class IncreaseCO2Action extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L427">		public IncreaseCO2Action(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L428">			super(text, icon_path, desc);</span>
+<span class="fc" id="L429">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L433">			_world.addCO2(500);</span>
+<span class="nc" id="L434">		}</span>
+	}
+
+	class DecreaseCO2Action extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L441">		public DecreaseCO2Action(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L442">			super(text, icon_path, desc);</span>
+<span class="fc" id="L443">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L447">			_world.decreaseCO2(500);</span>
+<span class="nc" id="L448">		}</span>
+	}
+
+	class ManageConnectionsAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L455">		public ManageConnectionsAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L456">			super(text, icon_path, desc);</span>
+<span class="fc" id="L457">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L461">			netConnectionsWindow();</span>
+<span class="nc" id="L462">		}</span>
+	}
+
+	class AbortTrackingAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L469">		public AbortTrackingAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L470">			super(text, icon_path, desc);</span>
+<span class="fc" id="L471">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L475">			setTrackedOrganism(null);</span>
+<span class="nc" id="L476">		}</span>
+	}
+
+	class OpenGameAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L483">		public OpenGameAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L484">			super(text, icon_path, desc);</span>
+<span class="fc" id="L485">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L488">			boolean processState = _isProcessActive;</span>
+<span class="nc" id="L489">			_isProcessActive = false;</span>
+			try {
+<span class="nc" id="L491">				int returnVal = getWorldChooser().showOpenDialog(null);</span>
+<span class="nc bnc" id="L492" title="All 2 branches missed.">				if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+					// Elimina les finestres antigues
+<span class="nc bnc" id="L494" title="All 2 branches missed.">					if (_statisticsWindow != null) {</span>
+<span class="nc" id="L495">						_statisticsWindow.dispose();</span>
+<span class="nc" id="L496">						_statisticsWindow = null;</span>
+					}
+					//_world.clean();
+					ObjectInputStream inputStream;
+					try {
+<span class="nc" id="L501">						File f = getWorldChooser().getSelectedFile();</span>
+<span class="nc" id="L502">						FileInputStream fileStream = new FileInputStream(f);</span>
+<span class="nc" id="L503">						inputStream = new ObjectInputStream(fileStream);</span>
+<span class="nc" id="L504">						_world = (World) inputStream.readObject();</span>
+<span class="nc" id="L505">						inputStream.close();</span>
+<span class="nc" id="L506">						_gameFile = f;</span>
+<span class="nc" id="L507">						_trackedOrganism = null;</span>
+<span class="nc" id="L508">						processState = true;</span>
+<span class="nc" id="L509">						setStatusMessage(Messages.getString(&quot;T_WORLD_LOADED_SUCCESSFULLY&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L510">					} catch (IOException ex) {</span>
+<span class="nc" id="L511">						System.err.println(ex.getMessage());</span>
+<span class="nc" id="L512">						JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_CANT_READ_FILE&quot;), Messages.getString(&quot;T_READ_ERROR&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L513">					} catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L514">						System.err.println(ex.getMessage());</span>
+<span class="nc" id="L515">						JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_WRONG_FILE_TYPE&quot;), Messages.getString(&quot;T_READ_ERROR&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L516">					} catch (ClassCastException ex) {</span>
+<span class="nc" id="L517">						System.err.println(ex.getMessage());</span>
+<span class="nc" id="L518">						JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_WRONG_FILE_VERSION&quot;), Messages.getString(&quot;T_READ_ERROR&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+					}
+					// Torna a assignar els valors dels camps no guardats a l'objecte world
+<span class="nc" id="L521">					_world.init(_visibleWorld);</span>
+<span class="nc" id="L522">					scrollPane.setViewportView(_visibleWorld);</span>
+					// Assegurem que s'ha dibuixat el mï¿½n
+<span class="nc" id="L524">					_visibleWorld.repaint();</span>
+				}
+<span class="nc" id="L526">			} catch (SecurityException ex) {</span>
+<span class="nc" id="L527">				System.err.println(ex.getMessage());</span>
+<span class="nc" id="L528">				JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_PERMISSION_DENIED&quot;), Messages.getString(&quot;T_PERMISSION_DENIED&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+			}
+<span class="nc" id="L530">			_isProcessActive = processState;</span>
+<span class="nc" id="L531">		}</span>
+	}
+
+	class SaveGameAsAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L538">		public SaveGameAsAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L539">			super(text, icon_path, desc);</span>
+<span class="fc" id="L540">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L543">			saveGameAs();</span>
+<span class="nc" id="L544">		}</span>
+	}
+
+	class QuitAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L551">		public QuitAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L552">			super(text, icon_path, desc);</span>
+<span class="fc" id="L553">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L556">			quit();</span>
+<span class="nc" id="L557">		}</span>
+	}
+
+	public void quit() {
+<span class="nc" id="L561">		int save = JOptionPane.showConfirmDialog(this, Messages.getString(&quot;T_SAVE_BEFORE_QUIT&quot;), //$NON-NLS-1$</span>
+<span class="nc" id="L562">				Messages.getString(&quot;T_SAVE_WORLD&quot;), JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE); //$NON-NLS-1$</span>
+
+<span class="nc bnc" id="L564" title="All 2 branches missed.">		if (save != JOptionPane.CANCEL_OPTION) {</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">			if (save == JOptionPane.YES_OPTION) {</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">				if (_gameFile != null) {</span>
+<span class="nc" id="L567">					saveObject(_world, _gameFile);</span>
+<span class="nc bnc" id="L568" title="All 2 branches missed.">				} else if (saveGameAs() == null) {</span>
+<span class="nc" id="L569">					return;</span>
+				}
+			}
+<span class="nc" id="L572">			Utils.quitProgram(this);</span>
+<span class="nc bnc" id="L573" title="All 2 branches missed.">			if (serverThread != null) {</span>
+<span class="nc" id="L574">				serverThread.closeServer();</span>
+			}
+			try {
+<span class="nc" id="L577">				System.exit(0);</span>
+<span class="nc" id="L578">			} catch (SecurityException ex) {</span>
+<span class="nc" id="L579">				dispose();</span>
+			}
+		}
+<span class="nc" id="L582">	}</span>
+
+	class StatisticsAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L588">		public StatisticsAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L589">			super(text, icon_path, desc);</span>
+<span class="fc" id="L590">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc bnc" id="L593" title="All 2 branches missed.">			if (_statisticsWindow != null) {</span>
+<span class="nc" id="L594">				_statisticsWindow.dispose();</span>
+			}
+<span class="nc" id="L596">			_statisticsWindow = _world.createStatisticsWindow();</span>
+<span class="nc" id="L597">			_world.addObserver(_statisticsWindow);</span>
+<span class="nc" id="L598">		}</span>
+	}
+
+	class LabAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L605">		public LabAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L606">			super(text, icon_path, desc);</span>
+<span class="fc" id="L607">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L610">			new LabWindow(MainWindow.this);</span>
+<span class="nc" id="L611">		}</span>
+	}
+
+	class KillAllAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L618">		public KillAllAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L619">			super(text, icon_path, desc);</span>
+<span class="fc" id="L620">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L623">			_world.killAll();</span>
+<span class="nc" id="L624">		}</span>
+	}
+
+	class DisperseAllAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L631">		public DisperseAllAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L632">			super(text, icon_path, desc);</span>
+<span class="fc" id="L633">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L636">			_world.disperseAll();</span>
+<span class="nc" id="L637">		}</span>
+	}
+
+	class ParametersAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L644">		public ParametersAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L645">			super(text, icon_path, desc);</span>
+<span class="fc" id="L646">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L649">			paramDialog();</span>
+<span class="nc" id="L650">		}</span>
+	}
+
+	class ManualAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L657">		public ManualAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L658">			super(text, icon_path, desc);</span>
+<span class="fc" id="L659">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L662">			BareBonesBrowserLaunch.openURL(&quot;http://biogenesis.sourceforge.net/manual.php.&quot; + Messages.getLanguage()); //$NON-NLS-1$</span>
+<span class="nc" id="L663">		}</span>
+	}
+
+	class CheckLastVersionAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L670">		public CheckLastVersionAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L671">			super(text, icon_path, desc);</span>
+<span class="fc" id="L672">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L675">			checkLastVersion();</span>
+<span class="nc" id="L676">		}</span>
+	}
+
+	class AboutAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L683">		public AboutAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L684">			super(text, icon_path, desc);</span>
+<span class="fc" id="L685">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L688">			about();</span>
+<span class="nc" id="L689">		}</span>
+	}
+
+	class NetConfigAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L696">		public NetConfigAction(String text, String icon_path, String desc) {</span>
+<span class="fc" id="L697">			super(text, icon_path, desc);</span>
+<span class="fc" id="L698">		}</span>
+
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L701">			netConfig();</span>
+<span class="nc" id="L702">		}</span>
+	}
+
+	protected void paramDialog() {
+<span class="nc" id="L706">		new ParamDialog(this);</span>
+<span class="nc" id="L707">	}</span>
+
+	public void setTrackedOrganism(Organism org) {
+<span class="nc" id="L710">		_trackedOrganism = org;</span>
+<span class="nc bnc" id="L711" title="All 2 branches missed.">		abortTrackingAction.setEnabled(_trackedOrganism != null);</span>
+<span class="nc" id="L712">	}</span>
+
+	protected void netConnectionsWindow() {
+<span class="nc" id="L715">		new NetConnectionsWindow(this);</span>
+<span class="nc" id="L716">	}</span>
+
+	public void pauseGame() {
+<span class="nc" id="L719">		_isProcessActive = false;</span>
+<span class="nc" id="L720">		startStopAction.toggle();</span>
+<span class="nc" id="L721">		_menuStartStopGame.setIcon(null);</span>
+<span class="nc" id="L722">		setStatusMessage(Messages.getString(&quot;T_GAME_PAUSED&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L723">	}</span>
+
+	public void playGame() {
+<span class="fc" id="L726">		_isProcessActive = true;</span>
+<span class="fc" id="L727">		startStopAction.toggle();</span>
+<span class="fc" id="L728">		_menuStartStopGame.setIcon(null);</span>
+<span class="fc" id="L729">		setStatusMessage(Messages.getString(&quot;T_GAME_RESUMED&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L730">	}</span>
+
+	protected File saveGameAs() {
+<span class="fc" id="L733">		File savedFile = saveObjectAs(_world);</span>
+<span class="pc bpc" id="L734" title="1 of 2 branches missed.">		if (savedFile != null) {</span>
+<span class="nc" id="L735">			_gameFile = savedFile;</span>
+		}
+<span class="fc" id="L737">		return savedFile;</span>
+	}
+
+	protected void about() {
+<span class="nc" id="L741">		String aboutString = Messages.getString(&quot;T_PROGRAM_NAME&quot;) + &quot;http://biogenesis.sourceforge.net/&quot; //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc" id="L742">				+ Messages.getString(&quot;T_VERSION&quot;) + //$NON-NLS-1$ </span>
+<span class="nc" id="L743">				Messages.getString(&quot;T_COPYRIGHT&quot;) + &quot;joanq@users.sourceforge.net\n&quot; + //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L744">				Messages.getString(&quot;T_ARTWORK_BY&quot;) + &quot; Ananda Daydream, Florian Haag (http://toolbaricons.sourceforge.net/)&quot;;  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc" id="L745">		JOptionPane.showMessageDialog(this, aboutString, Messages.getString(&quot;T_ABOUT&quot;), //$NON-NLS-1$</span>
+<span class="nc" id="L746">				JOptionPane.INFORMATION_MESSAGE);</span>
+<span class="nc" id="L747">	}</span>
+
+	private void setControls() {
+		//setIconImage(imageIcon.getImage());
+<span class="fc" id="L751">		JPanel centralPanel = new JPanel();</span>
+<span class="fc" id="L752">		centralPanel.setLayout(new BorderLayout());</span>
+
+<span class="fc" id="L754">		_visibleWorld = new VisibleWorld(this);</span>
+<span class="fc" id="L755">		scrollPane = new JScrollPane(_visibleWorld);</span>
+<span class="fc" id="L756">		scrollPane.getHorizontalScrollBar().setUnitIncrement(10);</span>
+<span class="fc" id="L757">		scrollPane.getVerticalScrollBar().setUnitIncrement(10);</span>
+<span class="fc" id="L758">		setLocation(Utils.WINDOW_X, Utils.WINDOW_Y);</span>
+<span class="fc" id="L759">		setExtendedState(Utils.WINDOW_STATE);</span>
+<span class="fc" id="L760">		getContentPane().setLayout(new BorderLayout());</span>
+
+<span class="fc" id="L762">		infoToolbar = new InfoToolbar(null, this);</span>
+<span class="fc" id="L763">		centralPanel.add(scrollPane, BorderLayout.CENTER);</span>
+<span class="fc" id="L764">		centralPanel.add(infoToolbar, BorderLayout.SOUTH);</span>
+
+<span class="fc" id="L766">		getContentPane().add(centralPanel, BorderLayout.CENTER);</span>
+<span class="fc" id="L767">		getContentPane().add(_familyTree, BorderLayout.EAST);</span>
+
+<span class="fc" id="L769">		_statusLabel = new JLabel(&quot; &quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L770">		_statusLabel.setBorder(new EtchedBorder());</span>
+<span class="fc" id="L771">		_nf = NumberFormat.getInstance();</span>
+<span class="fc" id="L772">		_nf.setMaximumFractionDigits(1);</span>
+<span class="fc" id="L773">		getContentPane().add(_statusLabel, BorderLayout.SOUTH);</span>
+<span class="fc" id="L774">		getContentPane().add(toolBar, BorderLayout.NORTH);</span>
+
+<span class="fc" id="L776">		worldChooser.setFileFilter(new BioFileFilter(BioFileFilter.WORLD_EXTENSION));</span>
+<span class="fc" id="L777">		geneticCodeChooser.setFileFilter(new BioFileFilter(BioFileFilter.GENETIC_CODE_EXTENSION));</span>
+<span class="fc" id="L778">	}</span>
+
+	public File saveObjectAs(Object obj) {
+<span class="fc" id="L781">		File resultFile = null;</span>
+<span class="fc" id="L782">		boolean processState = _isProcessActive;</span>
+<span class="fc" id="L783">		_isProcessActive = false;</span>
+
+		try {
+			JFileChooser chooser;
+<span class="pc bpc" id="L787" title="1 of 2 branches missed.">			if (obj instanceof GeneticCode) {</span>
+<span class="nc" id="L788">				chooser = getGeneticCodeChooser();</span>
+<span class="nc" id="L789">			} else {</span>
+<span class="fc" id="L790">				chooser = getWorldChooser();</span>
+			}
+<span class="fc" id="L792">			int returnVal = chooser.showSaveDialog(null);</span>
+<span class="pc bpc" id="L793" title="1 of 2 branches missed.">			if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L794">				int canWrite = JOptionPane.YES_OPTION;</span>
+<span class="nc" id="L795">				File f = chooser.getSelectedFile();</span>
+<span class="nc" id="L796">				String filename = f.getName();</span>
+<span class="nc bnc" id="L797" title="All 2 branches missed.">				String ext = (filename.lastIndexOf(&quot;.&quot;) == -1) ? &quot;&quot; : filename.substring(filename.lastIndexOf(&quot;.&quot;) + 1, filename.length());</span>
+<span class="nc bnc" id="L798" title="All 2 branches missed.">				if (ext.equals(&quot;&quot;)) {</span>
+<span class="nc" id="L799">					f = new File(f.getAbsolutePath() + &quot;.&quot; + ((BioFileFilter) chooser.getFileFilter()).getValidExtension());</span>
+<span class="nc" id="L800">					chooser.setSelectedFile(f);</span>
+				}
+<span class="nc bnc" id="L802" title="All 2 branches missed.">				if (f.exists()) {</span>
+<span class="nc" id="L803">					canWrite = JOptionPane.showConfirmDialog(null, Messages.getString(&quot;T_CONFIRM_FILE_OVERRIDE&quot;), //$NON-NLS-1$</span>
+<span class="nc" id="L804">							Messages.getString(&quot;T_FILE_EXISTS&quot;), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$</span>
+				}
+<span class="nc bnc" id="L806" title="All 2 branches missed.">				if (canWrite == JOptionPane.YES_OPTION) {</span>
+<span class="nc bnc" id="L807" title="All 2 branches missed.">					if (obj instanceof GeneticCode) {</span>
+						try {
+<span class="nc" id="L809">							BioXMLParser.writeGeneticCode(new PrintStream(f), (GeneticCode) obj);</span>
+<span class="nc" id="L810">							resultFile = f;</span>
+<span class="nc" id="L811">						} catch (FileNotFoundException ex) {</span>
+<span class="nc" id="L812">							System.err.println(ex.getLocalizedMessage());</span>
+						}
+<span class="nc bnc" id="L814" title="All 2 branches missed.">					} else if (saveObject(obj, f)) {</span>
+<span class="nc" id="L815">						resultFile = f;</span>
+					}
+				}
+			}
+<span class="nc" id="L819">		} catch (SecurityException ex) {</span>
+<span class="nc" id="L820">			System.err.println(ex.getMessage());</span>
+<span class="nc" id="L821">			JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_PERMISSION_DENIED&quot;), Messages.getString(&quot;T_PERMISSION_DENIED&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+		}
+<span class="fc" id="L823">		_isProcessActive = processState;</span>
+<span class="fc" id="L824">		return resultFile;</span>
+	}
+
+	public boolean saveObject(Object obj, File f) {
+		ObjectOutputStream outputStream;
+		try {
+<span class="nc" id="L830">			FileOutputStream fileStream = new FileOutputStream(f);</span>
+<span class="nc" id="L831">			outputStream = new ObjectOutputStream(fileStream);</span>
+<span class="nc" id="L832">			outputStream.writeObject(obj);</span>
+<span class="nc" id="L833">			outputStream.close();</span>
+<span class="nc" id="L834">			setStatusMessage(Messages.getString(&quot;T_WRITING_COMPLETED&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L835">			return true;</span>
+<span class="nc" id="L836">		} catch (FileNotFoundException e) {</span>
+<span class="nc" id="L837">			System.err.println(e.getMessage());</span>
+<span class="nc" id="L838">		} catch (IOException e) {</span>
+<span class="nc" id="L839">			System.err.println(e.getMessage());</span>
+<span class="nc" id="L840">		} catch (SecurityException ex) {</span>
+<span class="nc" id="L841">			System.err.println(ex.getMessage());</span>
+<span class="nc" id="L842">			JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_PERMISSION_DENIED&quot;), Messages.getString(&quot;T_PERMISSION_DENIED&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+		}
+<span class="nc" id="L844">		return false;</span>
+	}
+
+	public void configureApp() {
+<span class="fc" id="L848">		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);</span>
+<span class="fc" id="L849">		addWindowListener(new WindowAdapter() {</span>
+			@Override
+			public void windowClosing(WindowEvent e) {
+<span class="nc" id="L852">				quit();</span>
+<span class="nc" id="L853">			}</span>
+		});
+<span class="fc" id="L855">		setTitle(Messages.getString(&quot;T_BIOGENESIS&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L856">		UIManager.put(&quot;OptionPane.yesButtonText&quot;, Messages.getString(&quot;T_YES&quot;));</span>
+<span class="fc" id="L857">		UIManager.put(&quot;OptionPane.noButtonText&quot;, Messages.getString(&quot;T_NO&quot;));</span>
+<span class="fc" id="L858">		UIManager.put(&quot;OptionPane.cancelButtonText&quot;, Messages.getString(&quot;T_CANCEL&quot;));</span>
+<span class="fc" id="L859">	}</span>
+
+	public void updateStatusLabel() {
+<span class="fc" id="L862">		statusLabelText.setLength(0);</span>
+<span class="fc" id="L863">		statusLabelText.append(Messages.getString(&quot;T_FPS&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L864">		statusLabelText.append(getFPS());</span>
+<span class="fc" id="L865">		statusLabelText.append(&quot;     &quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L866">		statusLabelText.append(Messages.getString(&quot;T_TIME&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L867">		statusLabelText.append(_world.getTime());</span>
+<span class="fc" id="L868">		statusLabelText.append(&quot;     &quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L869">		statusLabelText.append(Messages.getString(&quot;T_CURRENT_POPULATION&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L870">		statusLabelText.append(_world.getPopulation());</span>
+<span class="fc" id="L871">		statusLabelText.append(&quot;     &quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L872">		statusLabelText.append(Messages.getString(&quot;T_O2&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L873">		statusLabelText.append(_nf.format(_world.getO2()));</span>
+<span class="fc" id="L874">		statusLabelText.append(&quot;     &quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L875">		statusLabelText.append(Messages.getString(&quot;T_CO2&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L876">		statusLabelText.append(_nf.format(_world.getCO2()));</span>
+<span class="fc" id="L877">		statusLabelText.append(&quot;     &quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L878">		statusLabelText.append(getStatusMessage());</span>
+<span class="fc" id="L879">		_statusLabel.setText(statusLabelText.toString());</span>
+<span class="fc" id="L880">	}</span>
+
+	/**
+	 * Returns the actual Frame Per Second rate of the program.
+	 *
+	 * @return The actual FPS.
+	 */
+	public int getFPS() {
+<span class="fc" id="L888">		return 1000 / currentDelay;</span>
+	}
+<span class="fc" id="L890">	final transient Runnable lifeProcess = new Runnable() {</span>
+		@Override
+		public void run() {
+<span class="fc bfc" id="L893" title="All 2 branches covered.">			if (_isProcessActive) {</span>
+				// executa un torn
+<span class="fc" id="L895">				_world.time();</span>
+<span class="fc" id="L896">				nFrames++;</span>
+<span class="fc bfc" id="L897" title="All 2 branches covered.">				if (nFrames % 20 == 0) {</span>
+<span class="fc" id="L898">					updateStatusLabel();</span>
+				}
+				// dibuixa de nou si cal
+<span class="fc" id="L901">				_world.setPaintingRegion();</span>
+				// tracking
+<span class="pc bpc" id="L903" title="1 of 2 branches missed.">				if (_trackedOrganism != null) {</span>
+<span class="nc bnc" id="L904" title="All 2 branches missed.">					if (!_trackedOrganism.isAlive()) {</span>
+<span class="nc" id="L905">						_trackedOrganism = null;</span>
+<span class="nc" id="L906">						abortTrackingAction.setEnabled(false);</span>
+<span class="nc" id="L907">					} else {</span>
+<span class="nc" id="L908">						JScrollBar bar = scrollPane.getHorizontalScrollBar();</span>
+<span class="nc" id="L909">						bar.setValue(Utils.between(_trackedOrganism._centerX - scrollPane.getWidth() / 2,</span>
+<span class="nc" id="L910">								bar.getValue() - 2 * (int) Utils.MAX_VEL, bar.getValue() + 2 * (int) Utils.MAX_VEL));</span>
+<span class="nc" id="L911">						bar = scrollPane.getVerticalScrollBar();</span>
+<span class="nc" id="L912">						bar.setValue(Utils.between(_trackedOrganism._centerY - scrollPane.getHeight() / 2,</span>
+<span class="nc" id="L913">								bar.getValue() - 2 * (int) Utils.MAX_VEL, bar.getValue() + 2 * (int) Utils.MAX_VEL));</span>
+					}
+				}
+			}
+<span class="fc" id="L917">		}</span>
+	};
+
+	public void startApp() {
+<span class="fc" id="L921">		setResizable(true);</span>
+<span class="fc" id="L922">		setSize(new Dimension(Utils.WINDOW_WIDTH, Utils.WINDOW_HEIGHT));</span>
+<span class="fc" id="L923">		setVisible(true);</span>
+
+<span class="fc" id="L925">		_timer = new java.util.Timer();</span>
+<span class="fc" id="L926">		ScriptHandler handler = new ScriptHandler();</span>
+<span class="fc" id="L927">		handler.runScript(_scriptingContainer);</span>
+
+<span class="fc" id="L929">		startLifeProcess(Utils.DELAY);</span>
+<span class="pc bpc" id="L930" title="1 of 2 branches missed.">		if (isAcceptingConnections()) {</span>
+<span class="nc" id="L931">			startServer();</span>
+		}
+<span class="fc" id="L933">	}</span>
+	/**
+	 * Number of milliseconds between two invocations to the lifeProcess
+	 * invocation. It starts as the user's preference DELAY but is adapted to
+	 * the current situation in the world and the machine speed.
+	 */
+<span class="fc" id="L939">	protected int currentDelay = Utils.DELAY;</span>
+	/**
+	 * If positive, the consecutive number of frames that haven't accomplished
+	 * the expected time contract. If negative, the consecutive number of frame
+	 * that have accomplished the expected time contract. Used to adapt the
+	 * program's speed.
+	 */
+<span class="fc" id="L946">	protected int failedTime = 0;</span>
+	/**
+	 * The moment when the last painting of this visual world started. Used to
+	 * control the program's speed.
+	 */
+	protected long lastPaintTime;
+
+	/**
+	 * starts the life process, using
+	 * &lt;code&gt;delay&lt;/code&gt; between ticks.
+	 *
+	 * @param delay
+	 */
+	public void startLifeProcess(int delay) {
+<span class="fc bfc" id="L960" title="All 2 branches covered.">		if (updateTask != null) {</span>
+<span class="fc" id="L961">			updateTask.cancel();</span>
+		}
+
+<span class="fc" id="L964">		updateTask = new TimerTask() {</span>
+			@Override
+			public void run() {
+				try {
+<span class="fc" id="L968">					EventQueue.invokeAndWait(lifeProcess);</span>
+					/**
+					 * Checks the actual drawing speed and increases or
+					 * decreases the speed of the program in order to keep it
+					 * running smoothly.
+					 */
+<span class="fc" id="L974">					long actualTime = System.currentTimeMillis();</span>
+<span class="pc bpc" id="L975" title="1 of 4 branches missed.">					if (actualTime - lastPaintTime &gt; currentDelay * 1.5 || currentDelay &lt; Utils.DELAY) {</span>
+						// We can't run so fast
+<span class="fc" id="L977">						failedTime = Math.max(failedTime + 1, 0);</span>
+<span class="fc bfc" id="L978" title="All 2 branches covered.">						if (failedTime &gt;= 2) {</span>
+<span class="fc" id="L979">							failedTime = 0;</span>
+<span class="fc" id="L980">							currentDelay *= 1.5;</span>
+<span class="fc" id="L981">							startLifeProcess(currentDelay);</span>
+						}
+<span class="fc" id="L983">					} else {</span>
+<span class="fc bfc" id="L984" title="All 4 branches covered.">						if (actualTime - lastPaintTime &lt; currentDelay * 1.2 &amp;&amp; currentDelay &gt; Utils.DELAY) {</span>
+							// We can run faster
+<span class="fc" id="L986">							failedTime = Math.min(failedTime - 1, 0);</span>
+<span class="pc bpc" id="L987" title="1 of 2 branches missed.">							if (failedTime &lt;= -10) {</span>
+<span class="nc" id="L988">								currentDelay = Math.max(Utils.DELAY, currentDelay - 1);</span>
+<span class="nc" id="L989">								startLifeProcess(currentDelay);</span>
+							}
+<span class="nc" id="L991">						} else // Normal situation: we run at the expected speed</span>
+						{
+<span class="fc" id="L993">							failedTime = 0;</span>
+						}
+					}
+<span class="pc bpc" id="L996" title="1 of 2 branches missed.">					if (currentDelay &gt; 1000) {</span>
+<span class="nc" id="L997">						pauseGame();</span>
+					}
+<span class="fc" id="L999">					lastPaintTime = actualTime;</span>
+<span class="pc" id="L1000">				} catch (InterruptedException e) {</span>
+<span class="nc" id="L1001">					e.printStackTrace();</span>
+<span class="nc" id="L1002">				} catch (InvocationTargetException e) {</span>
+<span class="nc" id="L1003">					e.printStackTrace();</span>
+				}
+<span class="fc" id="L1005">			}</span>
+		};
+<span class="fc" id="L1007">		_timer.schedule(updateTask, delay, delay);</span>
+<span class="fc" id="L1008">	}</span>
+
+	public void displayFamilyTree(final Organism organism) {
+<span class="nc" id="L1011">		_familyTree.display(organism);</span>
+<span class="nc" id="L1012">	}</span>
+
+	public void hideFamilyTree() {
+<span class="fc" id="L1015">		_familyTree.hide();</span>
+<span class="fc" id="L1016">	}</span>
+
+	void updateFamilyTree(final Organism selectedOrganism) {
+<span class="nc bnc" id="L1019" title="All 2 branches missed.">		if (_familyTree.isVisible()) {</span>
+<span class="nc" id="L1020">			displayFamilyTree(selectedOrganism);</span>
+		}
+<span class="nc" id="L1022">	}</span>
+
+	public void changeLocale() {
+<span class="nc" id="L1025">		UIManager.put(&quot;OptionPane.yesButtonText&quot;, Messages.getString(&quot;T_YES&quot;));</span>
+<span class="nc" id="L1026">		UIManager.put(&quot;OptionPane.noButtonText&quot;, Messages.getString(&quot;T_NO&quot;));</span>
+<span class="nc" id="L1027">		UIManager.put(&quot;OptionPane.cancelButtonText&quot;, Messages.getString(&quot;T_CANCEL&quot;));</span>
+<span class="nc" id="L1028">		_menuGame.setText(Messages.getString(&quot;T_GAME&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L1029">		_menuGame.setMnemonic(Messages.getMnemonic(&quot;T_GAME&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="nc" id="L1030">		newGameAction.changeLocale();</span>
+<span class="nc" id="L1031">		startStopAction.changeLocale();</span>
+<span class="nc" id="L1032">		openGameAction.changeLocale();</span>
+<span class="nc" id="L1033">		saveGameAction.changeLocale();</span>
+<span class="nc" id="L1034">		saveGameAsAction.changeLocale();</span>
+<span class="nc" id="L1035">		quitAction.changeLocale();</span>
+<span class="nc" id="L1036">		_menuWorld.setText(Messages.getString(&quot;T_WORLD&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L1037">		_menuWorld.setMnemonic(Messages.getMnemonic(&quot;T_WORLD&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="nc" id="L1038">		statisticsAction.changeLocale();</span>
+<span class="nc" id="L1039">		increaseCO2Action.changeLocale();</span>
+<span class="nc" id="L1040">		decreaseCO2Action.changeLocale();</span>
+<span class="nc" id="L1041">		parametersAction.changeLocale();</span>
+<span class="nc" id="L1042">		labAction.changeLocale();</span>
+<span class="nc" id="L1043">		killAllAction.changeLocale();</span>
+<span class="nc" id="L1044">		disperseAllAction.changeLocale();</span>
+<span class="nc" id="L1045">		_menuHelp.setText(Messages.getString(&quot;T_HELP&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L1046">		_menuHelp.setMnemonic(Messages.getMnemonic(&quot;T_HELP&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="nc" id="L1047">		manualAction.changeLocale();</span>
+<span class="nc" id="L1048">		checkLastVersionAction.changeLocale();</span>
+<span class="nc" id="L1049">		aboutAction.changeLocale();</span>
+<span class="nc" id="L1050">		_menuNet.setText(Messages.getString(&quot;T_NETWORK&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L1051">		_menuNet.setMnemonic(Messages.getMnemonic(&quot;T_NETWORK&quot;).intValue()); //$NON-NLS-1$</span>
+<span class="nc" id="L1052">		netConfigAction.changeLocale();</span>
+<span class="nc" id="L1053">		manageConnectionsAction.changeLocale();</span>
+<span class="nc" id="L1054">		setTitle(Messages.getString(&quot;T_BIOGENESIS&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L1055">		createMenu();</span>
+<span class="nc" id="L1056">		_visibleWorld.changeLocale();</span>
+<span class="nc" id="L1057">		infoToolbar.changeLocale();</span>
+<span class="nc" id="L1058">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

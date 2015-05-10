@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>VisibleWorld.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">VisibleWorld.java</span></div><h1>VisibleWorld.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">/* Copyright (C) 2006-2010  Joan Queralt Molina</span>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import javax.swing.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+import javax.imageio.*;
+
+import org.xml.sax.SAXException;
+
+import java.awt.image.*;
+
+/**
+ * This class is associated with a {@link World} and represents its visible
+ * part: it's the place where organisms are drawn and is in charge of the
+ * context menus management.
+ */
+public class VisibleWorld extends JPanel {
+
+	/**
+	 * The version of this class
+	 */
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+	/**
+	 * A reference to the {@link MainWindow} where the VisibleWorld is.
+	 */
+	protected MainWindow _mainWindow;
+	/**
+	 * The context menu showed when right clicking on an alive organism.
+	 */
+	protected JPopupMenu popupAlive;
+	/**
+	 * Menu option in {@link popupAlive} used to keep an organism on the center
+	 * of the view.
+	 */
+	protected TrackAction trackAction;
+	/**
+	 * Menu option in {@link popupAlive} used to give extra energy to an
+	 * organism.
+	 */
+	protected StdAction feedAction;
+	/**
+	 * Menu option in {@link popupAlive} used to remove energy from an organism.
+	 */
+	protected StdAction weakenAction;
+	/**
+	 * Menu option in {@link popupAlive} used to kill an organism.
+	 */
+	protected StdAction killAction;
+	/**
+	 * Menu option in {@link popupAlive} used to copy an organism genetic code
+	 * to use it to create new organisms or to edit it in the genetic lab.
+	 */
+	protected StdAction copyAction;
+	/**
+	 * Menu option in {@link popupAlive} used to save an image of an organism to
+	 * a jpg file.
+	 */
+	protected StdAction saveImageAction;
+	/**
+	 * Menu option in {@link popupDead} used to give live to a dead organism.
+	 */
+	protected StdAction reviveAction;
+	/**
+	 * Menu option in {@link popupDead} used to return all its carbony back to
+	 * the atmosphere, in form of CO2, and make the corpse disappear.
+	 */
+	protected StdAction disperseAction;
+	/**
+	 * Menu option in {@link popupAlive} used to force the reproduction of the
+	 * organism, even if it dies.
+	 */
+	protected StdAction reproduceAction;
+	/**
+	 * Menu option in {@link popupAlive} used to set the age counter of the
+	 * organism back to 0.
+	 */
+	protected StdAction rejuvenateAction;
+	/**
+	 * Menu option in {@link popupAlive} used to save the genetic code of an
+	 * organism to a file.
+	 */
+	protected StdAction exportAction;
+	/**
+	 * The context menu showed when right clicking on a dead organism.
+	 */
+	protected JPopupMenu popupDead;
+	/**
+	 * The context menu showed when right clicking on a void plave in the world.
+	 */
+	protected JPopupMenu popupVoid;
+	/**
+	 * Menu option in {@link popupVoid} used to create a new organism with the
+	 * genetic code previously copies with the Copy option.
+	 */
+	protected StdAction pasteAction;
+	/**
+	 * Menu option in {@link popupVoid} used to create a new organism randomly.
+	 */
+	protected StdAction randomCreateAction;
+	/**
+	 * Menu option in {@link popupVoid} used to create a new organism with a
+	 * genetic code obtained from a file.
+	 */
+	protected StdAction importAction;
+	/**
+	 * This is the selected organism. It is drawn with an orange bounding
+	 * rectangle and, if there is an {@link InfoWindow}, it shows information
+	 * about this organism.
+	 */
+<span class="fc" id="L132">	protected Organism _selectedOrganism = null;</span>
+	/**
+	 * This is the last genetic code obtained using a Copy option. It is used
+	 * when pasting new organisms or in the genetic lab.
+	 */
+<span class="fc" id="L137">	protected GeneticCode clippedGeneticCode = null;</span>
+	/**
+	 * X coordinate of the mouse pointer when the user clicks or right clicks on
+	 * the visible world.
+	 */
+	protected int mouseX;
+	/**
+	 * Y coordinate of the mouse pointer when the user clicks or right clicks on
+	 * the visible world.
+	 */
+	protected int mouseY;
+
+	/**
+	 * A reference to the {@link InfoWindow}, that is created from this class.
+	 */
+	//transient protected InfoWindow _infoWindow = null;
+	class TrackAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+		protected String name_key2;
+		protected String desc_key2;
+
+<span class="fc" id="L159">		public TrackAction(String text_key, String text_key2, String icon_path, String desc, String desc2) {</span>
+<span class="fc" id="L160">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L161">			name_key2 = text_key2;</span>
+<span class="fc" id="L162">			desc_key2 = desc2;</span>
+<span class="fc" id="L163">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L167">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L168" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">				if (_mainWindow._trackedOrganism == b) {</span>
+<span class="nc" id="L170">					_mainWindow.setTrackedOrganism(null);</span>
+<span class="nc" id="L171">				} else {</span>
+<span class="nc" id="L172">					_mainWindow.setTrackedOrganism(b);</span>
+				}
+			}
+<span class="nc" id="L175">		}</span>
+
+		public void setTracking(boolean isTracking) {
+<span class="nc bnc" id="L178" title="All 2 branches missed.">			if (isTracking) {</span>
+<span class="nc" id="L179">				putValue(NAME, Messages.getString(name_key2));</span>
+<span class="nc" id="L180">				putValue(SHORT_DESCRIPTION, Messages.getString(desc_key2));</span>
+<span class="nc" id="L181">				putValue(MNEMONIC_KEY, Messages.getMnemonic(name_key2));</span>
+<span class="nc" id="L182">			} else {</span>
+<span class="nc" id="L183">				putValue(NAME, Messages.getString(name_key));</span>
+<span class="nc" id="L184">				putValue(SHORT_DESCRIPTION, Messages.getString(desc_key));</span>
+<span class="nc" id="L185">				putValue(MNEMONIC_KEY, Messages.getMnemonic(name_key));</span>
+			}
+<span class="nc" id="L187">		}</span>
+	}
+
+	class FeedAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L194">		public FeedAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L195">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L196">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L200">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L201" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L202">				double q = Math.min(10, _mainWindow.getWorld().getCO2());</span>
+<span class="nc" id="L203">				_mainWindow.getWorld().addCO2(q);</span>
+<span class="nc" id="L204">				b._energy += q;</span>
+<span class="nc" id="L205">				_mainWindow.getWorld().addO2(q);</span>
+			}
+<span class="nc" id="L207">		}</span>
+	}
+
+	class WeakenAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L214">		public WeakenAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L215">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L216">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L220">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L221" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L222">				b.useEnergy(b.getEnergy() / 2);</span>
+			}
+<span class="nc" id="L224">		}</span>
+	}
+
+	class KillAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L231">		public KillAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L232">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L233">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L237">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L238" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L239">				b.die(null);</span>
+			}
+<span class="nc" id="L241">		}</span>
+	}
+
+	class CopyAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L248">		public CopyAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L249">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L250">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L254">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L255" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L256">				clippedGeneticCode = b.getGeneticCode();</span>
+			}
+<span class="nc" id="L258">		}</span>
+	}
+
+	class SaveImageAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L265">		public SaveImageAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L266">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L267">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L271">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L272" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L273">				boolean processState = _mainWindow._isProcessActive;</span>
+				// Stop time while asking for a file name
+<span class="nc" id="L275">				_mainWindow._isProcessActive = false;</span>
+				// Get the image to save
+<span class="nc" id="L277">				BufferedImage image = b.getImage();</span>
+				try {
+					// Ask for file name
+<span class="nc" id="L280">					JFileChooser chooser = new JFileChooser();</span>
+<span class="nc" id="L281">					chooser.setFileFilter(new BioFileFilter(&quot;png&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L282">					int returnVal = chooser.showSaveDialog(null);</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">					if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L284">						int canWrite = JOptionPane.YES_OPTION;</span>
+<span class="nc" id="L285">						File f = chooser.getSelectedFile();</span>
+						// Check if file already exists and ask for confirmation
+<span class="nc bnc" id="L287" title="All 2 branches missed.">						if (f.exists()) {</span>
+<span class="nc" id="L288">							canWrite = JOptionPane.showConfirmDialog(null, Messages.getString(&quot;T_CONFIRM_FILE_OVERRIDE&quot;), //$NON-NLS-1$</span>
+<span class="nc" id="L289">									Messages.getString(&quot;T_FILE_EXISTS&quot;), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$</span>
+						}
+<span class="nc bnc" id="L291" title="All 2 branches missed.">						if (canWrite == JOptionPane.YES_OPTION) {</span>
+							// Write image to file
+							try {
+<span class="nc" id="L294">								ImageIO.write(image, &quot;PNG&quot;, f); //$NON-NLS-1$</span>
+<span class="nc" id="L295">							} catch (FileNotFoundException ex) {</span>
+<span class="nc" id="L296">								System.err.println(ex.getMessage());</span>
+<span class="nc" id="L297">							} catch (IOException ex) {</span>
+<span class="nc" id="L298">								System.err.println(ex.getMessage());</span>
+							}
+						}
+					}
+<span class="nc" id="L302">				} catch (SecurityException ex) {</span>
+<span class="nc" id="L303">					System.err.println(ex.getMessage());</span>
+<span class="nc" id="L304">					JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_PERMISSION_DENIED&quot;), Messages.getString(&quot;T_PERMISSION_DENIED&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+				}
+<span class="nc" id="L306">				_mainWindow._isProcessActive = processState;</span>
+			}
+<span class="nc" id="L308">		}</span>
+	}
+
+	class ReviveAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L315">		public ReviveAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L316">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L317">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L321">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L322" title="All 4 branches missed.">			if (b != null &amp;&amp; !b.isAlive()) {</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">				for (int i = 0; i &lt; b._segments; i++) {</span>
+<span class="nc" id="L324">					b._segColor[i] = b.getGeneticCode().getGene(i % b.getGeneticCode().getNGenes()).getColor();</span>
+				}
+<span class="nc" id="L326">				b.alive = true;</span>
+<span class="nc" id="L327">				b.hasMoved = true;</span>
+<span class="nc" id="L328">				b._age = 0;</span>
+<span class="nc" id="L329">				_mainWindow.getWorld().increasePopulation();</span>
+<span class="nc" id="L330">				showAliveToolbar();</span>
+			}
+<span class="nc" id="L332">		}</span>
+	}
+
+	class DisperseAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L339">		public DisperseAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L340">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L341">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L345">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L346" title="All 4 branches missed.">			if (b != null &amp;&amp; !b.isAlive()) {</span>
+<span class="nc" id="L347">				b.useEnergy(b.getEnergy());</span>
+			}
+<span class="nc" id="L349">		}</span>
+	}
+
+	class ReproduceAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L356">		public ReproduceAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L357">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L358">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L362">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L363" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L364">				b.reproduce();</span>
+			}
+<span class="nc" id="L366">		}</span>
+	}
+
+	class RejuvenateAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L373">		public RejuvenateAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L374">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L375">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L379">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L380" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L381">				b._age = 0;</span>
+			}
+<span class="nc" id="L383">		}</span>
+	}
+
+	class ExportAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L390">		public ExportAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L391">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L392">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L396">			Organism b = getSelectedOrganism();</span>
+<span class="nc bnc" id="L397" title="All 4 branches missed.">			if (b != null &amp;&amp; b.isAlive()) {</span>
+<span class="nc" id="L398">				_mainWindow.saveObjectAs(b.getGeneticCode());</span>
+			}
+<span class="nc" id="L400">		}</span>
+	}
+
+	class PasteAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L407">		public PasteAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L408">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L409">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc bnc" id="L413" title="All 2 branches missed.">			if (clippedGeneticCode != null) {</span>
+<span class="nc" id="L414">				pasteGeneticCode(clippedGeneticCode, mouseX, mouseY);</span>
+			}
+<span class="nc" id="L416">		}</span>
+	}
+
+	class RandomCreateAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L423">		public RandomCreateAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L424">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L425">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L429">			GeneticCode g = new GeneticCode();</span>
+<span class="nc" id="L430">			Organism newBiot = new Organism(_mainWindow.getWorld(), g);</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">			if (newBiot.pasteOrganism(mouseX, mouseY)) {</span>
+<span class="nc" id="L432">				_mainWindow.getWorld().addOrganism(newBiot, null);</span>
+			}
+<span class="nc" id="L434">		}</span>
+	}
+
+	class ImportAction extends StdAction {
+
+		private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L441">		public ImportAction(String text_key, String icon_path, String desc) {</span>
+<span class="fc" id="L442">			super(text_key, icon_path, desc);</span>
+<span class="fc" id="L443">		}</span>
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			GeneticCode g;
+			Organism newBiot;
+<span class="nc" id="L449">			boolean processState = _mainWindow._isProcessActive;</span>
+			// Stop time
+<span class="nc" id="L451">			_mainWindow._isProcessActive = false;</span>
+			try {
+<span class="nc" id="L453">				JFileChooser chooser = _mainWindow.getGeneticCodeChooser();</span>
+<span class="nc" id="L454">				int returnVal = chooser.showOpenDialog(null);</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">				if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+					try {
+						// Read XML code from file
+<span class="nc" id="L458">						BioXMLParser parser = new BioXMLParser();</span>
+<span class="nc" id="L459">						g = parser.parseGeneticCode(chooser.getSelectedFile());</span>
+						// Create organism
+<span class="nc" id="L461">						newBiot = new Organism(_mainWindow.getWorld(), g);</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">						if (newBiot.pasteOrganism(mouseX, mouseY)) {</span>
+<span class="nc" id="L463">							_mainWindow.getWorld().addOrganism(newBiot, null);</span>
+						}
+<span class="nc" id="L465">					} catch (SAXException ex) {</span>
+<span class="nc" id="L466">						System.err.println(ex.getMessage());</span>
+<span class="nc" id="L467">						JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_WRONG_FILE_VERSION&quot;), Messages.getString(&quot;T_READ_ERROR&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L468">					} catch (IOException ex) {</span>
+<span class="nc" id="L469">						System.err.println(ex.getMessage());</span>
+<span class="nc" id="L470">						JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_CANT_READ_FILE&quot;), Messages.getString(&quot;T_READ_ERROR&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+					}
+				}
+<span class="nc" id="L473">			} catch (SecurityException ex) {</span>
+<span class="nc" id="L474">				System.err.println(ex.getMessage());</span>
+<span class="nc" id="L475">				JOptionPane.showMessageDialog(null, Messages.getString(&quot;T_PERMISSION_DENIED&quot;), Messages.getString(&quot;T_PERMISSION_DENIED&quot;), JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+			}
+<span class="nc" id="L477">			_mainWindow._isProcessActive = processState;</span>
+<span class="nc" id="L478">		}</span>
+	}
+
+	/**
+	 * Sets an organism as the selected organism. If required, it creates an
+	 * {@link InfoWindow} with information of this organism.
+	 *
+	 * @param b The new selected organism
+	 * @param showInfo true if an InfoWindow should be created
+	 */
+	public void setSelectedOrganism(Organism b) {
+<span class="fc" id="L489">		Organism lastSelectedOrganism = _selectedOrganism;</span>
+<span class="fc" id="L490">		_selectedOrganism = b;</span>
+<span class="pc bpc" id="L491" title="1 of 2 branches missed.">		if (lastSelectedOrganism != null) {</span>
+<span class="nc" id="L492">			repaint(lastSelectedOrganism);</span>
+		}
+<span class="fc" id="L494">		_mainWindow.getInfoPanel().setSelectedOrganism(b);</span>
+<span class="pc bpc" id="L495" title="1 of 2 branches missed.">		if (_selectedOrganism != null) {</span>
+<span class="nc" id="L496">			repaint(_selectedOrganism);</span>
+<span class="nc" id="L497">		} else {</span>
+<span class="fc" id="L498">			_mainWindow.hideFamilyTree();</span>
+		}
+
+		// Make sure to don't create the tool bar twice when starting the program
+		// because this causes spurious exceptions.
+<span class="pc bpc" id="L503" title="1 of 2 branches missed.">		if (_selectedOrganism != lastSelectedOrganism) {</span>
+<span class="nc" id="L504">			_mainWindow.updateFamilyTree(_selectedOrganism);</span>
+
+<span class="nc bnc" id="L506" title="All 2 branches missed.">			if (_selectedOrganism != null) {</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">				if (_selectedOrganism.isAlive()) {</span>
+<span class="nc" id="L508">					showAliveToolbar();</span>
+<span class="nc" id="L509">				} else {</span>
+<span class="nc" id="L510">					showDeadToolbar();</span>
+				}
+<span class="nc" id="L512">			} else {</span>
+<span class="nc" id="L513">				_mainWindow.createToolBar();</span>
+			}
+		}
+<span class="fc" id="L516">	}</span>
+
+	/**
+	 * Return the selected organism.
+	 *
+	 * @return The selected organism, if any.
+	 */
+	public Organism getSelectedOrganism() {
+<span class="fc" id="L524">		return _selectedOrganism;</span>
+	}
+
+	/**
+	 * Set a genetic code as the clipped genetic code, that will be used when
+	 * pasting a new organism or in the genetic lab as the staring genetic code.
+	 *
+	 * @param gc The clipped genetic code
+	 */
+	public void setClippedGeneticCode(GeneticCode gc) {
+<span class="nc bnc" id="L534" title="All 2 branches missed.">		if (gc != null) {</span>
+<span class="nc" id="L535">			clippedGeneticCode = gc;</span>
+		}
+<span class="nc" id="L537">	}</span>
+
+	/**
+	 * Creates a new VisibleWorld associated with a {@link MainWindow}. Creates
+	 * the menus and the MouseAdapter.
+	 *
+	 * @param mainWindow The MainWindow associated with this VisibleWorld.
+	 */
+<span class="fc" id="L545">	public VisibleWorld(MainWindow mainWindow) {</span>
+<span class="fc" id="L546">		_mainWindow = mainWindow;</span>
+<span class="fc" id="L547">		setPreferredSize(new Dimension(Utils.WORLD_WIDTH, Utils.WORLD_HEIGHT));</span>
+<span class="fc" id="L548">		setBackground(Color.BLACK);</span>
+<span class="fc" id="L549">		createActions();</span>
+<span class="fc" id="L550">		createPopupMenu();</span>
+<span class="fc" id="L551">		addMouseListener(new MouseAdapter() {</span>
+			@Override
+			public void mouseClicked(MouseEvent e) {
+<span class="nc bnc" id="L554" title="All 2 branches missed.">				if (e.getButton() == MouseEvent.BUTTON1) {</span>
+<span class="nc" id="L555">					setSelectedOrganism(findOrganismFromPosition(e.getX(), e.getY()));</span>
+				}
+<span class="nc" id="L557">			}</span>
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+<span class="nc" id="L561">				maybeShowPopupMenu(e);</span>
+<span class="nc" id="L562">			}</span>
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+<span class="nc" id="L566">				maybeShowPopupMenu(e);</span>
+<span class="nc" id="L567">			}</span>
+		});
+<span class="fc" id="L569">	}</span>
+
+	/**
+	 * Finds an organism that has the given coordinates inside its bounding box
+	 * and returns a reference to it. If more than on organism satisfies this
+	 * condition, if possible, an alive organism is returned. If non organism
+	 * satisfies this condition, this method returns null.
+	 *
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @return An organism with the point (x,y) inside its bounding box, or null
+	 * if such organism doesn't exist.
+	 */
+	Organism findOrganismFromPosition(int x, int y) {
+<span class="nc" id="L583">		return _mainWindow.getWorld().findOrganismFromPosition(x, y);</span>
+	}
+
+	/**
+	 * Calls World.draw to draw all world elements and paints the bounding
+	 * rectangle of the selected organism.
+	 *
+	 * @see javax.swing.JComponent#paintComponent(java.awt.Graphics)
+	 */
+	@Override
+	public void paintComponent(Graphics g) {
+<span class="fc" id="L594">		super.paintComponent(g);</span>
+<span class="fc" id="L595">		_mainWindow.getWorld().draw(g);</span>
+<span class="pc bpc" id="L596" title="1 of 2 branches missed.">		if (getSelectedOrganism() != null) {</span>
+<span class="nc" id="L597">			g.setColor(Color.ORANGE);</span>
+<span class="nc" id="L598">			g.drawRect(_selectedOrganism.x, _selectedOrganism.y,</span>
+<span class="nc" id="L599">					_selectedOrganism.width - 1, _selectedOrganism.height - 1);</span>
+		}
+<span class="fc" id="L601">	}</span>
+
+	private void createActions() {
+<span class="fc" id="L604">		trackAction = new TrackAction(&quot;T_TRACK&quot;, &quot;T_ABORT_TRACKING&quot;, &quot;images/menu_track.png&quot;, //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$</span>
+<span class="fc" id="L605">				&quot;T_TRACK_ORGANISM&quot;, &quot;T_ABORT_TRACKING_ORGANISM&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L606">		feedAction = new FeedAction(&quot;T_FEED&quot;, &quot;images/menu_feed.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L607">				&quot;T_FEED_ORGANISM&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L608">		weakenAction = new WeakenAction(&quot;T_WEAKEN&quot;, &quot;images/menu_weaken.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L609">				&quot;T_WEAKEN_ORGANISM&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L610">		killAction = new KillAction(&quot;T_KILL&quot;, &quot;images/menu_kill.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L611">				&quot;T_KILL_ORGANISM&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L612">		copyAction = new CopyAction(&quot;T_COPY&quot;, &quot;images/menu_copy.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L613">				&quot;T_COPY_GENETIC_CODE&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L614">		saveImageAction = new SaveImageAction(&quot;T_SAVE_IMAGE&quot;, &quot;images/menu_save_image.png&quot;, //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="fc" id="L615">				&quot;T_SAVE_IMAGE&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L616">		reviveAction = new ReviveAction(&quot;T_REVIVE&quot;, &quot;images/menu_revive.png&quot;, //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L617">				&quot;T_REVIVE_ORGANISM&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L618">		disperseAction = new DisperseAction(&quot;T_DISPERSE&quot;, &quot;images/menu_disperse.png&quot;, //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L619">				&quot;T_DISPERSE_ORGANISM&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L620">		reproduceAction = new ReproduceAction(&quot;T_FORCE_REPRODUCTION&quot;, null, &quot;T_FORCE_REPRODUCTION&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L621">		rejuvenateAction = new RejuvenateAction(&quot;T_REJUVENATE&quot;, null, &quot;T_REJUVENATE&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L622">		exportAction = new ExportAction(&quot;T_EXPORT&quot;, null, &quot;T_EXPORT_GENETIC_CODE&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L623">		pasteAction = new PasteAction(&quot;T_PASTE&quot;, null, &quot;T_PASTE_GENETIC_CODE&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L624">		randomCreateAction = new RandomCreateAction(&quot;T_CREATE_RANDOMLY&quot;, null, &quot;T_CREATE_RANDOMLY&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L625">		importAction = new ImportAction(&quot;T_IMPORT&quot;, null, &quot;T_IMPORT_GENETIC_CODE&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L626">	}</span>
+
+	public void showAliveToolbar() {
+<span class="nc" id="L629">		JToolBar toolBar = _mainWindow.toolBar;</span>
+<span class="nc" id="L630">		toolBar.removeAll();</span>
+<span class="nc" id="L631">		toolBar.add(feedAction);</span>
+<span class="nc" id="L632">		toolBar.add(weakenAction);</span>
+<span class="nc" id="L633">		toolBar.add(killAction);</span>
+<span class="nc" id="L634">		toolBar.add(copyAction);</span>
+<span class="nc" id="L635">		toolBar.add(saveImageAction);</span>
+<span class="nc" id="L636">		toolBar.add(trackAction);</span>
+<span class="nc" id="L637">		toolBar.add(_mainWindow.abortTrackingAction);</span>
+<span class="nc" id="L638">		toolBar.invalidate();</span>
+<span class="nc" id="L639">		toolBar.repaint();</span>
+<span class="nc" id="L640">	}</span>
+
+	public void showDeadToolbar() {
+<span class="nc" id="L643">		JToolBar toolBar = _mainWindow.toolBar;</span>
+<span class="nc" id="L644">		toolBar.removeAll();</span>
+<span class="nc" id="L645">		toolBar.add(reviveAction);</span>
+<span class="nc" id="L646">		toolBar.add(disperseAction);</span>
+<span class="nc" id="L647">		toolBar.invalidate();</span>
+<span class="nc" id="L648">		toolBar.repaint();</span>
+<span class="nc" id="L649">	}</span>
+
+	/**
+	 * Creates all popup menus.
+	 */
+	private void createPopupMenu() {
+		JMenuItem menuItem;
+<span class="fc" id="L656">		popupAlive = new JPopupMenu();</span>
+<span class="fc" id="L657">		menuItem = new JMenuItem(trackAction);</span>
+<span class="fc" id="L658">		menuItem.setIcon(null);</span>
+<span class="fc" id="L659">		popupAlive.add(menuItem);</span>
+<span class="fc" id="L660">		menuItem = new JMenuItem(feedAction);</span>
+<span class="fc" id="L661">		menuItem.setIcon(null);</span>
+<span class="fc" id="L662">		popupAlive.add(menuItem);</span>
+<span class="fc" id="L663">		menuItem = new JMenuItem(weakenAction);</span>
+<span class="fc" id="L664">		menuItem.setIcon(null);</span>
+<span class="fc" id="L665">		popupAlive.add(menuItem);</span>
+<span class="fc" id="L666">		popupAlive.add(new JMenuItem(reproduceAction));</span>
+<span class="fc" id="L667">		popupAlive.add(new JMenuItem(rejuvenateAction));</span>
+<span class="fc" id="L668">		menuItem = new JMenuItem(killAction);</span>
+<span class="fc" id="L669">		menuItem.setIcon(null);</span>
+<span class="fc" id="L670">		popupAlive.add(menuItem);</span>
+<span class="fc" id="L671">		menuItem = new JMenuItem(copyAction);</span>
+<span class="fc" id="L672">		menuItem.setIcon(null);</span>
+<span class="fc" id="L673">		popupAlive.add(menuItem);</span>
+<span class="fc" id="L674">		popupAlive.add(new JMenuItem(exportAction));</span>
+<span class="fc" id="L675">		menuItem = new JMenuItem(saveImageAction);</span>
+<span class="fc" id="L676">		menuItem.setIcon(null);</span>
+<span class="fc" id="L677">		popupAlive.add(menuItem);</span>
+<span class="fc" id="L678">		popupDead = new JPopupMenu();</span>
+<span class="fc" id="L679">		menuItem = new JMenuItem(reviveAction);</span>
+<span class="fc" id="L680">		menuItem.setIcon(null);</span>
+<span class="fc" id="L681">		popupDead.add(menuItem);</span>
+<span class="fc" id="L682">		menuItem = new JMenuItem(disperseAction);</span>
+<span class="fc" id="L683">		menuItem.setIcon(null);</span>
+<span class="fc" id="L684">		popupDead.add(menuItem);</span>
+<span class="fc" id="L685">		popupVoid = new JPopupMenu();</span>
+<span class="fc" id="L686">		popupVoid.add(new JMenuItem(pasteAction));</span>
+<span class="fc" id="L687">		popupVoid.add(new JMenuItem(randomCreateAction));</span>
+<span class="fc" id="L688">		popupVoid.add(new JMenuItem(importAction));</span>
+		// Only enable file management menu options if at least there is 
+		//permission to read user's home directory
+<span class="fc" id="L691">		SecurityManager sec = System.getSecurityManager();</span>
+		try {
+<span class="pc bpc" id="L693" title="1 of 2 branches missed.">			if (sec != null) {</span>
+<span class="nc" id="L694">				sec.checkPropertyAccess(&quot;user.home&quot;); //$NON-NLS-1$</span>
+			}
+<span class="nc" id="L696">		} catch (SecurityException ex) {</span>
+<span class="nc" id="L697">			exportAction.setEnabled(false);</span>
+<span class="nc" id="L698">			importAction.setEnabled(false);</span>
+<span class="nc" id="L699">			saveImageAction.setEnabled(false);</span>
+		}
+<span class="fc" id="L701">	}</span>
+
+	/**
+	 * Called from MainWindow when the locale is changed in order to update the
+	 * menu entries to the new language.
+	 */
+	public void changeLocale() {
+<span class="nc" id="L708">		trackAction.changeLocale();</span>
+<span class="nc" id="L709">		feedAction.changeLocale();</span>
+<span class="nc" id="L710">		weakenAction.changeLocale();</span>
+<span class="nc" id="L711">		reproduceAction.changeLocale();</span>
+<span class="nc" id="L712">		rejuvenateAction.changeLocale();</span>
+<span class="nc" id="L713">		killAction.changeLocale();</span>
+<span class="nc" id="L714">		copyAction.changeLocale();</span>
+<span class="nc" id="L715">		exportAction.changeLocale();</span>
+<span class="nc" id="L716">		saveImageAction.changeLocale();</span>
+<span class="nc" id="L717">		reviveAction.changeLocale();</span>
+<span class="nc" id="L718">		disperseAction.changeLocale();</span>
+<span class="nc" id="L719">		pasteAction.changeLocale();</span>
+<span class="nc" id="L720">		randomCreateAction.changeLocale();</span>
+<span class="nc" id="L721">		importAction.changeLocale();</span>
+<span class="nc" id="L722">		createPopupMenu();</span>
+<span class="nc" id="L723">	}</span>
+
+	/**
+	 * Creates a new organism with the given genetic code and puts it in the
+	 * world, at the specified position.
+	 *
+	 * @param gc The genetic code for the new organism
+	 * @param x X coordinate
+	 * @param y Y coordinate
+	 * @return true if the organism has been created (if there is space for it),
+	 * false otherwise
+	 */
+	public boolean pasteGeneticCode(GeneticCode gc, int x, int y) {
+<span class="nc" id="L736">		Organism newOrganism = new Organism(_mainWindow.getWorld(), gc);</span>
+<span class="nc bnc" id="L737" title="All 2 branches missed.">		if (newOrganism.pasteOrganism(x, y)) {</span>
+<span class="nc" id="L738">			_mainWindow.getWorld().addOrganism(newOrganism, null);</span>
+			// select organism that has just been pasted.
+<span class="nc" id="L740">			setSelectedOrganism(newOrganism);</span>
+<span class="nc" id="L741">			return true;</span>
+		}
+<span class="nc" id="L743">		return false;</span>
+	}
+
+	/**
+	 * This method is called when a mouse event occurs. If the mouse event is a
+	 * popup trigger, this method decide which popup menu is shown, based on the
+	 * position of the mouse.
+	 *
+	 * @param e
+	 */
+	void maybeShowPopupMenu(MouseEvent e) {
+<span class="nc bnc" id="L754" title="All 2 branches missed.">		if (e.isPopupTrigger()) {</span>
+<span class="nc" id="L755">			mouseX = e.getX();</span>
+<span class="nc" id="L756">			mouseY = e.getY();</span>
+<span class="nc" id="L757">			Organism b = findOrganismFromPosition(mouseX, mouseY);</span>
+<span class="nc bnc" id="L758" title="All 2 branches missed.">			if (b != null) {</span>
+<span class="nc" id="L759">				setSelectedOrganism(b);</span>
+<span class="nc bnc" id="L760" title="All 2 branches missed.">				if (b.isAlive()) {</span>
+<span class="nc bnc" id="L761" title="All 2 branches missed.">					trackAction.setTracking(_mainWindow._trackedOrganism == b);</span>
+<span class="nc" id="L762">					popupAlive.show(e.getComponent(), mouseX, mouseY);</span>
+<span class="nc" id="L763">				} else {</span>
+<span class="nc" id="L764">					popupDead.show(e.getComponent(), mouseX, mouseY);</span>
+				}
+<span class="nc" id="L766">			} else {</span>
+<span class="nc" id="L767">				popupVoid.show(e.getComponent(), mouseX, mouseY);</span>
+			}
+		}
+<span class="nc" id="L770">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>BareBonesBrowserLaunch.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">BareBonesBrowserLaunch.java</span></div><h1>BareBonesBrowserLaunch.java</h1><pre class="source lang-java linenums">package main.java.biogenesis;
+
+////////////////////////////////////////////////////////
+//Bare Bones Browser Launch                          //
+//Version 1.5                                        //
+//December 10, 2005                                  //
+//Supports: Mac OS X, GNU/Linux, Unix, Windows XP    //
+//Example Usage:                                     //
+// String url = &quot;http://www.centerkey.com/&quot;;       //
+// BareBonesBrowserLaunch.openURL(url);            //
+//Public Domain Software -- Free to Use as You Like  //
+/////////////////////////////////////////////////////////
+
+import java.lang.reflect.Method;
+import javax.swing.JOptionPane;
+
+<span class="fc" id="L17">public class BareBonesBrowserLaunch {</span>
+
+	private static final String errMsg = &quot;Error attempting to launch web browser&quot;; //$NON-NLS-1$
+
+	public static void openURL(String url) {
+<span class="fc" id="L22">		String osName = System.getProperty(&quot;os.name&quot;); //$NON-NLS-1$</span>
+		try {
+<span class="pc bpc" id="L24" title="1 of 2 branches missed.">			if (osName.startsWith(&quot;Mac OS&quot;)) { //$NON-NLS-1$</span>
+<span class="nc" id="L25">				Class&lt;?&gt; fileMgr = Class.forName(&quot;com.apple.eio.FileManager&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L26">				Method openURL = fileMgr.getDeclaredMethod(&quot;openURL&quot;, //$NON-NLS-1$</span>
+<span class="nc" id="L27">						new Class[] { String.class });</span>
+<span class="nc" id="L28">				openURL.invoke(null, new Object[] { url });</span>
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">			} else if (osName.startsWith(&quot;Windows&quot;)) //$NON-NLS-1$</span>
+<span class="fc" id="L30">				Runtime.getRuntime().exec(</span>
+<span class="fc" id="L31">						&quot;rundll32 url.dll,FileProtocolHandler &quot; + url); //$NON-NLS-1$</span>
+			else { // assume Unix or Linux
+<span class="nc" id="L33">				String[] browsers = {</span>
+<span class="nc" id="L34">						&quot;x-www-browser&quot;, &quot;firefox&quot;, &quot;opera&quot;, &quot;konqueror&quot;, &quot;epiphany&quot;, &quot;mozilla&quot;, &quot;netscape&quot;, &quot;iceweasel&quot; }; //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$//$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$</span>
+<span class="nc" id="L35">				String browser = null;</span>
+<span class="nc bnc" id="L36" title="All 4 branches missed.">				for (int count = 0; count &lt; browsers.length &amp;&amp; browser == null; count++)</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">					if (Runtime</span>
+<span class="nc" id="L38">							.getRuntime()</span>
+<span class="nc" id="L39">							.exec(new String[] { &quot;which&quot;, browsers[count] }).waitFor() == 0) //$NON-NLS-1$</span>
+<span class="nc" id="L40">						browser = browsers[count];</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">				if (browser == null)</span>
+<span class="nc" id="L42">					throw new Exception(&quot;Could not find web browser&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L43">				Runtime.getRuntime().exec(new String[] { browser, url });</span>
+			}
+<span class="nc" id="L45">		} catch (Exception e) {</span>
+<span class="nc" id="L46">			JOptionPane.showMessageDialog(null, errMsg</span>
+<span class="nc" id="L47">					+ &quot;:\n&quot; + e.getLocalizedMessage()); //$NON-NLS-1$</span>
+		}
+<span class="fc" id="L49">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

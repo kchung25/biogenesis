@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>LabWindow.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">LabWindow.java</span></div><h1>LabWindow.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">/* Copyright (C) 2006-2010  Joan Queralt Molina</span>
+ * Copyright (c) 2012 Sebastien Le Callonnec
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import org.xml.sax.SAXException;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+public class LabWindow extends JDialog implements ActionListener, ChangeListener {
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+	protected MainWindow mainWindow;
+	protected List&lt;Gene&gt; genesList;
+	protected JButton cancelButton;
+	protected JButton okButton;
+	protected JPanel genesPanel;
+	protected JPanel drawPanel;
+	protected JScrollPane genesScroll;
+	protected JLabel energyLabel;
+	protected JLabel segmentsLabel;
+	protected JComboBox symmetryCombo;
+	protected JComboBox mirrorCombo;
+	protected JComboBox disperseCombo;
+	
+<span class="nc" id="L52">	protected int symmetry = 2;</span>
+<span class="nc" id="L53">	protected int energy = 40;</span>
+<span class="nc" id="L54">	protected int mirror = 0;</span>
+<span class="nc" id="L55">	protected boolean disperseChildren = false;</span>
+	
+	public LabWindow(MainWindow v, GeneticCode gc) {
+<span class="nc" id="L58">		super(v, Messages.getString(&quot;T_GENETIC_LABORATORY&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L59">		init(v, gc);</span>
+<span class="nc" id="L60">	}</span>
+	
+	public LabWindow(MainWindow v) {
+<span class="nc" id="L63">		super(v, Messages.getString(&quot;T_GENETIC_LABORATORY&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L64">		init(v, v.getVisibleWorld().clippedGeneticCode);</span>
+<span class="nc" id="L65">	}</span>
+	
+	private void init(MainWindow v, GeneticCode gc) {
+<span class="nc" id="L68">		mainWindow = v;</span>
+<span class="nc" id="L69">		genesList = new ArrayList&lt;Gene&gt;();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">		if (gc != null)</span>
+<span class="nc" id="L71">			importGeneticCode(gc);</span>
+<span class="nc" id="L72">		setDefaultCloseOperation(DISPOSE_ON_CLOSE);	</span>
+<span class="nc" id="L73">		setComponents();</span>
+<span class="nc" id="L74">		pack();</span>
+		//setResizable(false);
+<span class="nc" id="L76">		cancelButton.addActionListener(new ActionListener() {</span>
+			@Override
+			public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L79">				dispose();</span>
+<span class="nc" id="L80">			}</span>
+		});
+<span class="nc" id="L82">		okButton.addActionListener(new ActionListener() {</span>
+			@Override
+			public void actionPerformed(ActionEvent evt) {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">				if (genesList.size() &gt; 0)</span>
+<span class="nc" id="L86">					mainWindow.getVisibleWorld().setClippedGeneticCode(new GeneticCode(genesList,symmetry, mirror, disperseChildren));</span>
+<span class="nc" id="L87">				dispose();</span>
+<span class="nc" id="L88">			}</span>
+		});
+<span class="nc" id="L90">		setVisible(true);</span>
+<span class="nc" id="L91">	}</span>
+	
+	/* Initialize the variables of this dialog using a previously existing genetic code */
+	private void importGeneticCode(GeneticCode g) {
+<span class="nc" id="L95">		energy = g.getReproduceEnergy();</span>
+<span class="nc" id="L96">		disperseChildren = g.getDisperseChildren();</span>
+<span class="nc" id="L97">		mirror = g.getMirror();</span>
+<span class="nc" id="L98">		symmetry = g.getSymmetry();</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">		for (int i=0; i&lt;g.getNGenes(); i++)</span>
+<span class="nc" id="L100">			genesList.add((Gene)g.getGene(i).clone());</span>
+<span class="nc" id="L101">	}</span>
+	
+	/* Initialize all the components of the dialog */
+	protected void setComponents() {
+<span class="nc" id="L105">		getContentPane().setLayout(new BorderLayout());</span>
+<span class="nc" id="L106">		JPanel generalPanel = new JPanel();</span>
+<span class="nc" id="L107">		generalPanel.setLayout(new GridBagLayout());</span>
+<span class="nc" id="L108">		GridBagConstraints gridBagConstraints = new GridBagConstraints();</span>
+<span class="nc" id="L109">		gridBagConstraints.gridx = 0;</span>
+<span class="nc" id="L110">		gridBagConstraints.gridy = 0;</span>
+<span class="nc" id="L111">		gridBagConstraints.anchor = GridBagConstraints.WEST;</span>
+<span class="nc" id="L112">		gridBagConstraints.weightx = 1.0;</span>
+<span class="nc" id="L113">		generalPanel.add(new JLabel(Messages.getString(&quot;T_SEGMENTS&quot;),SwingConstants.CENTER), gridBagConstraints); //$NON-NLS-1$</span>
+<span class="nc" id="L114">		gridBagConstraints.gridx = 1;</span>
+<span class="nc" id="L115">		gridBagConstraints.gridy = 0;</span>
+<span class="nc" id="L116">		segmentsLabel = new JLabel(Integer.toString(genesList.size() * symmetry));</span>
+<span class="nc" id="L117">		generalPanel.add(segmentsLabel, gridBagConstraints);</span>
+<span class="nc" id="L118">		gridBagConstraints.gridx = 2;</span>
+<span class="nc" id="L119">		gridBagConstraints.gridy = 0;</span>
+<span class="nc" id="L120">		generalPanel.add(new JLabel(Messages.getString(&quot;T_ENERGY_TO_REPRODUCE&quot;),SwingConstants.CENTER), gridBagConstraints); //$NON-NLS-1$</span>
+<span class="nc" id="L121">		gridBagConstraints.gridx = 3;</span>
+<span class="nc" id="L122">		gridBagConstraints.gridy = 0;</span>
+<span class="nc" id="L123">		energyLabel = new JLabel(Integer.toString(energy));</span>
+<span class="nc" id="L124">		generalPanel.add(energyLabel, gridBagConstraints);</span>
+<span class="nc" id="L125">		gridBagConstraints.gridx = 4;</span>
+<span class="nc" id="L126">		gridBagConstraints.gridy = 0;</span>
+<span class="nc" id="L127">		generalPanel.add(new JLabel(Messages.getString(&quot;T_LIFE_EXPECTANCY&quot;),SwingConstants.CENTER), gridBagConstraints); //$NON-NLS-1$</span>
+<span class="nc" id="L128">		gridBagConstraints.gridx = 5;</span>
+<span class="nc" id="L129">		gridBagConstraints.gridy = 0;</span>
+<span class="nc" id="L130">		JLabel life = new JLabel(Integer.toString(Utils.MAX_AGE));</span>
+<span class="nc" id="L131">		generalPanel.add(life, gridBagConstraints);</span>
+<span class="nc" id="L132">		gridBagConstraints.gridx = 0;</span>
+<span class="nc" id="L133">		gridBagConstraints.gridy = 1;</span>
+<span class="nc" id="L134">		generalPanel.add(new JLabel(Messages.getString(&quot;T_SYMMETRY&quot;),SwingConstants.CENTER), gridBagConstraints); //$NON-NLS-1$</span>
+<span class="nc" id="L135">		gridBagConstraints.gridx = 1;</span>
+<span class="nc" id="L136">		gridBagConstraints.gridy = 1;</span>
+<span class="nc" id="L137">		String[] symmetryValues = {&quot;1&quot;,&quot;2&quot;,&quot;3&quot;,&quot;4&quot;,&quot;5&quot;,&quot;6&quot;,&quot;7&quot;,&quot;8&quot;};  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$</span>
+<span class="nc" id="L138">		symmetryCombo = new JComboBox(symmetryValues);</span>
+<span class="nc" id="L139">		symmetryCombo.setSelectedItem(Integer.toString(symmetry));</span>
+<span class="nc" id="L140">		symmetryCombo.addItemListener(new ItemListener() {</span>
+			
+			@Override
+			public void itemStateChanged(ItemEvent evt) {
+<span class="nc bnc" id="L144" title="All 2 branches missed.">				if (evt.getStateChange() == ItemEvent.SELECTED) {</span>
+<span class="nc" id="L145">					symmetry = Integer.parseInt((String)symmetryCombo.getSelectedItem());</span>
+<span class="nc" id="L146">					energy = 40 + 3 * symmetry * genesList.size();</span>
+<span class="nc" id="L147">					energyLabel.setText(Integer.toString(energy));</span>
+<span class="nc" id="L148">					segmentsLabel.setText(Integer.toString(genesList.size() * symmetry));</span>
+<span class="nc" id="L149">					drawPanel.repaint();</span>
+				}
+<span class="nc" id="L151">			}</span>
+		});
+<span class="nc" id="L153">		generalPanel.add(symmetryCombo, gridBagConstraints);</span>
+<span class="nc" id="L154">		gridBagConstraints.gridx = 2;</span>
+<span class="nc" id="L155">		gridBagConstraints.gridy = 1;</span>
+<span class="nc" id="L156">		generalPanel.add(new JLabel(Messages.getString(&quot;T_MIRROR&quot;),SwingConstants.CENTER), gridBagConstraints); //$NON-NLS-1$</span>
+<span class="nc" id="L157">		gridBagConstraints.gridx = 3;</span>
+<span class="nc" id="L158">		gridBagConstraints.gridy = 1;</span>
+<span class="nc" id="L159">		String[] noyesValues = {Messages.getString(&quot;T_NO&quot;), Messages.getString(&quot;T_YES&quot;)}; //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L160">		mirrorCombo = new JComboBox(noyesValues);</span>
+<span class="nc" id="L161">		mirrorCombo.setSelectedIndex(mirror);</span>
+<span class="nc" id="L162">		mirrorCombo.addItemListener(new ItemListener() {</span>
+			
+			@Override
+			public void itemStateChanged(ItemEvent evt) {
+<span class="nc bnc" id="L166" title="All 2 branches missed.">				if (evt.getStateChange() == ItemEvent.SELECTED) {</span>
+<span class="nc" id="L167">					mirror = mirrorCombo.getSelectedIndex();</span>
+<span class="nc" id="L168">					drawPanel.repaint();</span>
+				}
+<span class="nc" id="L170">			}</span>
+		});
+<span class="nc" id="L172">		generalPanel.add(mirrorCombo, gridBagConstraints);</span>
+<span class="nc" id="L173">		gridBagConstraints.gridx = 4;</span>
+<span class="nc" id="L174">		gridBagConstraints.gridy = 1;</span>
+<span class="nc" id="L175">		generalPanel.add(new JLabel(Messages.getString(&quot;T_DISPERSE_CHILDREN&quot;),SwingConstants.CENTER), gridBagConstraints); //$NON-NLS-1$</span>
+<span class="nc" id="L176">		gridBagConstraints.gridx = 5;</span>
+<span class="nc" id="L177">		gridBagConstraints.gridy = 1;</span>
+<span class="nc" id="L178">		disperseCombo = new JComboBox(noyesValues);</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">		disperseCombo.setSelectedIndex(disperseChildren==false?0:1);</span>
+<span class="nc" id="L180">		disperseCombo.addItemListener(new ItemListener() {</span>
+			
+			@Override
+			public void itemStateChanged(ItemEvent evt) {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">				if (evt.getStateChange() == ItemEvent.SELECTED)</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">					disperseChildren = disperseCombo.getSelectedIndex()==0? false: true; </span>
+<span class="nc" id="L186">			}</span>
+		});
+<span class="nc" id="L188">		generalPanel.add(disperseCombo, gridBagConstraints);</span>
+		
+<span class="nc" id="L190">		getContentPane().add(generalPanel,BorderLayout.NORTH);</span>
+<span class="nc" id="L191">		genesPanel = new JPanel();</span>
+<span class="nc" id="L192">		genesScroll = new JScrollPane(genesPanel);</span>
+<span class="nc" id="L193">		genesScroll.setPreferredSize(new Dimension(440,300));</span>
+<span class="nc" id="L194">		refreshGenesPanel();</span>
+<span class="nc" id="L195">		getContentPane().add(genesScroll,BorderLayout.WEST);</span>
+		
+<span class="nc" id="L197">		drawPanel = new JPanel() {</span>
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void paintComponent (Graphics g) {
+<span class="nc" id="L201">				super.paintComponent(g);</span>
+<span class="nc" id="L202">		        draw(g);</span>
+<span class="nc" id="L203">		    }</span>
+		};
+<span class="nc" id="L205">		drawPanel.setPreferredSize(new Dimension(200,200));</span>
+<span class="nc" id="L206">		drawPanel.setBackground(Color.BLACK);</span>
+<span class="nc" id="L207">		getContentPane().add(drawPanel,BorderLayout.CENTER);</span>
+		
+<span class="nc" id="L209">		JPanel buttonsPanel = new JPanel();</span>
+<span class="nc" id="L210">		okButton = new JButton(Messages.getString(&quot;T_COPY_TO_CLIPBOARD&quot;)); //$NON-NLS-1$</span>
+
+<span class="nc" id="L212">		buttonsPanel.add(okButton);</span>
+<span class="nc" id="L213">		cancelButton = new JButton(Messages.getString(&quot;T_CANCEL&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L214">		buttonsPanel.add(cancelButton);</span>
+<span class="nc" id="L215">		JButton clearButton = new JButton(Messages.getString(&quot;T_CLEAR&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L216">		clearButton.addActionListener(new ActionListener() {</span>
+			@Override
+			public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L219">				genesList.clear();</span>
+<span class="nc" id="L220">				refreshGenesPanel();</span>
+<span class="nc" id="L221">			}</span>
+		});
+<span class="nc" id="L223">		buttonsPanel.add(clearButton);</span>
+		
+<span class="nc" id="L225">		JButton importButton = new JButton(Messages.getString(&quot;T_IMPORT&quot;)); //$NON_NLS-1$</span>
+<span class="nc" id="L226">		importButton.addActionListener(new ActionListener() {</span>
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				GeneticCode g;
+	    		try {
+<span class="nc" id="L231">	    			JFileChooser chooser = mainWindow.getGeneticCodeChooser();</span>
+<span class="nc" id="L232">	    			chooser.setFileFilter(new BioFileFilter(BioFileFilter.GENETIC_CODE_EXTENSION));</span>
+<span class="nc" id="L233">	    			int returnVal = chooser.showOpenDialog(null);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">	    			if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+	    				try {
+	    					// Read XML code from file
+<span class="nc" id="L237">	    					BioXMLParser parser = new BioXMLParser();</span>
+<span class="nc" id="L238">							g = parser.parseGeneticCode(chooser.getSelectedFile());</span>
+<span class="nc" id="L239">							genesList.clear();</span>
+<span class="nc" id="L240">							importGeneticCode(g);</span>
+<span class="nc" id="L241">							refreshGenesPanel();</span>
+<span class="nc" id="L242">	    				} catch (SAXException ex) {</span>
+<span class="nc" id="L243">	    					System.err.println(ex.getMessage());</span>
+<span class="nc" id="L244">	    					JOptionPane.showMessageDialog(null,Messages.getString(&quot;T_WRONG_FILE_VERSION&quot;),Messages.getString(&quot;T_READ_ERROR&quot;),JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L245">	    				} catch (IOException ex) {</span>
+<span class="nc" id="L246">	    					System.err.println(ex.getMessage());</span>
+<span class="nc" id="L247">	    					JOptionPane.showMessageDialog(null,Messages.getString(&quot;T_CANT_READ_FILE&quot;),Messages.getString(&quot;T_READ_ERROR&quot;),JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+						}
+	    			}
+<span class="nc" id="L250">	    		} catch (SecurityException ex) {</span>
+<span class="nc" id="L251">					System.err.println(ex.getMessage());</span>
+<span class="nc" id="L252">					JOptionPane.showMessageDialog(null,Messages.getString(&quot;T_PERMISSION_DENIED&quot;),Messages.getString(&quot;T_PERMISSION_DENIED&quot;),JOptionPane.ERROR_MESSAGE); //$NON-NLS-1$ //$NON-NLS-2$</span>
+				}
+<span class="nc" id="L254">			}</span>
+		});
+<span class="nc" id="L256">		buttonsPanel.add(importButton);</span>
+		
+<span class="nc" id="L258">		final JButton exportButton = new JButton(Messages.getString(&quot;T_EXPORT&quot;));</span>
+<span class="nc" id="L259">		exportButton.addActionListener(new ActionListener() {</span>
+
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+<span class="nc" id="L263">				mainWindow.saveObjectAs(new GeneticCode(genesList, symmetry, mirror, disperseChildren));</span>
+<span class="nc" id="L264">			}</span>
+		});
+<span class="nc" id="L266">		buttonsPanel.add(exportButton);</span>
+		
+<span class="nc" id="L268">		getContentPane().add(buttonsPanel, BorderLayout.SOUTH);</span>
+		
+<span class="nc" id="L270">		getRootPane().setDefaultButton(okButton);</span>
+<span class="nc" id="L271">	}</span>
+	
+	@Override
+	public void actionPerformed(ActionEvent evt) {
+<span class="nc bnc" id="L275" title="All 2 branches missed.">		if (evt.getActionCommand().startsWith(&quot;c&quot;)) {</span>
+<span class="nc" id="L276">			int modifiedGene = Integer.parseInt(evt.getActionCommand().substring(1));</span>
+<span class="nc" id="L277">			ColorComboBox colorCombo = (ColorComboBox) evt.getSource();</span>
+<span class="nc" id="L278">			genesList.get(modifiedGene).setColor(colorCombo.getSelectedColor());</span>
+<span class="nc" id="L279">			drawPanel.repaint();</span>
+		}
+		// Add a new gene after the last one
+<span class="nc bnc" id="L282" title="All 2 branches missed.">		if (evt.getActionCommand().equals(&quot;add&quot;)) { //$NON-NLS-1$</span>
+<span class="nc" id="L283">			Gene gene = new Gene(2.0,0.0,Color.GREEN);</span>
+<span class="nc" id="L284">			genesList.add(gene);</span>
+<span class="nc" id="L285">			refreshGenesPanel();</span>
+		}
+		// Deletes an existing gene
+<span class="nc bnc" id="L288" title="All 2 branches missed.">		if (evt.getActionCommand().startsWith(&quot;d&quot;)) { //$NON-NLS-1$</span>
+<span class="nc" id="L289">			int deletedGene = Integer.parseInt(evt.getActionCommand().substring(1));</span>
+<span class="nc" id="L290">			genesList.remove(deletedGene);</span>
+<span class="nc" id="L291">			refreshGenesPanel();</span>
+		}
+		// Insert a new gene before the selected position
+<span class="nc bnc" id="L294" title="All 2 branches missed.">		if (evt.getActionCommand().startsWith(&quot;i&quot;)) { //$NON-NLS-1$</span>
+<span class="nc" id="L295">			Gene gene = new Gene(2.0,0.0,Color.GREEN);</span>
+<span class="nc" id="L296">			int insertPosition = Integer.parseInt(evt.getActionCommand().substring(1));</span>
+<span class="nc" id="L297">			genesList.add(insertPosition, gene);</span>
+<span class="nc" id="L298">			refreshGenesPanel();</span>
+		}
+<span class="nc" id="L300">	}</span>
+	
+	protected void refreshGenesPanel() {
+<span class="nc" id="L303">		genesPanel.removeAll();</span>
+<span class="nc" id="L304">		GridBagLayout gridbag = new GridBagLayout();</span>
+<span class="nc" id="L305">		GridBagConstraints constraints = new GridBagConstraints();</span>
+<span class="nc" id="L306">		genesPanel.setLayout(gridbag);</span>
+		Iterator&lt;Gene&gt; it;
+		int i;
+		Gene gene;
+<span class="nc" id="L310">		constraints.gridx = 1;</span>
+<span class="nc" id="L311">		constraints.gridy = 0;</span>
+<span class="nc" id="L312">		genesPanel.add(new JLabel(Messages.getString(&quot;T_GENE&quot;)), constraints); //$NON-NLS-1$</span>
+<span class="nc" id="L313">		constraints.gridx = 2;</span>
+<span class="nc" id="L314">		genesPanel.add(new JLabel(Messages.getString(&quot;T_LENGTH&quot;)), constraints); //$NON-NLS-1$</span>
+<span class="nc" id="L315">		constraints.gridx = 3;</span>
+<span class="nc" id="L316">		genesPanel.add(new JLabel(Messages.getString(&quot;T_ROTATION&quot;)), constraints); //$NON-NLS-1$</span>
+<span class="nc" id="L317">		constraints.gridx = 4;</span>
+<span class="nc" id="L318">		genesPanel.add(new JLabel(Messages.getString(&quot;T_COLOR2&quot;)), constraints); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">		for (it = genesList.iterator(), i=0; it.hasNext(); i++) {</span>
+<span class="nc" id="L320">			gene = it.next();</span>
+<span class="nc" id="L321">			constraints.gridx = 1;</span>
+<span class="nc" id="L322">			constraints.gridy = i+1;</span>
+<span class="nc" id="L323">			JLabel label = new JLabel(i+&quot;: &quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L324">			gridbag.setConstraints(label,constraints);</span>
+<span class="nc" id="L325">			genesPanel.add(label);</span>
+			
+<span class="nc" id="L327">			constraints.gridx = 2;</span>
+<span class="nc" id="L328">			LengthSpinner lengthSpinner = new LengthSpinner(gene);</span>
+<span class="nc" id="L329">			lengthSpinner.addChangeListener(this);</span>
+<span class="nc" id="L330">			genesPanel.add(lengthSpinner, constraints);</span>
+			
+<span class="nc" id="L332">			constraints.gridx = 3;</span>
+<span class="nc" id="L333">			ThetaSpinner thetaSpinner = new ThetaSpinner(gene);</span>
+<span class="nc" id="L334">			thetaSpinner.addChangeListener(this);</span>
+<span class="nc" id="L335">			genesPanel.add(thetaSpinner, constraints);</span>
+			
+<span class="nc" id="L337">			constraints.gridx = 4;</span>
+<span class="nc" id="L338">			ColorComboBox colorCombo = new ColorComboBox(gene.getColor());</span>
+<span class="nc" id="L339">			colorCombo.addActionListener(this);</span>
+<span class="nc" id="L340">			colorCombo.setActionCommand(&quot;c&quot;+i);</span>
+<span class="nc" id="L341">			genesPanel.add(colorCombo, constraints);</span>
+			
+<span class="nc" id="L343">			constraints.gridx = 5;</span>
+<span class="nc" id="L344">			JButton insertButton = new JButton(Messages.getString(&quot;T_INSERT&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L345">			insertButton.setActionCommand(&quot;i&quot;+i); //$NON-NLS-1$</span>
+<span class="nc" id="L346">			gridbag.setConstraints(insertButton,constraints);</span>
+<span class="nc" id="L347">			genesPanel.add(insertButton);</span>
+<span class="nc" id="L348">			insertButton.addActionListener(this);</span>
+			
+<span class="nc" id="L350">			constraints.gridx = 6;</span>
+<span class="nc" id="L351">			JButton deleteButton = new JButton(Messages.getString(&quot;T_DELETE&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L352">			deleteButton.setActionCommand(&quot;d&quot;+i); //$NON-NLS-1$</span>
+<span class="nc" id="L353">			gridbag.setConstraints(deleteButton,constraints);</span>
+<span class="nc" id="L354">			genesPanel.add(deleteButton);</span>
+<span class="nc" id="L355">			deleteButton.addActionListener(this);</span>
+		}
+<span class="nc" id="L357">		constraints.gridx = 1;</span>
+<span class="nc" id="L358">		constraints.gridwidth = 2;</span>
+<span class="nc" id="L359">		constraints.gridy = i+1;</span>
+<span class="nc" id="L360">		JButton addButton = new JButton(Messages.getString(&quot;T_ADD&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L361">		addButton.setActionCommand(&quot;add&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L362">		gridbag.setConstraints(addButton,constraints);</span>
+<span class="nc" id="L363">		genesPanel.add(addButton);</span>
+<span class="nc" id="L364">		addButton.addActionListener(this);</span>
+		
+<span class="nc" id="L366">		energy = 40 + 3 * symmetry * genesList.size();</span>
+<span class="nc" id="L367">		energyLabel.setText(Integer.toString(energy));</span>
+<span class="nc" id="L368">		segmentsLabel.setText(Integer.toString(genesList.size() * symmetry));</span>
+		
+<span class="nc" id="L370">		validate();</span>
+<span class="nc" id="L371">		repaint();</span>
+<span class="nc" id="L372">	}</span>
+	
+	protected void draw(Graphics g) {
+<span class="nc" id="L375">		GeneticCode code = new GeneticCode(genesList, symmetry, mirror, false);</span>
+<span class="nc" id="L376">		code.draw(g, drawPanel.getSize().width, drawPanel.getSize().height);</span>
+<span class="nc" id="L377">	}</span>
+
+	@Override
+	public void stateChanged(ChangeEvent evt) {
+<span class="nc bnc" id="L381" title="All 2 branches missed.">		if (evt.getSource() instanceof LengthSpinner) {</span>
+<span class="nc" id="L382">			LengthSpinner spinner = (LengthSpinner) evt.getSource();</span>
+<span class="nc" id="L383">			spinner.getGene().setLength(spinner.getLength());</span>
+		}
+<span class="nc bnc" id="L385" title="All 2 branches missed.">		if (evt.getSource() instanceof ThetaSpinner) {</span>
+<span class="nc" id="L386">			ThetaSpinner spinner = (ThetaSpinner) evt.getSource();</span>
+<span class="nc" id="L387">			spinner.getGene().setTheta(spinner.getTheta());</span>
+		}
+<span class="nc" id="L389">		drawPanel.repaint();</span>
+<span class="nc" id="L390">	}</span>
+}
+
+class LengthSpinner extends JSpinner {
+	private static final long serialVersionUID = Utils.VERSION;
+	private Gene _gene;
+
+	public LengthSpinner(Gene gene) {
+<span class="nc" id="L398">		super();</span>
+<span class="nc" id="L399">		_gene = gene;</span>
+<span class="nc" id="L400">		setModel(new SpinnerNumberModel(_gene.getLength(), 2.0, 18.0, 0.1));</span>
+<span class="nc" id="L401">		setEditor(new JSpinner.NumberEditor(this, &quot;#0.0&quot;));</span>
+<span class="nc" id="L402">	}</span>
+
+	public Gene getGene() {
+<span class="nc" id="L405">		return _gene;</span>
+	}
+	
+	public void setGene(Gene gene) {
+<span class="nc" id="L409">		_gene = gene;</span>
+<span class="nc" id="L410">	}</span>
+	
+	public double getLength() {
+<span class="nc" id="L413">		return ((SpinnerNumberModel)getModel()).getNumber().doubleValue();</span>
+	}
+}
+
+class ThetaSpinnerModel extends SpinnerNumberModel {
+	private static final long serialVersionUID = Utils.VERSION;
+	int firstValue, lastValue;
+
+	public ThetaSpinnerModel(int value, int minimum, int maximum, int stepSize) {
+<span class="nc" id="L422">		super(value, minimum, maximum, stepSize);</span>
+<span class="nc" id="L423">		firstValue = minimum;</span>
+<span class="nc" id="L424">		lastValue = maximum;</span>
+<span class="nc" id="L425">	}</span>
+
+	@Override
+	public Object getNextValue() {
+<span class="nc" id="L429">		Object value = super.getNextValue();</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">		if (value == null)</span>
+<span class="nc" id="L431">			value = firstValue;</span>
+<span class="nc" id="L432">		return value;</span>
+	}
+
+	@Override
+	public Object getPreviousValue() {
+<span class="nc" id="L437">		Object value = super.getPreviousValue();</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">		if (value == null)</span>
+<span class="nc" id="L439">			value = lastValue;</span>
+<span class="nc" id="L440">		return value;</span>
+	}
+}
+
+class ThetaSpinner extends JSpinner {
+	private static final long serialVersionUID = Utils.VERSION;
+	private Gene _gene;
+
+	public ThetaSpinner(Gene gene) {
+<span class="nc" id="L449">		super();</span>
+<span class="nc" id="L450">		_gene = gene;</span>
+<span class="nc" id="L451">		int initialValue = (int)Math.round(_gene.getTheta()*180.0/Math.PI);</span>
+<span class="nc bnc" id="L452" title="All 2 branches missed.">		while (initialValue &lt; 0) initialValue+=360;</span>
+<span class="nc bnc" id="L453" title="All 2 branches missed.">		while (initialValue &gt; 359) initialValue-=360;</span>
+<span class="nc" id="L454">		setModel(new ThetaSpinnerModel(initialValue, 0, 359, 1));</span>
+<span class="nc" id="L455">		setEditor(new JSpinner.NumberEditor(this, &quot;##0&quot;));</span>
+<span class="nc" id="L456">	}</span>
+
+	public Gene getGene() {
+<span class="nc" id="L459">		return _gene;</span>
+	}
+	
+	public void setGene(Gene gene) {
+<span class="nc" id="L463">		_gene = gene;</span>
+<span class="nc" id="L464">	}</span>
+	
+	public double getTheta() {
+<span class="nc" id="L467">		return ((SpinnerNumberModel)getModel()).getNumber().doubleValue()*Math.PI/180.0;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

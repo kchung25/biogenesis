@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Gene.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">Gene.java</span></div><h1>Gene.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *           (C) 2014 SÃ©bastien Le Callonnec
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.io.*;
+import java.awt.*;
+
+/**
+ * This class implements a single organism's gene. A gene is a colored segment.
+ * This segment is part of the organism's body and will be drawn several times
+ * depending on the symmetry of the organism. Genes are always segments starting
+ * at (0,0). The position in the organism's body depends on their gene neighbors
+ * and the organism's symmetry and mirroring.
+ */
+public class Gene implements Cloneable, Serializable {
+	/**
+	 * The version number of this class
+	 */
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+<span class="fc" id="L36">	private double _length = 0;</span>
+<span class="fc" id="L37">	private double _theta = 0;</span>
+	/**
+	 * Segment's color
+	 */
+	private Color _color;
+
+	/**
+	 * Void constructor. Creates the gene but leave it uninitialized.
+	 */
+<span class="fc" id="L46">	public Gene() {</span>
+<span class="fc" id="L47">	}</span>
+
+	/**
+	 * Creates a gene with the specified final point and color.
+	 * 
+	 * @param length
+	 *            length of the gene
+	 * @param theta
+	 *            angle of the gene
+	 * @param color
+	 *            segment's color
+	 */
+<span class="fc" id="L59">	public Gene(double length, double theta, Color color) {</span>
+<span class="fc" id="L60">		_length = length;</span>
+<span class="fc" id="L61">		_theta = theta;</span>
+<span class="fc" id="L62">		_color = color;</span>
+<span class="fc" id="L63">	}</span>
+
+	public void randomizeColor() {
+<span class="fc" id="L66">		int max_prob = Utils.RED_PROB + Utils.GREEN_PROB + Utils.BLUE_PROB</span>
+<span class="fc" id="L67">				+ Utils.CYAN_PROB + Utils.WHITE_PROB + Utils.GRAY_PROB</span>
+<span class="fc" id="L68">				+ Utils.YELLOW_PROB;</span>
+<span class="fc" id="L69">		int prob = Utils.random.nextInt(max_prob);</span>
+<span class="fc" id="L70">		int ac_prob = Utils.RED_PROB;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">		if (prob &lt; ac_prob) {</span>
+<span class="fc" id="L72">			_color = Color.RED;</span>
+<span class="fc" id="L73">			return;</span>
+		}
+<span class="fc" id="L75">		ac_prob += Utils.GREEN_PROB;</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">		if (prob &lt; ac_prob) {</span>
+<span class="fc" id="L77">			_color = Color.GREEN;</span>
+<span class="fc" id="L78">			return;</span>
+		}
+<span class="fc" id="L80">		ac_prob += Utils.BLUE_PROB;</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">		if (prob &lt; ac_prob) {</span>
+<span class="fc" id="L82">			_color = Color.BLUE;</span>
+<span class="fc" id="L83">			return;</span>
+		}
+<span class="fc" id="L85">		ac_prob += Utils.CYAN_PROB;</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">		if (prob &lt; ac_prob) {</span>
+<span class="fc" id="L87">			_color = Color.CYAN;</span>
+<span class="fc" id="L88">			return;</span>
+		}
+<span class="fc" id="L90">		ac_prob += Utils.WHITE_PROB;</span>
+<span class="fc bfc" id="L91" title="All 2 branches covered.">		if (prob &lt; ac_prob) {</span>
+<span class="fc" id="L92">			_color = Color.WHITE;</span>
+<span class="fc" id="L93">			return;</span>
+		}
+<span class="fc" id="L95">		ac_prob += Utils.GRAY_PROB;</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">		if (prob &lt; ac_prob) {</span>
+<span class="fc" id="L97">			_color = Color.GRAY;</span>
+<span class="fc" id="L98">			return;</span>
+		}
+<span class="fc" id="L100">		_color = Color.YELLOW;</span>
+<span class="fc" id="L101">	}</span>
+
+	public void randomizeLength() {
+<span class="fc" id="L104">		_length = 2.0 + Utils.random.nextDouble() * 16.0;</span>
+<span class="fc" id="L105">	}</span>
+
+	public void randomizeTheta() {
+<span class="fc" id="L108">		_theta = Utils.random.nextDouble() * 2.0 * Math.PI;</span>
+<span class="fc" id="L109">	}</span>
+
+	/**
+	 * Randomize the component of this gene: final point and color. Coordinates
+	 * are given a random number between -13 and -2 or 2 and 13. Color is given
+	 * a random color. The probability of each color is taken from user
+	 * preferences.
+	 */
+	public void randomize() {
+<span class="fc" id="L118">		randomizeLength();</span>
+<span class="fc" id="L119">		randomizeTheta();</span>
+<span class="fc" id="L120">		randomizeColor();</span>
+<span class="fc" id="L121">	}</span>
+
+	/**
+	 * Return an exact copy of this gene.
+	 */
+	@Override
+	public Object clone() {
+<span class="nc" id="L128">		Gene newGen = null;</span>
+		try {
+<span class="nc" id="L130">			newGen = (Gene) super.clone();</span>
+<span class="nc" id="L131">		} catch (CloneNotSupportedException e) {// We should never reach this</span>
+		}
+<span class="nc" id="L133">		return newGen;</span>
+	}
+
+	public double getLength() {
+<span class="fc" id="L137">		return _length;</span>
+	}
+
+	public double getTheta() {
+<span class="fc" id="L141">		return _theta;</span>
+	}
+
+	/**
+	 * Returns the segment's color.
+	 * 
+	 * @return the segment's color
+	 */
+	public Color getColor() {
+<span class="fc" id="L150">		return _color;</span>
+	}
+
+	/**
+	 * Assign a color to the segment.
+	 * 
+	 * @param color
+	 *            The color to assign
+	 */
+	public void setColor(Color color) {
+<span class="fc" id="L160">		_color = color;</span>
+<span class="fc" id="L161">	}</span>
+
+	public void setLength(double length) {
+<span class="fc" id="L164">		_length = length;</span>
+<span class="fc" id="L165">	}</span>
+
+	public void setTheta(double theta) {
+<span class="fc" id="L168">		_theta = theta;</span>
+<span class="fc" id="L169">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

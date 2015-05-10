@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>NetServerThread.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">NetServerThread.java</span></div><h1>NetServerThread.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+public class NetServerThread extends Thread {
+	protected InetAddress address;
+	protected int port;
+	protected ServerSocket serverSocket;
+	protected Socket listenSocket;
+	protected int state;
+<span class="nc" id="L30">	protected int netCode = 0;</span>
+	protected int receivedMessage;
+	protected boolean isActive;
+	protected GeneticCode code;
+<span class="nc" id="L34">	protected List&lt;Connection&gt; connections = Collections.synchronizedList(new ArrayList&lt;Connection&gt;());</span>
+	protected MainWindow mainWindow;
+	private ObjectInputStream ois;
+	private ObjectOutputStream oos;
+	
+	public static final int CONNECT = 1;
+	public static final int CONNECTED = 2;
+	public static final int ALREADY_CONNECTED = 3;
+	public static final int TOO_MANY_CONNECTIONS = 4;
+	public static final int DISCONNECT = 5;
+	public static final int NOT_ACCEPTING_CONNECTIONS = 6;
+	public static final int NOT_CONNECTED = 7;
+	public static final int SEND_CODE = 8;
+	public static final int WAITING_CODE = 9;
+	public static final int CODE_RECEIVED = 10;
+	public static final int TOO_MANY_CODES = 11;
+	public static final int GAME_PAUSED = 12;
+	public static final int KEEP_ALIVE = 13;
+	public static final int ACK_KEEP_ALIVE = 14;
+	public static final int DISCONNECTED = 15;
+	public static final int INCOMPATIBLE_PROGRAM_VERSION = 16;
+	
+	public static final int STATE_DISCONNECTED = 50;
+	public static final int STATE_CONNECTED = 51;
+	
+	public static String messageToString(int message) {
+<span class="nc bnc" id="L60" title="All 17 branches missed.">		switch (message) {</span>
+<span class="nc" id="L61">		case CONNECT: return &quot;CONNECT&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L62">		case CONNECTED: return &quot;CONNECTED&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L63">		case ALREADY_CONNECTED: return &quot;ALREADY_CONNECTED&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L64">		case TOO_MANY_CONNECTIONS: return &quot;TOO_MANY_CONNECTIONS&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L65">		case DISCONNECT: return &quot;DISCONNECT&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L66">		case NOT_ACCEPTING_CONNECTIONS: return &quot;NOT_ACCEPTING_CONNECTIONS&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L67">		case NOT_CONNECTED: return &quot;NOT_CONNECTED&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L68">		case SEND_CODE: return &quot;SEND_CODE&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L69">		case WAITING_CODE: return &quot;WAITING_CODE&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L70">		case CODE_RECEIVED: return &quot;CODE_RECEIVED&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L71">		case TOO_MANY_CODES: return &quot;TOO_MANY_CODES&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L72">		case GAME_PAUSED: return &quot;GAME_PAUSED&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L73">		case KEEP_ALIVE: return &quot;KEEP_ALIVE&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L74">		case ACK_KEEP_ALIVE: return &quot;ACK_KEEP_ALIVE&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L75">		case DISCONNECTED: return &quot;DISCONNECTED&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L76">		case INCOMPATIBLE_PROGRAM_VERSION: return &quot;INCOMPATIBLE_PROGRAM_VERSION&quot;; //$NON-NLS-1$</span>
+<span class="nc" id="L77">		default: return &quot;Non existant code&quot;; //$NON-NLS-1$</span>
+		}
+	}
+	
+	public boolean isActive() {
+<span class="nc" id="L82">		return isActive;</span>
+	}
+	
+<span class="nc" id="L85">	public NetServerThread(MainWindow app) {</span>
+<span class="nc" id="L86">		mainWindow = app;</span>
+<span class="nc" id="L87">	}</span>
+	
+	public List&lt;Connection&gt; getConnections() {
+<span class="nc" id="L90">		return connections;</span>
+	}
+	
+	public Connection newConnection(InetAddress remoteAddress, int remotePort) {
+<span class="nc" id="L94">		address = remoteAddress;</span>
+<span class="nc" id="L95">		port = remotePort;</span>
+<span class="nc" id="L96">		Connection c = checkConnectionDuplicity();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">		if (c == null) {</span>
+<span class="nc" id="L98">			c = new Connection(mainWindow, remoteAddress, remotePort);</span>
+<span class="nc" id="L99">			connections.add(c);</span>
+<span class="nc" id="L100">		} else </span>
+<span class="nc" id="L101">			return null;</span>
+<span class="nc" id="L102">		return c;</span>
+	}
+	
+	private Connection newConnection() {
+<span class="nc" id="L106">		Connection c = checkConnectionDuplicity();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">		if (c == null) {</span>
+<span class="nc" id="L108">			c = new Connection(mainWindow, address, port, netCode);</span>
+<span class="nc" id="L109">			connections.add(c);</span>
+<span class="nc" id="L110">		} else</span>
+<span class="nc" id="L111">			return null;</span>
+<span class="nc" id="L112">		return c;</span>
+	}
+	
+	public void removeConnection(Connection c) {
+<span class="nc" id="L116">		connections.remove(c);</span>
+<span class="nc" id="L117">	}</span>
+
+	public void closeServer() {
+<span class="nc" id="L120">		isActive = false;</span>
+		// Remove all connections
+		Connection c;
+<span class="nc" id="L123">		synchronized (connections) {</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">			for (Iterator&lt;Connection&gt; it = connections.iterator();it.hasNext();) {</span>
+<span class="nc" id="L125">				c = it.next();</span>
+<span class="nc" id="L126">				c.send(DISCONNECT);</span>
+<span class="nc" id="L127">				c.setState(DISCONNECTED);</span>
+			}
+		}
+<span class="nc" id="L130">		connections = Collections.synchronizedList(new ArrayList&lt;Connection&gt;());</span>
+<span class="nc" id="L131">	}</span>
+	
+	@Override
+	public void run() {
+<span class="nc" id="L135">		isActive = true;</span>
+		try {
+<span class="nc" id="L137">			serverSocket=new ServerSocket(Utils.LOCAL_PORT);</span>
+<span class="nc" id="L138">			mainWindow.setStatusMessage(Messages.getString(&quot;T_NET_SERVER_LISTENING_ON_PORT&quot;, Integer.toString(Utils.LOCAL_PORT))); //$NON-NLS-1$</span>
+<span class="nc" id="L139">		} catch (IOException e) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">			if (e instanceof BindException) {</span>
+<span class="nc" id="L141">				mainWindow.setStatusMessage(Messages.getString(&quot;T_PORT_ALREADY_IN_USE&quot;, Integer.toString(Utils.LOCAL_PORT))); //$NON-NLS-1$</span>
+<span class="nc" id="L142">			} else</span>
+<span class="nc" id="L143">				e.printStackTrace();</span>
+<span class="nc" id="L144">			isActive = false;</span>
+		}
+<span class="nc bnc" id="L146" title="All 2 branches missed.">		while (isActive) {</span>
+			try {
+<span class="nc" id="L148">				listenSocket = serverSocket.accept();</span>
+<span class="nc" id="L149">				ois = new ObjectInputStream(listenSocket.getInputStream());</span>
+<span class="nc" id="L150">				oos = new ObjectOutputStream(listenSocket.getOutputStream());</span>
+<span class="nc" id="L151">				receivedMessage = ois.readInt();</span>
+<span class="nc" id="L152">				System.out.println(messageToString(receivedMessage));</span>
+<span class="nc bnc" id="L153" title="All 5 branches missed.">				switch (receivedMessage) {</span>
+				case CONNECT:
+<span class="nc" id="L155">					handleConnect();</span>
+<span class="nc" id="L156">					break;</span>
+				case SEND_CODE:
+<span class="nc" id="L158">					handleSendCode();</span>
+<span class="nc" id="L159">					break;</span>
+				case KEEP_ALIVE:
+<span class="nc" id="L161">					handleKeepAlive();</span>
+<span class="nc" id="L162">					break;</span>
+				case DISCONNECT:
+<span class="nc" id="L164">					handleDisconnect();</span>
+					break;
+				}
+<span class="nc" id="L167">				ois.close();</span>
+<span class="nc" id="L168">				oos.close();</span>
+<span class="nc" id="L169">			} catch (IOException e) {</span>
+<span class="nc" id="L170">				System.out.println(e.getMessage());</span>
+<span class="nc" id="L171">			} finally {</span>
+<span class="nc bnc" id="L172" title="All 6 branches missed.">				if (listenSocket != null)</span>
+					try {
+<span class="nc" id="L174">						listenSocket.close();</span>
+<span class="nc" id="L175">					} catch (IOException e) {</span>
+<span class="nc" id="L176">						e.printStackTrace();</span>
+					}
+<span class="nc" id="L178">			}	</span>
+		}
+<span class="nc" id="L180">	}</span>
+	
+	private void handleDisconnect() {
+<span class="nc" id="L183">		Connection c = null;</span>
+		try {
+<span class="nc" id="L185">			netCode = ois.readInt();</span>
+<span class="nc" id="L186">			c = checkConnectionNetCode();</span>
+<span class="nc bnc" id="L187" title="All 4 branches missed.">			if (c != null &amp;&amp; c.getState() == Connection.STATE_CONNECTED) {</span>
+<span class="nc" id="L188">				oos.writeInt(DISCONNECTED);</span>
+<span class="nc" id="L189">				oos.flush();</span>
+<span class="nc" id="L190">				System.out.println(&quot;-&gt;DISCONNECTED&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L191">				c.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L192">			} else {</span>
+<span class="nc" id="L193">				System.out.println(&quot;-&gt;NOT_CONNECTED&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L194">				oos.writeInt(NOT_CONNECTED);</span>
+<span class="nc" id="L195">				oos.flush();</span>
+			}
+<span class="nc" id="L197">		} catch (IOException e) {</span>
+<span class="nc" id="L198">			System.out.println(&quot;handleDisconnect: &quot;+e.getMessage()); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">			if (c!=null) {</span>
+<span class="nc" id="L200">				c.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L201">				System.out.println(&quot;Connection closed with &quot;+c.remoteAddress+&quot;:&quot;+c.remotePort);  //$NON-NLS-1$//$NON-NLS-2$</span>
+			}
+		}
+<span class="nc" id="L204">	}</span>
+	
+	private void handleKeepAlive() {
+<span class="nc" id="L207">		Connection c = null;</span>
+		try {
+<span class="nc" id="L209">			netCode = ois.readInt();</span>
+<span class="nc" id="L210">			c = checkConnectionNetCode();</span>
+<span class="nc bnc" id="L211" title="All 4 branches missed.">			if (c != null &amp;&amp; c.getState() == Connection.STATE_CONNECTED) {</span>
+<span class="nc" id="L212">				oos.writeInt(ACK_KEEP_ALIVE);</span>
+<span class="nc" id="L213">				oos.flush();</span>
+<span class="nc" id="L214">				System.out.println(&quot;-&gt;ACK_KEEP_ALIVE&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L215">			} else {</span>
+<span class="nc" id="L216">				System.out.println(&quot;-&gt;NOT_CONNECTED&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L217">				oos.writeInt(NOT_CONNECTED);</span>
+<span class="nc" id="L218">				oos.flush();</span>
+			}
+<span class="nc" id="L220">		} catch (IOException e) {</span>
+<span class="nc" id="L221">			System.out.println(&quot;handleKeepAlive: &quot;+e.getMessage()); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">			if (c!=null) {</span>
+<span class="nc" id="L223">				c.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L224">				System.out.println(&quot;Connection closed with &quot;+c.remoteAddress+&quot;:&quot;+c.remotePort); //$NON-NLS-1$ //$NON-NLS-2$</span>
+			}
+		}
+<span class="nc" id="L227">	}</span>
+	
+	private void handleConnect() {
+		try {
+<span class="nc" id="L231">			int program_version = ois.readInt();</span>
+<span class="nc" id="L232">			port = ois.readInt();</span>
+<span class="nc" id="L233">			address = listenSocket.getInetAddress();</span>
+<span class="nc" id="L234">			netCode = ois.readInt();</span>
+<span class="nc" id="L235">			Connection c = checkConnectionNetCode();</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">			if (c != null) {</span>
+<span class="nc" id="L237">				oos.writeInt(ALREADY_CONNECTED);</span>
+<span class="nc" id="L238">				oos.flush();</span>
+<span class="nc" id="L239">				System.out.println(&quot;-&gt;ALREADY_CONNECTED&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L240">			} else {</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">				if (mainWindow.isAcceptingConnections()) {</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">					if (connections.size() &lt; Utils.MAX_CONNECTIONS) {</span>
+<span class="nc bnc" id="L243" title="All 2 branches missed.">						if (Utils.VERSION == program_version) {</span>
+<span class="nc" id="L244">							Connection newConnection = newConnection();</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">							if (newConnection != null) {</span>
+<span class="nc" id="L246">								oos.writeInt(CONNECTED);</span>
+<span class="nc" id="L247">								newConnection.setState(Connection.STATE_CONNECTED);</span>
+<span class="nc" id="L248">								System.out.println(&quot;-&gt;CONNECTED&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L249">							} else {</span>
+<span class="nc" id="L250">								oos.writeInt(ALREADY_CONNECTED);</span>
+<span class="nc" id="L251">								System.out.println(&quot;-&gt;ALREADY_CONNECTED&quot;); //$NON-NLS-1$</span>
+							}
+<span class="nc" id="L253">							oos.flush();</span>
+<span class="nc" id="L254">						} else {</span>
+<span class="nc" id="L255">							oos.writeInt(INCOMPATIBLE_PROGRAM_VERSION);</span>
+<span class="nc" id="L256">							oos.flush();</span>
+<span class="nc" id="L257">							System.out.println(&quot;-&gt;INCOMPATIBLE_PROGRAM_VERSION&quot;); //$NON-NLS-1$</span>
+						}
+<span class="nc" id="L259">					} else {</span>
+<span class="nc" id="L260">						oos.writeInt(TOO_MANY_CONNECTIONS);</span>
+<span class="nc" id="L261">						oos.flush();</span>
+<span class="nc" id="L262">						System.out.println(&quot;-&gt;TOO_MANY_CONNECTIONS&quot;); //$NON-NLS-1$</span>
+					}
+<span class="nc" id="L264">				} else {</span>
+<span class="nc" id="L265">					oos.writeInt(NOT_ACCEPTING_CONNECTIONS);</span>
+<span class="nc" id="L266">					oos.flush();</span>
+<span class="nc" id="L267">					System.out.println(&quot;-&gt;NOT_ACCEPTING_CONNECTIONS&quot;); //$NON-NLS-1$</span>
+				}
+			}
+<span class="nc" id="L270">		} catch (IOException ex) {</span>
+<span class="nc" id="L271">			System.out.println(ex.getMessage());</span>
+		}
+<span class="nc" id="L273">	}</span>
+	
+	private void handleSendCode() {
+<span class="nc" id="L276">		Connection c = null;</span>
+		try {
+<span class="nc" id="L278">			netCode = ois.readInt();</span>
+<span class="nc" id="L279">			c = checkConnectionNetCode();</span>
+<span class="nc bnc" id="L280" title="All 4 branches missed.">			if (c != null &amp;&amp; c.getState() == Connection.STATE_CONNECTED) {</span>
+<span class="nc" id="L281">				oos.writeInt(WAITING_CODE);</span>
+<span class="nc" id="L282">				oos.flush();</span>
+<span class="nc" id="L283">				System.out.println(&quot;-&gt;WAITING_CODE&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L284">				code = (GeneticCode) ois.readObject();</span>
+<span class="nc" id="L285">				System.out.println(&quot;Genetic code&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L286">				oos.writeInt(CODE_RECEIVED);</span>
+<span class="nc" id="L287">				oos.flush();</span>
+<span class="nc" id="L288">				System.out.println(&quot;-&gt;CODE_RECEIVED&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L289">				c.inCorridor.receiveOrganism(code);</span>
+<span class="nc" id="L290">			} else {</span>
+<span class="nc" id="L291">				System.out.println(&quot;-&gt;NOT_CONNECTED&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L292">				oos.writeInt(NOT_CONNECTED);</span>
+<span class="nc" id="L293">				oos.flush();</span>
+			}
+<span class="nc" id="L295">		} catch (IOException e) {</span>
+<span class="nc" id="L296">			System.out.println(&quot;handleSendCode: &quot;+e.getMessage()); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">			if (c!=null) {</span>
+<span class="nc" id="L298">				c.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L299">				System.out.println(&quot;Connection closed with &quot;+c.remoteAddress+&quot;:&quot;+c.remotePort);  //$NON-NLS-1$//$NON-NLS-2$</span>
+			}
+<span class="nc" id="L301">		} catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L302">			System.out.println(&quot;handleSendCode: &quot;+e.getMessage()); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">			if (c!=null) {</span>
+<span class="nc" id="L304">				c.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L305">				System.out.println(&quot;Connection closed with &quot;+c.remoteAddress+&quot;:&quot;+c.remotePort);  //$NON-NLS-1$//$NON-NLS-2$</span>
+			}
+		}
+<span class="nc" id="L308">	}</span>
+	
+	private Connection checkConnectionNetCode() {
+		Connection c;
+<span class="nc" id="L312">		synchronized (connections) {</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">			for (Iterator&lt;Connection&gt; it = connections.iterator();it.hasNext();) {</span>
+<span class="nc" id="L314">				c = it.next();</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">				if (c.netCode == netCode)</span>
+<span class="nc" id="L316">					return c;</span>
+			}
+		}
+<span class="nc" id="L319">		return null;</span>
+	}
+	
+	private Connection checkConnectionDuplicity() {
+		Connection c;
+<span class="nc" id="L324">		synchronized (connections) {</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">			for (Iterator&lt;Connection&gt; it = connections.iterator();it.hasNext();) {</span>
+<span class="nc" id="L326">				c = it.next();</span>
+<span class="nc bnc" id="L327" title="All 4 branches missed.">				if (c.remoteAddress.equals(address) &amp;&amp; c.remotePort == port) {</span>
+<span class="nc" id="L328">					System.out.println(&quot;Duplicated connection&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L329">					return c;</span>
+				}
+			}
+		}
+<span class="nc" id="L333">		return null;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

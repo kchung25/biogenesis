@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>NetSend.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">NetSend.java</span></div><h1>NetSend.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.net.*;
+import java.io.*;
+
+public class NetSend extends Thread {
+	protected Connection connection;
+	protected int message;
+	protected GeneticCode geneticCode;
+	
+	private int netCode;
+	private int port;
+	private int answerMessage;
+	private ObjectOutputStream oos;
+	private ObjectInputStream ois;
+	private Socket socket;
+	private InetAddress address;
+	
+<span class="nc" id="L36">	public NetSend(Connection c, int m, GeneticCode g) {</span>
+<span class="nc" id="L37">		connection = c;</span>
+<span class="nc" id="L38">		message = m;</span>
+<span class="nc" id="L39">		geneticCode = g;</span>
+<span class="nc" id="L40">	}</span>
+	
+	@Override
+	public void run() {
+<span class="nc" id="L44">		address = connection.remoteAddress;</span>
+<span class="nc" id="L45">		port = connection.remotePort;</span>
+<span class="nc" id="L46">		netCode = connection.netCode;</span>
+		try {
+<span class="nc" id="L48">			socket = new Socket(address,port);</span>
+<span class="nc" id="L49">			oos = new ObjectOutputStream(socket.getOutputStream());</span>
+<span class="nc" id="L50">			ois = new ObjectInputStream(socket.getInputStream());</span>
+<span class="nc" id="L51">			System.out.println(&quot;-&gt;&quot;+NetServerThread.messageToString(message)); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L52" title="All 5 branches missed.">			switch (message) {</span>
+			case NetServerThread.CONNECT:
+<span class="nc" id="L54">				handleConnect();</span>
+<span class="nc" id="L55">				break;</span>
+			case NetServerThread.SEND_CODE:
+<span class="nc" id="L57">				handleSendCode();</span>
+<span class="nc" id="L58">				break;</span>
+			case NetServerThread.KEEP_ALIVE:
+<span class="nc" id="L60">				handleKeepAlive();</span>
+<span class="nc" id="L61">				break;</span>
+			case NetServerThread.DISCONNECT:
+<span class="nc" id="L63">				handleDisconnect();</span>
+				break;
+			}
+<span class="nc" id="L66">			socket.close();</span>
+<span class="nc" id="L67">		} catch (ConnectException e) {</span>
+<span class="nc" id="L68">			connection.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L69">			System.out.println(&quot;NetSend, ConnectException: &quot;+e.getMessage()); //$NON-NLS-1$</span>
+<span class="nc" id="L70">			System.out.println(&quot;Connection closed with &quot;+connection.remoteAddress+&quot;:&quot;+connection.remotePort);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc" id="L71">		} catch (UnknownHostException e) {</span>
+<span class="nc" id="L72">			connection.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L73">			System.out.println(&quot;NetSend, UnknownHostException: &quot;+e.getMessage()); //$NON-NLS-1$</span>
+<span class="nc" id="L74">			System.out.println(&quot;Connection closed with &quot;+connection.remoteAddress+&quot;:&quot;+connection.remotePort);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc" id="L75">		} catch (IOException e) {</span>
+<span class="nc" id="L76">			connection.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L77">			System.out.println(&quot;NetSend, IOException: &quot;+e.getMessage()); //$NON-NLS-1$</span>
+<span class="nc" id="L78">			System.out.println(&quot;Connection closed with &quot;+connection.remoteAddress+&quot;:&quot;+connection.remotePort);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc" id="L79">		} finally {</span>
+<span class="nc bnc" id="L80" title="All 10 branches missed.">			if (oos != null) { </span>
+				try {
+<span class="nc" id="L82">					oos.close();</span>
+<span class="nc" id="L83">				} catch (IOException e) {</span>
+<span class="nc" id="L84">					System.out.println(e.getMessage());</span>
+				}
+			}
+<span class="nc bnc" id="L87" title="All 10 branches missed.">			if (ois != null) {</span>
+				try {
+<span class="nc" id="L89">					ois.close();</span>
+<span class="nc" id="L90">				} catch (IOException e) {</span>
+<span class="nc" id="L91">					System.out.println(e.getMessage());</span>
+				}
+			}
+<span class="nc bnc" id="L94" title="All 10 branches missed.">			if (socket != null) {</span>
+				try {
+<span class="nc" id="L96">					socket.close();</span>
+<span class="nc" id="L97">				} catch (IOException e) {</span>
+<span class="nc" id="L98">					System.out.println(e.getMessage());</span>
+				}
+			}
+<span class="nc" id="L101">		}</span>
+<span class="nc" id="L102">	}</span>
+	
+	private void handleConnect() throws ConnectException, IOException, UnknownHostException {
+<span class="nc" id="L105">		System.out.println(&quot;----- Connecting...&quot;); //$NON-NLS-1$</span>
+		// Try to connect
+<span class="nc" id="L107">		oos.writeInt(message);</span>
+<span class="nc" id="L108">		oos.writeInt(Utils.VERSION);</span>
+<span class="nc" id="L109">		oos.writeInt(Utils.LOCAL_PORT);</span>
+<span class="nc" id="L110">		oos.writeInt(netCode);</span>
+<span class="nc" id="L111">		oos.flush();</span>
+<span class="nc" id="L112">		answerMessage = ois.readInt();</span>
+<span class="nc" id="L113">		System.out.println(NetServerThread.messageToString(answerMessage));</span>
+<span class="nc bnc" id="L114" title="All 3 branches missed.">		switch (answerMessage) {</span>
+		case NetServerThread.CONNECTED:
+			// Connection successful
+<span class="nc" id="L117">			connection.setState(Connection.STATE_CONNECTED);</span>
+<span class="nc" id="L118">			break;</span>
+		case NetServerThread.ALREADY_CONNECTED:
+<span class="nc" id="L120">			connection.setState(Connection.STATE_CONNECTED);</span>
+<span class="nc" id="L121">			break;</span>
+		default:
+<span class="nc" id="L123">			connection.setState(Connection.STATE_DISCONNECTED);</span>
+			break;
+		}
+<span class="nc" id="L126">	}</span>
+	
+	private void handleSendCode() throws ConnectException, IOException, UnknownHostException {
+<span class="nc" id="L129">		System.out.println(&quot;----- Sending code...&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L130">		oos.writeInt(message);</span>
+<span class="nc" id="L131">		oos.writeInt(netCode);</span>
+<span class="nc" id="L132">		oos.flush();</span>
+<span class="nc" id="L133">		answerMessage = ois.readInt();</span>
+<span class="nc" id="L134">		System.out.println(NetServerThread.messageToString(answerMessage));</span>
+<span class="nc bnc" id="L135" title="All 4 branches missed.">		switch (answerMessage) {</span>
+		case NetServerThread.WAITING_CODE:
+<span class="nc" id="L137">			oos.writeObject(geneticCode);</span>
+<span class="nc" id="L138">			System.out.println(&quot;-&gt;Genetic code&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L139">			answerMessage = ois.readInt();</span>
+<span class="nc" id="L140">			System.out.println(NetServerThread.messageToString(answerMessage));</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">			if (answerMessage == NetServerThread.CODE_RECEIVED) {</span>
+<span class="nc" id="L142">				connection.resetTime();</span>
+			}
+<span class="nc" id="L144">			break;</span>
+		case NetServerThread.NOT_CONNECTED:
+<span class="nc" id="L146">			connection.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L147">			break;</span>
+		case NetServerThread.TOO_MANY_CODES:
+<span class="nc" id="L149">			break;</span>
+		default:
+<span class="nc" id="L151">			connection.setState(Connection.STATE_DISCONNECTED);</span>
+			break;
+		}
+<span class="nc" id="L154">	}</span>
+	
+	private void handleKeepAlive() throws ConnectException, IOException, UnknownHostException {
+<span class="nc" id="L157">		System.out.println(&quot;----- Checking remote server...&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L158">		oos.writeInt(message);</span>
+<span class="nc" id="L159">		oos.writeInt(netCode);</span>
+<span class="nc" id="L160">		oos.flush();</span>
+<span class="nc" id="L161">		answerMessage = ois.readInt();</span>
+<span class="nc" id="L162">		System.out.println(NetServerThread.messageToString(answerMessage));</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">		switch (answerMessage) {</span>
+		case NetServerThread.ACK_KEEP_ALIVE:
+<span class="nc" id="L165">			connection.resetTime();</span>
+<span class="nc" id="L166">			break;</span>
+		default:
+<span class="nc" id="L168">			connection.setState(Connection.STATE_DISCONNECTED);</span>
+			break;
+		}
+<span class="nc" id="L171">	}</span>
+	
+	private void handleDisconnect() throws ConnectException, IOException, UnknownHostException {
+<span class="nc" id="L174">		System.out.println(&quot;----- Disconnecting...&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L175">		oos.writeInt(message);</span>
+<span class="nc" id="L176">		oos.writeInt(netCode);</span>
+<span class="nc" id="L177">		oos.flush();</span>
+<span class="nc" id="L178">		answerMessage = ois.readInt();</span>
+<span class="nc" id="L179">		System.out.println(NetServerThread.messageToString(answerMessage));</span>
+<span class="nc" id="L180">		connection.setState(Connection.STATE_DISCONNECTED);</span>
+<span class="nc" id="L181">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

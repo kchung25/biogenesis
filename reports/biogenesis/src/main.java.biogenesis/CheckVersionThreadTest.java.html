@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>CheckVersionThreadTest.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">CheckVersionThreadTest.java</span></div><h1>CheckVersionThreadTest.java</h1><pre class="source lang-java linenums">package main.java.biogenesis;
+
+import javax.swing.JFrame;
+import org.junit.*;
+import static org.junit.Assert.*;
+
+/**
+ * The class &lt;code&gt;CheckVersionThreadTest&lt;/code&gt; contains tests for the class &lt;code&gt;{@link CheckVersionThread}&lt;/code&gt;.
+ *
+ * @generatedBy CodePro at 5/9/15 4:28 PM
+ * @author User
+ * @version $Revision: 1.0 $
+ */
+<span class="fc" id="L14">public class CheckVersionThreadTest {</span>
+	/**
+	 * Run the CheckVersionThread(JFrame) constructor test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 4:28 PM
+	 */
+	@Test
+	public void testCheckVersionThread_1()
+		throws Exception {
+<span class="nc" id="L25">		JFrame frame = new JFrame();</span>
+
+<span class="nc" id="L27">		CheckVersionThread result = new CheckVersionThread(frame);</span>
+
+		// add additional test code here
+<span class="nc" id="L30">		assertNotNull(result);</span>
+<span class="nc" id="L31">		assertEquals(&quot;Thread[Thread-2420,1,main]&quot;, result.toString());</span>
+<span class="nc" id="L32">		assertEquals(false, result.isInterrupted());</span>
+<span class="nc" id="L33">		assertEquals(&quot;Thread-2420&quot;, result.getName());</span>
+<span class="nc" id="L34">		assertEquals(0, result.countStackFrames());</span>
+<span class="nc" id="L35">		assertEquals(2934L, result.getId());</span>
+<span class="nc" id="L36">		assertEquals(1, result.getPriority());</span>
+<span class="nc" id="L37">		assertEquals(false, result.isAlive());</span>
+<span class="nc" id="L38">		assertEquals(true, result.isDaemon());</span>
+<span class="nc" id="L39">	}</span>
+
+	/**
+	 * Run the void run() method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 4:28 PM
+	 */
+	@Test
+	public void testRun_1()
+		throws Exception {
+<span class="fc" id="L51">		CheckVersionThread fixture = new CheckVersionThread(new JFrame());</span>
+
+<span class="fc" id="L53">		fixture.run();</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.SecurityException: Cannot write to files while generating test cases
+		//       at com.instantiations.assist.eclipse.junit.CodeProJUnitSecurityManager.checkWrite(CodeProJUnitSecurityManager.java:70)
+		//       at java.io.FileOutputStream.&lt;init&gt;(Unknown Source)
+		//       at java.net.SocketOutputStream.&lt;init&gt;(Unknown Source)
+		//       at java.net.AbstractPlainSocketImpl.getOutputStream(Unknown Source)
+		//       at java.net.PlainSocketImpl.getOutputStream(Unknown Source)
+		//       at java.net.Socket$3.run(Unknown Source)
+		//       at java.net.Socket$3.run(Unknown Source)
+		//       at java.security.AccessController.doPrivileged(Native Method)
+		//       at java.net.Socket.getOutputStream(Unknown Source)
+		//       at sun.net.www.http.HttpClient.openServer(Unknown Source)
+		//       at sun.net.www.http.HttpClient.openServer(Unknown Source)
+		//       at sun.net.www.http.HttpClient.&lt;init&gt;(Unknown Source)
+		//       at sun.net.www.http.HttpClient.New(Unknown Source)
+		//       at sun.net.www.http.HttpClient.New(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection.getNewHttpClient(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection.plainConnect0(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection$6.run(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection$6.run(Unknown Source)
+		//       at java.security.AccessController.doPrivileged(Native Method)
+		//       at java.security.AccessController.doPrivileged(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection.plainConnect(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection.connect(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection.getInputStream0(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection.access$200(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection$9.run(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection$9.run(Unknown Source)
+		//       at java.security.AccessController.doPrivileged(Native Method)
+		//       at java.security.AccessController.doPrivileged(Unknown Source)
+		//       at sun.net.www.protocol.http.HttpURLConnection.getInputStream(Unknown Source)
+		//       at java.net.URL.openStream(Unknown Source)
+		//       at main.java.biogenesis.CheckVersionThread.run(CheckVersionThread.java:66)
+<span class="fc" id="L89">	}</span>
+
+	/**
+	 * Run the String translateVersion(String) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 4:28 PM
+	 */
+	@Test
+	public void testTranslateVersion_1()
+		throws Exception {
+<span class="fc" id="L101">		String str = &quot;&quot;;</span>
+
+<span class="fc" id="L103">		String result = CheckVersionThread.translateVersion(str);</span>
+
+		// add additional test code here
+<span class="fc" id="L106">		assertEquals(&quot;0.0&quot;, result);</span>
+<span class="fc" id="L107">	}</span>
+
+	/**
+	 * Run the String translateVersion(String) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 4:28 PM
+	 */
+	@Test
+	public void testTranslateVersion_2()
+		throws Exception {
+<span class="fc" id="L119">		String str = &quot;a&quot;;</span>
+
+<span class="fc" id="L121">		String result = CheckVersionThread.translateVersion(str);</span>
+
+		// add additional test code here
+<span class="fc" id="L124">		assertEquals(&quot;a&quot;, result);</span>
+<span class="fc" id="L125">	}</span>
+
+	/**
+	 * Perform pre-test initialization.
+	 *
+	 * @throws Exception
+	 *         if the initialization fails for some reason
+	 *
+	 * @generatedBy CodePro at 5/9/15 4:28 PM
+	 */
+	@Before
+	public void setUp()
+		throws Exception {
+		// add additional set up code here
+<span class="fc" id="L139">	}</span>
+
+	/**
+	 * Perform post-test clean-up.
+	 *
+	 * @throws Exception
+	 *         if the clean-up fails for some reason
+	 *
+	 * @generatedBy CodePro at 5/9/15 4:28 PM
+	 */
+	@After
+	public void tearDown()
+		throws Exception {
+		// Add additional tear down code here
+<span class="fc" id="L153">	}</span>
+
+	/**
+	 * Launch the test.
+	 *
+	 * @param args the command line arguments
+	 *
+	 * @generatedBy CodePro at 5/9/15 4:28 PM
+	 */
+	public static void main(String[] args) {
+<span class="nc" id="L163">		new org.junit.runner.JUnitCore().run(CheckVersionThreadTest.class);</span>
+<span class="nc" id="L164">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

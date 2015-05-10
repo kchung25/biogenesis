@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Messages.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">Messages.java</span></div><h1>Messages.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.util.MissingResourceException;
+import java.util.Locale;
+import java.util.ResourceBundle;
+
+/**
+ * A class used to translate messages in the appropriate language.
+ */
+<span class="fc" id="L27">public class Messages {</span>
+	/**
+	 * The root name of files containing localized messages.
+	 */
+	private static final String BUNDLE_NAME = &quot;main/resources/biogenesis/messages/messages&quot;; //$NON-NLS-1$
+	/**
+	 * The selected locale to be used.
+	 */
+<span class="fc" id="L35">	private static Locale currentLocale = Locale.getDefault();</span>
+	/**
+	 * The ResourceBundle used to access localized messages
+	 */
+<span class="fc" id="L39">	private static ResourceBundle appResourceBundle = </span>
+<span class="fc" id="L40">		ResourceBundle.getBundle(BUNDLE_NAME, currentLocale);</span>
+	/**
+	 * The names of all supported languages
+	 */
+<span class="fc" id="L44">	private static final String[] supportedLocalesNames = new String[3];</span>
+	/**
+	 * The standard codes of all supported languages
+	 */
+<span class="fc" id="L48">	private static final String[] supportedLocalesCodes = {&quot;ca&quot;,&quot;en&quot;,&quot;es&quot;}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$</span>
+	/**
+	 * The default locale index in supportedLocalesCodes when the system language is
+	 * not supported by the program. The default language is English.
+	 */
+<span class="fc" id="L53">	private static final int DEFAULT_LOCALE_INDEX = 1;</span>
+	/**
+	 * Obtains mnemonic for key message in the current selected language.
+	 * This mnemonic should appear in the message file as key_MNEMONIC.
+	 * 
+	 * @param key  The key string to find
+	 * @return  The mnemonic for this key or the first letter in the key if it is not found
+	 */
+	public static Integer getMnemonic(String key) {
+		try {
+<span class="fc" id="L63">			return Integer.valueOf(appResourceBundle.getString(key+&quot;_MNEMONIC&quot;).codePointAt(0)); //$NON-NLS-1$</span>
+<span class="fc" id="L64">		} catch (MissingResourceException e) {</span>
+<span class="fc" id="L65">			return Integer.valueOf(key.codePointAt(0));</span>
+		}
+	}
+	/**
+	 * Translate key message into the current selected language.
+	 * Key message is looked up the corresponding message file and
+	 * the translation retreived.
+	 * 
+	 * @param key  The key string to find
+	 * @return  The translated String or the string !key! if it is not found
+	 */
+	public static String getString(String key) {
+		try {
+<span class="fc" id="L78">			return appResourceBundle.getString(key);</span>
+<span class="fc" id="L79">		} catch (MissingResourceException e) {</span>
+<span class="fc" id="L80">			return '!' + key + '!';</span>
+		}
+	}
+	/**
+	 * Translate key message into the current selected language.
+	 * Key message is looked up the corresponding message file and
+	 * the translation retreived. The $1 token is substitued by the
+	 * string param1 in the translated string.
+	 * 
+	 * @param key  The key string to find
+	 * @param param1  The string that $1 represents on the translated string
+	 * @return  The translated String or the string !key! if it is not found
+	 */
+	public static String getString(String key, String param1) {
+<span class="fc" id="L94">		return getString(key).replace(&quot;$1&quot;, param1); //$NON-NLS-1$</span>
+	}
+	/**
+	 * Translate key message into the current selected language.
+	 * Key message is looked up the corresponding message file and
+	 * the translation retreived. The $1 token is substitued by the
+	 * string param1 in the translated string and $2 by param2.
+	 * 
+	 * @param key  The key string to find
+	 * @param param1  The string that substitute $1 on the translated string
+	 * @param param2  The string that substitute $2 on the translated string 
+	 * @return  The translated String or the string !key! if it is not found
+	 */
+	public static String getString(String key, String param1, String param2) {
+<span class="fc" id="L108">		return getString(key, param1).replace(&quot;$2&quot;, param2); //$NON-NLS-1$</span>
+	}
+	/**
+	 * Translate key message into the current selected language.
+	 * Key message is looked up the corresponding message file and
+	 * the translation retreived. $i tokens, where i is an integer are
+	 * substitued by string params[i-1] in the translated string.
+	 * 
+	 * @param key  The key string to find
+	 * @param params  The strings that substitue $i on the translated string
+	 * @return  The translated String or the string !key! if it is not found
+	 */
+	public static String getString(String key, String[] params) { 
+<span class="fc" id="L121">		String string = getString(key);</span>
+		String replacedString;
+<span class="fc bfc" id="L123" title="All 2 branches covered.">		for (int i=1; i&lt;=params.length; i++) { </span>
+<span class="fc" id="L124">			replacedString = &quot;$&quot;+i; //$NON-NLS-1$</span>
+<span class="fc" id="L125">			string = string.replace(replacedString, params[i-1]);</span>
+		}
+<span class="fc" id="L127">		return string;</span>
+	}
+	/**
+	 * Getter for the list of supported locales
+	 * 
+	 * @return  An array of strings containing the names of all
+	 * supported locales.
+	 */
+	public static String[] getSupportedLocalesNames() {
+<span class="fc" id="L136">		String[] names = new String[supportedLocalesNames.length];</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">		for (int i=0; i&lt;names.length; i++)</span>
+<span class="fc" id="L138">			names[i] = supportedLocalesNames[i];</span>
+<span class="fc" id="L139">		return names;</span>
+	}
+	/**
+	 * Set a new locale using its index in the list of supported locales
+	 * 
+	 * @param index
+	 */
+	public static void setLocale(int index) {
+<span class="fc" id="L147">		currentLocale = new Locale(supportedLocalesCodes[index]);</span>
+<span class="fc" id="L148">		appResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, currentLocale);</span>
+<span class="fc" id="L149">		changeLocale();</span>
+<span class="fc" id="L150">	}</span>
+	/**
+	 * Set a new locale from a language code
+	 * 
+	 * @param language
+	 */
+	public static void setLocale(String language) {
+<span class="fc" id="L157">		currentLocale = new Locale(language);</span>
+<span class="fc" id="L158">		appResourceBundle = ResourceBundle.getBundle(BUNDLE_NAME, currentLocale);</span>
+<span class="fc" id="L159">		changeLocale();</span>
+<span class="fc" id="L160">	}</span>
+	/**
+	 * Return the language code of the current locale
+	 * 
+	 * @return  The language code of the current locale
+	 */
+	public static String getLanguage() {
+<span class="fc" id="L167">		return currentLocale.getLanguage();</span>
+	}
+	/**
+	 * Return the current locale
+	 * 
+	 * @return  The current locale
+	 */
+	public static Locale getLocale() {
+<span class="fc" id="L175">		return currentLocale;</span>
+	}
+	/**
+	 * Return the current locale index in the supported language list
+	 * 
+	 * @return  The index of the current locale in the supported language list
+	 */
+	public static int getLocaleIndex() {
+<span class="fc bfc" id="L183" title="All 2 branches covered.">		for (int i=0; i&lt;supportedLocalesCodes.length; i++)</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">			if (currentLocale.getLanguage().equals(supportedLocalesCodes[i]))</span>
+<span class="nc" id="L185">				return i;</span>
+<span class="fc" id="L186">		return DEFAULT_LOCALE_INDEX;</span>
+	}
+	/**
+	 * Called when the locale is changed to translate the names of the supported
+	 * languages to the new locale
+	 */
+	protected static void changeLocale() {
+<span class="fc" id="L193">		supportedLocalesNames[0] = Messages.getString(&quot;T_CATALAN&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L194">		supportedLocalesNames[1] = Messages.getString(&quot;T_ENGLISH&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L195">		supportedLocalesNames[2] = Messages.getString(&quot;T_SPANISH&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L196">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

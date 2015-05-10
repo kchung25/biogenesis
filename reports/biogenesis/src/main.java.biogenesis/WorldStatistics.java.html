@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>WorldStatistics.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">WorldStatistics.java</span></div><h1>WorldStatistics.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+<span class="fc" id="L25">public class WorldStatistics implements Serializable {</span>
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+
+	private long time;
+
+	private int maxPopulation;
+
+<span class="fc" id="L32">	private int maxBirths = 0;</span>
+
+<span class="fc" id="L34">	private int maxDeaths = 0;</span>
+
+	private long maxPopulationTime;
+
+<span class="fc" id="L38">	private int minPopulation = Utils.INITIAL_ORGANISMS;</span>
+
+	private long minPopulationTime;
+
+	// private int lastTimePopulation;
+	private int massExtintions;
+
+	private int massExtintionState;
+
+	private static final int EXTINTION_NO = 0;
+
+	private static final int EXTINTION_POSSIBLE = 1;
+
+	private static final int EXTINTION_CONFIRMED = 2;
+
+	private static final int EXTINTION_FINISHING = 3;
+
+	private int createdOrganisms;
+
+	private long populationSum;
+
+	private long deathSum;
+
+	private int deathLastTime;
+
+	private long birthSum;
+
+	private int birthLastTime;
+
+	private long infectionsSum;
+
+<span class="fc" id="L69">	private double maxOxygen = Utils.INITIAL_O2;</span>
+
+	private long maxOxygenTime;
+
+<span class="fc" id="L73">	private double minOxygen = Utils.INITIAL_O2;</span>
+
+	private long minOxygenTime;
+
+<span class="fc" id="L77">	private double maxCarbonDioxide = Utils.INITIAL_CO2;</span>
+
+	private long maxCarbonDioxideTime;
+
+<span class="fc" id="L81">	private double minCarbonDioxide = Utils.INITIAL_CO2;</span>
+
+	private long minCarbonDioxideTime;
+
+	private GeneticCode aliveBeingMostChildren;
+
+	private int aliveBeingMostChildrenNumber;
+
+	private GeneticCode aliveBeingMostKills;
+
+	private int aliveBeingMostKillsNumber;
+
+	private GeneticCode aliveBeingMostInfections;
+
+	private int aliveBeingMostInfectionsNumber;
+
+	private GeneticCode beingMostChildren;
+
+	private int beingMostChildrenNumber;
+
+	private long beingMostChildrenTime;
+
+	private GeneticCode beingMostKills;
+
+	private int beingMostKillsNumber;
+
+	private long beingMostKillsTime;
+
+	private GeneticCode beingMostInfections;
+
+	private int beingMostInfectionsNumber;
+
+	private long beingMostInfectionsTime;
+
+	private GeneticCode lastBornBeing;
+
+	private GeneticCode lastDeadBeing;
+
+	private GeneticCode lastInfectedBeing;
+	
+	private Organism oldestAliveBeing;
+
+<span class="fc" id="L123">	private List&lt;Double&gt; populationList = new ArrayList&lt;Double&gt;(100);</span>
+
+<span class="fc" id="L125">	private List&lt;Double&gt; deathList = new ArrayList&lt;Double&gt;(100);</span>
+
+<span class="fc" id="L127">	private List&lt;Double&gt; birthList = new ArrayList&lt;Double&gt;(100);</span>
+
+<span class="fc" id="L129">	private List&lt;Double&gt; oxygenList = new ArrayList&lt;Double&gt;(100);</span>
+
+<span class="fc" id="L131">	private List&lt;Double&gt; carbonDioxideList = new ArrayList&lt;Double&gt;(100);</span>
+
+	public long getTime() {
+<span class="fc" id="L134">		return time;</span>
+	}
+	
+	public int getMaxPopulation() {
+<span class="nc" id="L138">		return maxPopulation;</span>
+	}
+
+	public int getMaxBirth() {
+<span class="nc" id="L142">		return maxBirths;</span>
+	}
+
+	public int getMaxDeaths() {
+<span class="nc" id="L146">		return maxDeaths;</span>
+	}
+
+	public long getMaxPopulationTime() {
+<span class="nc" id="L150">		return maxPopulationTime;</span>
+	}
+
+	public int getMinPopulation() {
+<span class="nc" id="L154">		return minPopulation;</span>
+	}
+
+	public long getMinPopulationTime() {
+<span class="nc" id="L158">		return minPopulationTime;</span>
+	}
+
+	public int getMassExtintions() {
+<span class="nc" id="L162">		return massExtintions;</span>
+	}
+
+	public int getCreatedOrganisms() {
+<span class="nc" id="L166">		return createdOrganisms;</span>
+	}
+
+	public double getAveragePopulation() {
+<span class="nc bnc" id="L170" title="All 2 branches missed.">		if (time &gt; 0)</span>
+<span class="nc" id="L171">			return populationSum / (double) time;</span>
+<span class="nc" id="L172">		return 0;</span>
+	}
+
+	public double getAverageDeaths() {
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">		if (time &gt; 0)</span>
+<span class="fc" id="L177">			return deathSum / (double) time;</span>
+<span class="nc" id="L178">		return 0;</span>
+	}
+
+	public double getAverageBirths() {
+<span class="nc bnc" id="L182" title="All 2 branches missed.">		if (time &gt; 0)</span>
+<span class="nc" id="L183">			return birthSum / (double) time;</span>
+<span class="nc" id="L184">		return 0;</span>
+	}
+
+	public double getAverageInfections() {
+<span class="nc bnc" id="L188" title="All 2 branches missed.">		if (time &gt; 0)</span>
+<span class="nc" id="L189">			return infectionsSum / (double) time;</span>
+<span class="nc" id="L190">		return 0;</span>
+	}
+
+	public double getMaxOxygen() {
+<span class="nc" id="L194">		return maxOxygen;</span>
+	}
+
+	public long getMaxOxygenTime() {
+<span class="nc" id="L198">		return maxOxygenTime;</span>
+	}
+
+	public double getMinOxygen() {
+<span class="nc" id="L202">		return minOxygen;</span>
+	}
+
+	public long getMinOxygenTime() {
+<span class="nc" id="L206">		return minOxygenTime;</span>
+	}
+
+	public double getMaxCarbonDioxide() {
+<span class="nc" id="L210">		return maxCarbonDioxide;</span>
+	}
+
+	public long getMaxCarbonDioxideTime() {
+<span class="nc" id="L214">		return maxCarbonDioxideTime;</span>
+	}
+
+	public double getMinCarbonDioxide() {
+<span class="nc" id="L218">		return minCarbonDioxide;</span>
+	}
+
+	public long getMinCarbonDioxideTime() {
+<span class="nc" id="L222">		return minCarbonDioxideTime;</span>
+	}
+
+	public GeneticCode getAliveBeingMostChildren() {
+<span class="nc" id="L226">		return aliveBeingMostChildren;</span>
+	}
+
+	public int getAliveBeingMostChildrenNumber() {
+<span class="nc" id="L230">		return aliveBeingMostChildrenNumber;</span>
+	}
+
+	public GeneticCode getAliveBeingMostKills() {
+<span class="nc" id="L234">		return aliveBeingMostKills;</span>
+	}
+
+	public int getAliveBeingMostKillsNumber() {
+<span class="nc" id="L238">		return aliveBeingMostKillsNumber;</span>
+	}
+
+	public GeneticCode getAliveBeingMostInfections() {
+<span class="nc" id="L242">		return aliveBeingMostInfections;</span>
+	}
+
+	public int getAliveBeingMostInfectionsNumber() {
+<span class="nc" id="L246">		return aliveBeingMostInfectionsNumber;</span>
+	}
+
+	public GeneticCode getBeingMostChildren() {
+<span class="nc" id="L250">		return beingMostChildren;</span>
+	}
+
+	public int getBeingMostChildrenNumber() {
+<span class="nc" id="L254">		return beingMostChildrenNumber;</span>
+	}
+
+	public long getBeingMostChildrenTime() {
+<span class="nc" id="L258">		return beingMostChildrenTime;</span>
+	}
+
+	public GeneticCode getBeingMostKills() {
+<span class="nc" id="L262">		return beingMostKills;</span>
+	}
+
+	public int getBeingMostKillsNumber() {
+<span class="nc" id="L266">		return beingMostKillsNumber;</span>
+	}
+
+	public long getBeingMostKillsTime() {
+<span class="nc" id="L270">		return beingMostKillsTime;</span>
+	}
+
+	public GeneticCode getBeingMostInfections() {
+<span class="nc" id="L274">		return beingMostInfections;</span>
+	}
+
+	public int getBeingMostInfectionsNumber() {
+<span class="nc" id="L278">		return beingMostInfectionsNumber;</span>
+	}
+
+	public long getBeingMostInfectionsTime() {
+<span class="nc" id="L282">		return beingMostInfectionsTime;</span>
+	}
+
+	public GeneticCode getLastBornBeing() {
+<span class="nc" id="L286">		return lastBornBeing;</span>
+	}
+
+	public GeneticCode getLastDeadBeing() {
+<span class="nc" id="L290">		return lastDeadBeing;</span>
+	}
+
+	public GeneticCode getLastInfectedBeing() {
+<span class="nc" id="L294">		return lastInfectedBeing;</span>
+	}
+	
+	public Organism getOldestAliveBeing() {
+<span class="nc" id="L298">		return oldestAliveBeing;</span>
+	}
+
+	public List&lt;Double&gt; getPopulationList() {
+<span class="nc" id="L302">		return populationList;</span>
+	}
+
+	public List&lt;Double&gt; getDeathList() {
+<span class="nc" id="L306">		return deathList;</span>
+	}
+
+	public List&lt;Double&gt; getBirthList() {
+<span class="nc" id="L310">		return birthList;</span>
+	}
+	
+	public List&lt;Double&gt; getOxygenList() {
+<span class="nc" id="L314">		return oxygenList;</span>
+	}
+	
+	public List&lt;Double&gt; getCarbonDioxideList() {
+<span class="nc" id="L318">		return carbonDioxideList;</span>
+	}
+
+	public void eventPopulationIncrease(int newPopulation) {
+<span class="fc bfc" id="L322" title="All 2 branches covered.">		if (newPopulation &gt; maxPopulation) {</span>
+<span class="fc" id="L323">			maxPopulation = newPopulation;</span>
+<span class="fc" id="L324">			maxPopulationTime = time;</span>
+		}
+<span class="fc" id="L326">	}</span>
+
+	public void eventPopulationDecrease(int newPopulation) {
+<span class="fc bfc" id="L329" title="All 2 branches covered.">		if (newPopulation &lt; minPopulation) {</span>
+<span class="fc" id="L330">			minPopulation = newPopulation;</span>
+<span class="fc" id="L331">			minPopulationTime = time;</span>
+		}
+<span class="fc" id="L333">	}</span>
+
+	public void eventOrganismCreated() {
+<span class="fc" id="L336">		createdOrganisms++;</span>
+<span class="fc" id="L337">	}</span>
+
+	public void eventOrganismBorn(Organism newOrganism, Organism parent) {
+<span class="fc" id="L340">		lastBornBeing = newOrganism.getGeneticCode();</span>
+<span class="fc bfc" id="L341" title="All 2 branches covered.">		if (parent.getTotalChildren() &gt; beingMostChildrenNumber) {</span>
+<span class="fc" id="L342">			beingMostChildren = parent.getGeneticCode();</span>
+<span class="fc" id="L343">			beingMostChildrenNumber = parent.getTotalChildren();</span>
+<span class="fc" id="L344">			beingMostChildrenTime = time;</span>
+		}
+<span class="fc" id="L346">		birthSum++;</span>
+<span class="fc" id="L347">		birthLastTime++;</span>
+<span class="fc" id="L348">	}</span>
+
+	public void eventOrganismDie(Organism dyingOrganism,
+			Organism killingOrganism) {
+<span class="fc" id="L352">		lastDeadBeing = dyingOrganism.getGeneticCode();</span>
+<span class="fc bfc" id="L353" title="All 2 branches covered.">		if (killingOrganism != null</span>
+<span class="fc bfc" id="L354" title="All 2 branches covered.">				&amp;&amp; killingOrganism.getTotalKills() &gt; beingMostKillsNumber) {</span>
+<span class="fc" id="L355">			beingMostKills = killingOrganism.getGeneticCode();</span>
+<span class="fc" id="L356">			beingMostKillsNumber = killingOrganism.getTotalKills();</span>
+<span class="fc" id="L357">			beingMostKillsTime = time;</span>
+		}
+<span class="fc" id="L359">		deathSum++;</span>
+<span class="fc" id="L360">		deathLastTime++;</span>
+<span class="fc" id="L361">	}</span>
+
+	public void eventOrganismInfects(Organism infectedOrganism,
+			Organism infectingOrganism) {
+<span class="fc" id="L365">		lastInfectedBeing = infectedOrganism.getGeneticCode();</span>
+<span class="pc bpc" id="L366" title="1 of 2 branches missed.">		if (infectingOrganism != null</span>
+<span class="fc bfc" id="L367" title="All 2 branches covered.">				&amp;&amp; infectingOrganism.getTotalInfected() &gt; beingMostInfectionsNumber) {</span>
+<span class="fc" id="L368">			beingMostInfections = infectingOrganism.getGeneticCode();</span>
+<span class="fc" id="L369">			beingMostInfectionsNumber = infectingOrganism.getTotalInfected();</span>
+<span class="fc" id="L370">			beingMostInfectionsTime = time;</span>
+		}
+<span class="fc" id="L372">		infectionsSum++;</span>
+<span class="fc" id="L373">	}</span>
+
+	public void eventTime(int population, double O2, double CO2) {
+<span class="fc" id="L376">		time++;</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">		if (deathLastTime &gt; 1.5 * getAverageDeaths()) {</span>
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">			if (deathLastTime &gt; 3 * getAverageDeaths()) {</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">				if (massExtintionState != EXTINTION_CONFIRMED</span>
+<span class="nc bnc" id="L380" title="All 2 branches missed.">						&amp;&amp; massExtintionState != EXTINTION_FINISHING)</span>
+<span class="nc" id="L381">					massExtintions++;</span>
+<span class="nc" id="L382">				massExtintionState = EXTINTION_CONFIRMED;</span>
+<span class="nc" id="L383">			} else {</span>
+<span class="pc bpc" id="L384" title="3 of 4 branches missed.">				switch (massExtintionState) {</span>
+				case (EXTINTION_NO):
+<span class="fc" id="L386">					massExtintionState = EXTINTION_POSSIBLE;</span>
+<span class="fc" id="L387">					break;</span>
+				case (EXTINTION_POSSIBLE):
+<span class="nc" id="L389">					massExtintionState = EXTINTION_CONFIRMED;</span>
+<span class="nc" id="L390">					massExtintions++;</span>
+<span class="nc" id="L391">					break;</span>
+				case (EXTINTION_FINISHING):
+<span class="nc" id="L393">					massExtintionState = EXTINTION_CONFIRMED;</span>
+					break;
+				}
+			}
+<span class="nc" id="L397">		} else {</span>
+<span class="pc bpc" id="L398" title="2 of 3 branches missed.">			switch (massExtintionState) {</span>
+			case (EXTINTION_POSSIBLE):
+			case (EXTINTION_FINISHING):
+<span class="nc" id="L401">				massExtintionState = EXTINTION_NO;</span>
+<span class="nc" id="L402">				break;</span>
+			case (EXTINTION_CONFIRMED):
+<span class="nc" id="L404">				massExtintionState = EXTINTION_FINISHING;</span>
+				break;
+<span class="fc" id="L406">			}</span>
+		}
+		//System.out.println(deathLastTime + &quot; &quot; + getAverageDeaths() + &quot; &quot; +
+		//massExtintionState + &quot; &quot; + massExtintions);
+		// lastTimePopulation = population;
+<span class="fc" id="L411">		populationSum += population;</span>
+
+<span class="pc bpc" id="L413" title="1 of 2 branches missed.">		if (O2 &gt; maxOxygen) {</span>
+<span class="fc" id="L414">			maxOxygen = O2;</span>
+<span class="fc" id="L415">			maxOxygenTime = time;</span>
+		}
+<span class="pc bpc" id="L417" title="1 of 2 branches missed.">		if (O2 &lt; minOxygen) {</span>
+<span class="nc" id="L418">			minOxygen = O2;</span>
+<span class="nc" id="L419">			minOxygenTime = time;</span>
+		}
+<span class="pc bpc" id="L421" title="1 of 2 branches missed.">		if (CO2 &gt; maxCarbonDioxide) {</span>
+<span class="nc" id="L422">			maxCarbonDioxide = CO2;</span>
+<span class="nc" id="L423">			maxCarbonDioxideTime = time;</span>
+		}
+<span class="pc bpc" id="L425" title="1 of 2 branches missed.">		if (CO2 &lt; minCarbonDioxide) {</span>
+<span class="fc" id="L426">			minCarbonDioxide = CO2;</span>
+<span class="fc" id="L427">			minCarbonDioxideTime = time;</span>
+		}
+<span class="fc bfc" id="L429" title="All 2 branches covered.">		if (birthLastTime &gt; maxBirths)</span>
+<span class="fc" id="L430">			maxBirths = birthLastTime;</span>
+<span class="fc bfc" id="L431" title="All 2 branches covered.">		if (deathLastTime &gt; maxDeaths)</span>
+<span class="fc" id="L432">			maxDeaths = deathLastTime;</span>
+<span class="pc bpc" id="L433" title="1 of 2 branches missed.">		if (populationList.size() == 100)</span>
+<span class="nc" id="L434">			populationList.remove(0);</span>
+<span class="fc" id="L435">		populationList.add(Double.valueOf(population));</span>
+<span class="pc bpc" id="L436" title="1 of 2 branches missed.">		if (deathList.size() == 100)</span>
+<span class="nc" id="L437">			deathList.remove(0);</span>
+<span class="fc" id="L438">		deathList.add(Double.valueOf(deathLastTime));</span>
+<span class="pc bpc" id="L439" title="1 of 2 branches missed.">		if (birthList.size() == 100)</span>
+<span class="nc" id="L440">			birthList.remove(0);</span>
+<span class="fc" id="L441">		birthList.add(Double.valueOf(birthLastTime));</span>
+<span class="pc bpc" id="L442" title="1 of 2 branches missed.">		if (oxygenList.size() == 100)</span>
+<span class="nc" id="L443">			oxygenList.remove(0);</span>
+<span class="fc" id="L444">		oxygenList.add(Double.valueOf(O2));</span>
+<span class="pc bpc" id="L445" title="1 of 2 branches missed.">		if (carbonDioxideList.size() == 100)</span>
+<span class="nc" id="L446">			carbonDioxideList.remove(0);</span>
+<span class="fc" id="L447">		carbonDioxideList.add(Double.valueOf(CO2));</span>
+<span class="fc" id="L448">		deathLastTime = 0;</span>
+<span class="fc" id="L449">		birthLastTime = 0;</span>
+<span class="fc" id="L450">	}</span>
+
+	public void findBestAliveBeings(List&lt;Organism&gt; organisms) {
+		Organism org;
+<span class="nc" id="L454">		aliveBeingMostChildren = null;</span>
+<span class="nc" id="L455">		aliveBeingMostChildrenNumber = 0;</span>
+<span class="nc" id="L456">		aliveBeingMostKills = null;</span>
+<span class="nc" id="L457">		aliveBeingMostKillsNumber = 0;</span>
+<span class="nc" id="L458">		aliveBeingMostInfections = null;</span>
+<span class="nc" id="L459">		aliveBeingMostInfectionsNumber = 0;</span>
+<span class="nc" id="L460">		oldestAliveBeing = null;</span>
+<span class="nc" id="L461">		synchronized(organisms) {</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">			for (Iterator&lt;Organism&gt; it = organisms.iterator(); it.hasNext();) {</span>
+<span class="nc" id="L463">				org = it.next();</span>
+<span class="nc bnc" id="L464" title="All 2 branches missed.">				if (org.isAlive()) {</span>
+<span class="nc bnc" id="L465" title="All 2 branches missed.">					if (org.getTotalChildren() &gt; aliveBeingMostChildrenNumber) {</span>
+<span class="nc" id="L466">						aliveBeingMostChildrenNumber = org.getTotalChildren();</span>
+<span class="nc" id="L467">						aliveBeingMostChildren = org.getGeneticCode();</span>
+					}
+<span class="nc bnc" id="L469" title="All 2 branches missed.">					if (org.getTotalKills() &gt; aliveBeingMostKillsNumber) {</span>
+<span class="nc" id="L470">						aliveBeingMostKillsNumber = org.getTotalKills();</span>
+<span class="nc" id="L471">						aliveBeingMostKills = org.getGeneticCode();</span>
+					}
+<span class="nc bnc" id="L473" title="All 2 branches missed.">					if (org.getTotalInfected() &gt; aliveBeingMostInfectionsNumber) {</span>
+<span class="nc" id="L474">						aliveBeingMostInfectionsNumber = org.getTotalInfected();</span>
+<span class="nc" id="L475">						aliveBeingMostInfections = org.getGeneticCode();</span>
+					}
+<span class="nc bnc" id="L477" title="All 4 branches missed.">					if (oldestAliveBeing == null || org.getAge() &gt; oldestAliveBeing.getAge()) {</span>
+<span class="nc" id="L478">						oldestAliveBeing = org;</span>
+					}
+				}
+			}
+		}
+<span class="nc" id="L483">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

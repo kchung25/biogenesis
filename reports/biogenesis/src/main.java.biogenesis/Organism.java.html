@@ -1,0 +1,1299 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Organism.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">Organism.java</span></div><h1>Organism.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *           (C) 2014 SÃ©bastien Le Callonnec
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import main.java.biogenesis.event.*;
+import java.awt.*;
+import java.awt.image.*;
+import java.awt.geom.*;
+import main.java.biogenesis.music.*;
+import org.apache.commons.lang3.event.EventListenerSupport;
+/**
+ * This class implements an organism.
+ * The body of the organism is drawn inside the Rectangle from which it inherits.
+ */
+public class Organism extends Rectangle {
+<span class="pc" id="L32">	private final EventListenerSupport&lt;OrganismCreatedListener&gt; actionListeners = EventListenerSupport.create(OrganismCreatedListener.class);</span>
+	
+<span class="pc" id="L34">		private final EventListenerSupport&lt;OrganismCollidedListener&gt; actionCollidedListeners = EventListenerSupport.create(OrganismCollidedListener.class);</span>
+	
+	
+	/**
+	 * The version of this class
+	 */
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+	/**
+	 * A reference to the genetic code of this organism
+	 */
+	protected GeneticCode _geneticCode;
+	/**
+	 * If this organism has been infected by a white segment, here we have the
+	 * genetic code that this organism will reproduce.
+	 */
+<span class="pc" id="L49">	protected GeneticCode _infectedGeneticCode = null;</span>
+	/**
+	 * Number of children that this organism will produce at once. This
+	 * is the number of yellow segments in its genetic code with a
+	 * maximum of 8 and a minimum of 1.
+	 */
+	protected int _nChildren;
+	/**
+	 * Reference to the world where the organism lives.
+	 */
+	protected World _world;
+	/**
+	 * Reference to the visual part of the world where the organism lives.
+	 */
+	transient protected VisibleWorld _visibleWorld;
+	/**
+	 * Identification number of this organism's parent.
+	 */
+	protected int _parentID;
+	/**
+	 * Identification number of this organism.
+	 */
+	protected int _ID;
+	/**
+	 * Generation number
+	 */
+	protected int _generation;
+	/**
+	 * Number of children it has produced.
+	 */
+<span class="pc" id="L79">	protected int _nTotalChildren=0;</span>
+	/**
+	 * Number of organism that has killed
+	 */
+<span class="pc" id="L83">	protected int _nTotalKills=0;</span>
+	/**
+	 * Number of organism that has infected
+	 */
+<span class="pc" id="L87">	protected int _nTotalInfected=0;</span>
+	/**
+	 * X coordinates of the starting point of each organism's segments.
+	 */
+	protected int[] _startPointX;
+	/**
+	 * Y coordinates of the starting point of each organism's segments.
+	 */
+	protected int[] _startPointY;
+	/**
+	 * X coordinates of the ending point of each organism's segments.
+	 */
+	protected int[] _endPointX;
+	/**
+	 * Y coordinates of the ending point of each organism's segments.
+	 */
+	protected int[] _endPointY;
+	/**
+	 * Precalculated distance from the origin to the starting point of each segment.
+	 * Used to calculate rotations.
+	 */
+	protected double[] _m1;
+	/**
+	 * Precalculated distance from the origin to the ending point of each segment.
+	 * Used to calculate rotations.
+	 */
+	protected double[] _m2;
+	/**
+	 * Precalculated modulus of each segment.
+	 */
+	protected double[] _m;
+	/**
+	 * X coordinate of this organim's center of gravity.
+	 */
+	protected int _centerX;
+	/**
+	 * Y coordinate of this organim's center of gravity.
+	 */
+	protected int _centerY;
+	/**
+	 * Like _centerX but with double precision to be able to make movements slower than a pixel.
+	 */
+	protected double _dCenterX;
+	/**
+	 * Like _centerY but with double precision to be able to make movements slower than a pixel.
+	 */
+	protected double _dCenterY;
+	/**
+	 * Effective segment colors, taken from the genetic code if alive or brown if dead.
+	 */
+	protected Color[] _segColor;
+	/**
+	 * The total number of segments of the organism
+	 */
+	protected int _segments;
+	/**
+	 * Growth ratio of the organism. Used to calculate segments when the organism is not
+	 * fully grown.
+	 */
+	protected int _growthRatio;
+	/**
+	 * Total mass of this organism. The mass is calculated as the sum of all segment lengths.
+	 * Used to calculate the effect of collisions.
+	 */
+<span class="pc" id="L151">	protected double _mass = 0;</span>
+	/**
+	 * Moment of inertia of this organism, used to calculate the effect of collisions.
+	 */
+<span class="pc" id="L155">	protected double _I = 0;</span>
+	/**
+	 * Chemical energy stored by this organism
+	 */
+	protected double _energy;
+	/**
+	 * Organism size independent on its position in the world.
+	 * Let p be a point in the organism. Then, p.x + x - _sizeRect.x is the x coordinate
+	 * of p representation in the world.
+	 */
+<span class="pc" id="L165">	protected Rectangle _sizeRect = new Rectangle();</span>
+	/**
+	 * Rotation angle that this organism has at a given moment.
+	 */
+	protected double _theta;
+	/**
+	 * Last frame angle, used to avoid calculating point rotations when the angle doesn't
+	 * change between two consecutive frames.
+	 */
+<span class="pc" id="L174">	protected double _lastTheta = -1;</span>
+	/**
+	 * Rotated segments of the last frame, to use when _theta == _lastTheta
+	 */
+	protected int x1[],y1[],x2[],y2[];
+	/**
+	 * Speed. Variation applied to organism coordinates at every frame.
+	 */
+<span class="pc" id="L182">	protected double dx=0d, dy=0d;</span>
+	/**
+	 * Angular speed. Organism angle variation at every frame.
+	 */
+<span class="pc" id="L186">	protected double dtheta = 0d;</span>
+	/**
+	 * Number of frames of life of this organism
+	 */
+<span class="pc" id="L190">	protected int _age=0;</span>
+	/**
+	 * Color used to draw the organism when a collision occurs. We save the color that
+	 * should be shown and the number of frames that it should be shown. If the number
+	 * if frames is 0, each segment is shown in its color.
+	 */
+	protected Color _color;
+	/**
+	 * Number of frames in which the organism will be drawn in _color.
+	 */
+<span class="pc" id="L200">	protected int _framesColor = 0;</span>
+	/**
+	 * Number of frame that need to pass between two reproductions, even they are not
+	 * successfully.
+	 */
+<span class="pc" id="L205">	protected int _timeToReproduce = 0;</span>
+	/**
+	 * Indicates if the organism has grown at the last frame. If it has grown it is
+	 * necessary to recalculate its segments.
+	 */
+	protected int hasGrown;
+	/**
+	 * Indicates if it has moved at the last frame. If it has moved it is necessary
+	 * to repaint it.
+	 */
+<span class="pc" id="L215">	protected boolean hasMoved = true;</span>
+	/**
+	 * The place that this organism occupies at the last frame. If the organism
+	 * moves, this rectangle must be painted too.
+	 */
+<span class="pc" id="L220">	protected Rectangle lastFrame = new Rectangle();</span>
+	/**
+	 * Indicates if the organism is alive.
+	 */
+<span class="pc" id="L224">	protected boolean alive = true;</span>
+<span class="fc" id="L225">	private static transient Vector2D v = new Vector2D();</span>
+	/**
+	 * Returns true if this organism is alive, false otherwise.
+	 * 
+	 * @return  true if this organism is alive, false otherwise.
+	 */
+	public boolean isAlive() {
+<span class="fc" id="L232">		return alive;</span>
+	}
+	/**
+	 * Returns the amount of chemical energy stored by this organism.
+	 * 
+	 * @return  The amount of chemical energy stored by this organism.
+	 */
+	public double getEnergy() {
+<span class="nc" id="L240">		return _energy;</span>
+	}
+	/**
+	 * Returns the identification number of this organism.
+	 * 
+	 * @return  The identification number of this organism.
+	 */
+	public int getID() {
+<span class="fc" id="L248">		return _ID;</span>
+	}
+	/**
+	 * Returns the identification number of this organism's parent.
+	 * 
+	 * @return  The identification number of this organism's parent.
+	 */
+	public int getParentID() {
+<span class="nc" id="L256">		return _parentID;</span>
+	}
+	/**
+	 * Returns the generation number of this organism.
+	 * 
+	 * @return  The generation number of this organism.
+	 */
+	public int getGeneration() {
+<span class="fc" id="L264">		return _generation;</span>
+	}
+	/**
+	 * Returns the age of this organism.
+	 * 
+	 * @return  The age of this organism, in number of frames.
+	 */
+	public int getAge() {
+<span class="nc" id="L272">		return _age;</span>
+	}
+	/**
+	 * Returns the number of children that this organism produced.
+	 * 
+	 * @return  The number of children that this organism produced.
+	 */
+	public int getTotalChildren() {
+<span class="fc" id="L280">		return _nTotalChildren;</span>
+	}
+	/**
+	 * Returns the number of organisms killed by this organism.
+	 * 
+	 * @return  The number of organisms killed by this organism.
+	 */
+	public int getTotalKills() {
+<span class="fc" id="L288">		return _nTotalKills;</span>
+	}
+	/**
+	 * Returns the number of organisms infected by this organism.
+	 * 
+	 * @return  The number of organisms infected by this organism.
+	 */
+	public int getTotalInfected() {
+<span class="fc" id="L296">		return _nTotalInfected;</span>
+	}
+	/**
+	 * Returns a reference to this organism's genetic code.
+	 * 
+	 * @return  A reference to this organism's genetic code.
+	 */
+	public GeneticCode getGeneticCode() {
+<span class="fc" id="L304">		return _geneticCode;</span>
+	}
+	/**
+	 * Returns the total mass of this organism.
+	 * 
+	 * @return  The total mass of this organism calculated as the sum
+	 * of all its segments length.
+	 */
+	public double getMass() {
+<span class="nc" id="L313">		return _mass;</span>
+	}
+	/**
+	 * Basic constructor. Doesn't initialize it: use {@link randomCreate}
+	 * or {@link inherit} to do this.
+	 * 
+	 * @param world  A reference to the world where this organism is in.
+	 */
+<span class="fc" id="L321">	public Organism(World world) {</span>
+<span class="fc" id="L322">		_world = world;</span>
+<span class="fc" id="L323">		_visibleWorld = world._visibleWorld;</span>
+<span class="fc" id="L324">		_theta = Utils.random.nextDouble() * Math.PI * 2d;</span>
+<span class="fc" id="L325">		addListener((OrganismCreatedListener)new MusicPlayer());</span>
+<span class="fc" id="L326">		addListener((OrganismCollidedListener)new MusicPlayer());</span>
+<span class="fc" id="L327">	}</span>
+	/**
+	 * Construct an organism with a given genetic code. Doesn't initialize it:
+	 * use {@link pasteOrganism} to do it. Use {@link World.addOrganism} to add
+	 * it to the world.
+	 * 
+	 * @param world  A reference to the world where this organism is in.
+	 * @param geneticCode  A reference to the genetic code of this organism.
+	 */
+<span class="nc" id="L336">	public Organism(World world, GeneticCode geneticCode) {</span>
+<span class="nc" id="L337">		_world = world;</span>
+<span class="nc" id="L338">		_visibleWorld = world._visibleWorld;</span>
+<span class="nc" id="L339">		_theta = Utils.random.nextDouble() * Math.PI * 2d;</span>
+<span class="nc" id="L340">		_geneticCode = geneticCode;</span>
+<span class="nc" id="L341">		addListener((OrganismCreatedListener)new MusicPlayer());</span>
+<span class="nc" id="L342">		addListener((OrganismCollidedListener)new MusicPlayer());</span>
+<span class="nc" id="L343">	}</span>
+	/**
+	 * Creates all data structures of this organism. Must be used after the organism
+	 * has a genetic code assigned.
+	 */
+	protected void create() {
+<span class="fc" id="L349">		_segments = _geneticCode.getNGenes() * _geneticCode.getSymmetry();</span>
+<span class="fc" id="L350">		_segColor = new Color[_segments];</span>
+<span class="fc bfc" id="L351" title="All 2 branches covered.">		for (int i = 0; i &lt; _segments; i++)</span>
+<span class="fc" id="L352">			_segColor[i] = _geneticCode.getGene(i%_geneticCode.getNGenes()).getColor();</span>
+<span class="fc" id="L353">		_startPointX = new int[_segments];</span>
+<span class="fc" id="L354">		_startPointY = new int[_segments];</span>
+<span class="fc" id="L355">		_endPointX = new int[_segments];</span>
+<span class="fc" id="L356">		_endPointY = new int[_segments];</span>
+<span class="fc" id="L357">		_m1 = new double[_segments];</span>
+<span class="fc" id="L358">		_m2 = new double[_segments];</span>
+<span class="fc" id="L359">		_m = new double[_segments];</span>
+<span class="fc" id="L360">		x1 = new int[_segments];</span>
+<span class="fc" id="L361">		y1 = new int[_segments];</span>
+<span class="fc" id="L362">		x2 = new int[_segments];</span>
+<span class="fc" id="L363">		y2 = new int[_segments];</span>
+		
+<span class="fc" id="L365">		OrganismCreatedEvent event = new OrganismCreatedEvent();</span>
+<span class="fc" id="L366">		actionListeners.fire().perform(event);</span>
+<span class="fc" id="L367">	}</span>
+	/**
+	 * Initializes variables for a new random organism and finds a place
+	 * to put it in the world.
+	 * 
+	 * @return  true if it found a place for this organism or false otherwise.
+	 */
+	public boolean randomCreate() {
+		// Generates a random genetic code
+<span class="fc" id="L376">		_geneticCode = new GeneticCode();</span>
+		// it has no parent
+<span class="fc" id="L378">		_parentID = -1;</span>
+<span class="fc" id="L379">		_generation = 1;</span>
+<span class="fc" id="L380">		_growthRatio = 16;</span>
+		// initial energy
+<span class="fc" id="L382">		_energy = Math.min(Utils.INITIAL_ENERGY,_world.getCO2());</span>
+<span class="fc" id="L383">		_world.decreaseCO2(_energy);</span>
+<span class="fc" id="L384">		_world.addO2(_energy);</span>
+		// initialize
+<span class="fc" id="L386">		create();</span>
+<span class="fc" id="L387">		symmetric();</span>
+		// put it in the world
+<span class="fc" id="L389">		return placeRandom();</span>
+	}
+	/**
+	 * Initializes variables for a new organism born from an existing
+	 * organism. Generates a mutated genetic code based on the parent's one
+	 * and finds a place in the world to put it.
+	 * 
+	 * @param parent  The organism from which this organism is born. 
+	 * @param	first 
+	 * @return  true if it found a place for this organism or false otherwise.
+	 */
+	public boolean inherit(Organism parent, boolean first) {
+		GeneticCode inheritGeneticCode;
+<span class="fc" id="L402">		boolean ok = true;</span>
+		
+		// Create the inherited genetic code
+<span class="fc bfc" id="L405" title="All 2 branches covered.">		if (parent._infectedGeneticCode != null)</span>
+<span class="fc" id="L406">			inheritGeneticCode = parent._infectedGeneticCode;</span>
+		else
+<span class="fc" id="L408">			inheritGeneticCode = parent._geneticCode;</span>
+<span class="fc" id="L409">		_geneticCode = new GeneticCode(inheritGeneticCode);</span>
+		// Take a reference to the parent
+<span class="fc" id="L411">		_parentID = parent.getID();</span>
+<span class="fc" id="L412">		_generation = parent.getGeneration() + 1;</span>
+<span class="fc" id="L413">		_growthRatio = 16;</span>
+		// Initial energy: minimum energy required to reproduce is divided
+		// between all children and the parent.
+<span class="fc" id="L416">		_energy = Math.min((inheritGeneticCode._reproduceEnergy / (double)(parent._nChildren + 1)), parent._energy);</span>
+<span class="pc bpc" id="L417" title="1 of 4 branches missed.">		if (first || parent._energy &gt;= _energy+Utils.YELLOW_ENERGY_CONSUMPTION) {</span>
+			// Initialize
+<span class="fc" id="L419">			create();</span>
+<span class="fc" id="L420">			symmetric();</span>
+			// Put it in the world, near its parent
+<span class="fc" id="L422">			ok = placeNear(parent);</span>
+<span class="pc bpc" id="L423" title="1 of 4 branches missed.">			if (ok &amp;&amp; !first)</span>
+<span class="fc" id="L424">				parent.useEnergy(Utils.YELLOW_ENERGY_CONSUMPTION);</span>
+<span class="fc" id="L425">		} else</span>
+<span class="nc" id="L426">			ok = false;</span>
+		
+<span class="fc" id="L428">		return ok;</span>
+	}
+	/**
+	 * Places the organism at the specified position in the world and initializes its
+	 * variables. The organism must has an assigned genetic code.
+	 * 
+	 * @param posx  The x coordinate of the position in the world we want to put this organism.
+	 * @param posy  The y coordinate of the position in the world we want to put this organism.
+	 * @return  true if there were enough space to put the organism, false otherwise.
+	 */
+	public boolean pasteOrganism(int posx, int posy) {
+<span class="nc" id="L439">		_parentID = -1;</span>
+<span class="nc" id="L440">		_generation = 1;</span>
+<span class="nc" id="L441">		_growthRatio = 16;</span>
+<span class="nc" id="L442">		create();</span>
+<span class="nc" id="L443">		symmetric();</span>
+<span class="nc" id="L444">		_dCenterX = _centerX = posx;</span>
+<span class="nc" id="L445">		_dCenterY = _centerY = posy;</span>
+<span class="nc" id="L446">		calculateBounds(true);</span>
+		// Check that the position is inside the world
+<span class="nc bnc" id="L448" title="All 2 branches missed.">		if (isInsideWorld()) {</span>
+			// Check that the organism will not overlap other organisms
+<span class="nc bnc" id="L450" title="All 2 branches missed.">			if (_world.fastCheckHit(this) == null) {</span>
+				// Generem identificador
+<span class="nc" id="L452">				_ID = _world.getNewId();</span>
+<span class="nc" id="L453">				_energy = Math.min(Utils.INITIAL_ENERGY,_world.getCO2());</span>
+<span class="nc" id="L454">				_world.decreaseCO2(_energy);</span>
+<span class="nc" id="L455">				_world.addO2(_energy);</span>
+<span class="nc" id="L456">				return true;</span>
+			}
+		}
+		// It can't be placed
+<span class="nc" id="L460">		return false;</span>
+	}
+	/**
+	 * Translates the genetic code of this organism to its segments representation in the world.
+	 * Also, calculates some useful information like segments length, inertia, etc.
+	 * This method must be called when an organism is firstly displayed on the world and every
+	 * time it changes its size.
+	 * inherit, randomCreate and pasteOrganism are the standard ways to add an organism to a world
+	 * and they already call this method.
+	 */
+	public void symmetric() {
+<span class="fc" id="L471">		int i,j,segment=0;</span>
+<span class="fc" id="L472">		int symmetry = _geneticCode.getSymmetry();</span>
+<span class="fc" id="L473">		int mirror = _geneticCode.getMirror();</span>
+<span class="fc" id="L474">		int sequence = _segments / symmetry;</span>
+<span class="fc" id="L475">		int left=0, right=0, top=0, bottom=0;</span>
+		int centerX, centerY;
+		double cx, cy;
+
+<span class="fc bfc" id="L479" title="All 2 branches covered.">		for (i=0; i&lt;symmetry; i++) {</span>
+<span class="fc bfc" id="L480" title="All 2 branches covered.">			for (j=0; j&lt;sequence; j++,segment++) {</span>
+				// Here, we take the vector that forms the segment, scale it depending on
+				// the relative size of the organism and rotate it depending on the
+				// symmetry and mirroring.
+<span class="fc" id="L484">				v.setModulus(_geneticCode.getGene(j).getLength()/Utils.scale[_growthRatio-1]);</span>
+<span class="fc bfc" id="L485" title="All 2 branches covered.">				if (j==0) {</span>
+<span class="fc" id="L486">					_startPointX[segment] = 0;</span>
+<span class="fc" id="L487">					_startPointY[segment] = 0;</span>
+<span class="fc bfc" id="L488" title="All 4 branches covered.">					if (mirror == 0 || i%2==0)</span>
+<span class="fc" id="L489">						v.setTheta(_geneticCode.getGene(j).getTheta()+i*2*Math.PI/symmetry);</span>
+					else {
+<span class="fc" id="L491">						v.setTheta(_geneticCode.getGene(j).getTheta()+(i-1)*2*Math.PI/symmetry);</span>
+<span class="fc" id="L492">						v.invertX();</span>
+					}
+<span class="fc" id="L494">				} else {</span>
+<span class="fc" id="L495">					_startPointX[segment] = _endPointX[segment - 1];</span>
+<span class="fc" id="L496">					_startPointY[segment] = _endPointY[segment - 1];</span>
+<span class="fc bfc" id="L497" title="All 4 branches covered.">					if (mirror == 0 || i%2==0)</span>
+<span class="fc" id="L498">						v.addDegree(_geneticCode.getGene(j).getTheta());</span>
+					else
+<span class="fc" id="L500">						v.addDegree(-_geneticCode.getGene(j).getTheta());</span>
+				}
+				// Apply the vector to the starting point to get the ending point.
+<span class="fc" id="L503">				_endPointX[segment] = (int) Math.round(v.getX() + _startPointX[segment]);</span>
+<span class="fc" id="L504">				_endPointY[segment] = (int) Math.round(v.getY() + _startPointY[segment]);</span>
+			    // Calculate the bounding rectangle of this organism
+<span class="fc" id="L506">			    left = Math.min(left, _endPointX[segment]);</span>
+<span class="fc" id="L507">			    right = Math.max(right, _endPointX[segment]);</span>
+<span class="fc" id="L508">			    top = Math.min(top, _endPointY[segment]);</span>
+<span class="fc" id="L509">			    bottom = Math.max(bottom, _endPointY[segment]);</span>
+			}
+		}
+<span class="fc" id="L512">		_sizeRect.setBounds(left, top, right-left+1, bottom-top+1);</span>
+		// image center
+<span class="fc" id="L514">		centerX = (left+right)&gt;&gt;1;</span>
+<span class="fc" id="L515">		centerY = (top+bottom)&gt;&gt;1;</span>
+<span class="fc" id="L516">		_mass = 0;</span>
+<span class="fc" id="L517">		_I = 0;</span>
+<span class="fc bfc" id="L518" title="All 2 branches covered.">		for (i=0; i&lt;_segments; i++) {</span>
+			// express points relative to the image center
+<span class="fc" id="L520">			_startPointX[i]-=centerX;</span>
+<span class="fc" id="L521">			_startPointY[i]-=centerY;</span>
+<span class="fc" id="L522">			_endPointX[i]-=centerX;</span>
+<span class="fc" id="L523">			_endPointY[i]-=centerY;</span>
+			// calculate points distance of the origin and modulus
+<span class="fc" id="L525">			_m1[i] = Math.sqrt(_startPointX[i]*_startPointX[i]+_startPointY[i]*_startPointY[i]);</span>
+<span class="fc" id="L526">			_m2[i] = Math.sqrt(_endPointX[i]*_endPointX[i]+_endPointY[i]*_endPointY[i]);</span>
+<span class="fc" id="L527">			_m[i] = Math.sqrt(Math.pow(_endPointX[i]-_startPointX[i],2) + </span>
+<span class="fc" id="L528">					Math.pow(_endPointY[i]-_startPointY[i],2));</span>
+<span class="fc" id="L529">			_mass += _m[i];</span>
+			// calculate inertia moment
+			// the mass center of a segment is its middle point
+<span class="fc" id="L532">			cx = (_startPointX[i] + _endPointX[i]) / 2d;</span>
+<span class="fc" id="L533">			cy = (_startPointY[i] + _endPointY[i]) / 2d;</span>
+			// add the effect of this segment, following the parallel axis theorem
+<span class="fc" id="L535">			_I += Math.pow(_m[i],3)/12d +</span>
+<span class="fc" id="L536">				_m[i] * cx*cx + cy*cy;// mass * length^2 (center is at 0,0)</span>
+		}
+<span class="fc" id="L538">	}</span>
+	/**
+	 * Given a vector, calculates the resulting vector after a rotation, a scalation and possibly
+	 * after mirroring it.
+	 * The rotation degree and the mirroring is found using the Utils.degree array, where parameter
+	 * mirror is the row and step is the column. The step represents the repetition of this vector
+	 * following the organism symmetry.
+	 * The scalation is calculated using the Utils.scale coefficients, using the organism's
+	 * _growthRatio to find the appropriate value. 
+	 * 
+	 * @param p  The end point of the vector. The starting point is (0,0).
+	 * @param step  The repetition of the vectors pattern  we are calculating.
+	 * @param mirror  If mirroring is applied to this organism 1, otherwise 0.
+	 * @return  The translated vector.
+	 */
+/*	private Vector2D translate(Point p, int step, int mirror) {
+		if (p.x == 0 &amp;&amp; p.y == 0)
+			return new Vector2D();
+
+		double px = p.x;
+		double py = p.y;
+
+		px /= Utils.scale[_growthRatio - 1];
+		py /= Utils.scale[_growthRatio - 1];
+
+		Vector2D v = new Vector2D(px,py);
+		v.addDegree(Utils.degree[mirror][step]);
+
+		if (Utils.invertX[mirror][step] != 0)
+			v.invertX();
+		if (Utils.invertY[mirror][step] != 0)
+			v.invertY();
+
+		return v;
+	}*/
+	/**
+	 * Tries to find a spare place in the world for this organism and place it.
+	 * It also generates an identification number for the organism if it can be placed
+	 * somewhere.
+	 * 
+	 * @return  true if a suitable place has been found, false if not.
+	 */
+	private boolean placeRandom() {
+		/* We try to place the organism in 12 different positions. If all of them
+		 * are occupied, we return false.
+		 */
+<span class="pc bpc" id="L584" title="1 of 2 branches missed.">		for (int i=12; i&gt;0; i--) {</span>
+			/* Get a random point for the top left corner of the organism
+			 * making sure it is inside the world.
+			 */
+<span class="fc" id="L588">			Point origin = new Point(</span>
+<span class="fc" id="L589">				Utils.random.nextInt(_world.getWidth()-_sizeRect.width),</span>
+<span class="fc" id="L590">				Utils.random.nextInt(_world.getHeight()-_sizeRect.height));</span>
+<span class="fc" id="L591">			setBounds(origin.x,origin.y,_sizeRect.width,_sizeRect.height);</span>
+<span class="fc" id="L592">			_dCenterX = _centerX = origin.x + (_sizeRect.width&gt;&gt;1);</span>
+<span class="fc" id="L593">			_dCenterY = _centerY = origin.y + (_sizeRect.height&gt;&gt;1);</span>
+			// Check that the position is not occupied.
+<span class="pc bpc" id="L595" title="1 of 2 branches missed.">			if (_world.fastCheckHit(this) == null) {</span>
+				// Generate an identification
+<span class="fc" id="L597">				_ID = _world.getNewId();</span>
+<span class="fc" id="L598">				return true;</span>
+			}
+		}
+		// If we get here, we haven't find a place for this organism.
+<span class="nc" id="L602">		return false;</span>
+	}
+	/**
+	 * Tries to find a spare place near its parent for this organism and place it.
+	 * It also generates an identification number for the organism if it can be placed
+	 * somewhere and substracts its energy from its parent's energy.
+	 * 
+	 * @return  true if a suitable place has been found, false if not.
+	 */
+	private boolean placeNear(Organism parent) {
+<span class="fc" id="L612">		int nPos = Utils.random.nextInt(8);</span>
+		// Try to put it in any possible position, starting from a randomly chosen one.
+<span class="pc bpc" id="L614" title="1 of 2 branches missed.">		for (int nSide = 0; nSide &lt; 8; nSide++) {</span>
+			// Calculate candidate position
+<span class="fc" id="L616">			_dCenterX = parent._dCenterX + (parent.width / 2 + width / 2+ 1) * Utils.side[nPos][0]; </span>
+<span class="fc" id="L617">			_dCenterY = parent._dCenterY + (parent.height / 2 + height / 2 + 1) * Utils.side[nPos][1];</span>
+<span class="fc" id="L618">			_centerX = (int) _dCenterX;</span>
+<span class="fc" id="L619">			_centerY = (int) _dCenterY;</span>
+<span class="fc" id="L620">			calculateBounds(true);</span>
+			// Check this position is inside the world.
+<span class="pc bpc" id="L622" title="1 of 2 branches missed.">			if (isInsideWorld()) {</span>
+				// Check that it doesn't overlap with other organisms.
+<span class="fc bfc" id="L624" title="All 2 branches covered.">				if (_world.fastCheckHit(this) == null) {</span>
+<span class="fc bfc" id="L625" title="All 2 branches covered.">					if (parent._geneticCode.getDisperseChildren()) {</span>
+<span class="fc" id="L626">						dx = Utils.side[nPos][0];</span>
+<span class="fc" id="L627">						dy = Utils.side[nPos][1];</span>
+<span class="fc" id="L628">					} else {</span>
+<span class="fc" id="L629">						dx = parent.dx;</span>
+<span class="fc" id="L630">						dy = parent.dy;</span>
+					}
+					// Generate an identification
+<span class="fc" id="L633">					_ID = _world.getNewId();</span>
+					// Substract the energy from the parent
+<span class="fc" id="L635">					parent._energy -= _energy;</span>
+<span class="fc" id="L636">					return true;</span>
+				}
+			}
+<span class="fc" id="L639">			nPos = (nPos + 1) % 8;</span>
+		}
+		// It can't be placed.
+<span class="nc" id="L642">		return false;</span>
+	}
+	/**
+	 * Draws this organism to a graphics context.
+	 * The organism is drawn at its position in the world.
+	 * 
+	 * @param g  The graphics context to draw to.
+	 */
+	public void draw(Graphics g) {
+		int i;
+<span class="fc bfc" id="L652" title="All 2 branches covered.">		if (_framesColor &gt; 0) {</span>
+			// Draw all the organism in the same color
+<span class="fc" id="L654">			g.setColor(_color);</span>
+<span class="fc" id="L655">			_framesColor--;</span>
+<span class="fc bfc" id="L656" title="All 2 branches covered.">			for (i=0; i&lt;_segments; i++)</span>
+<span class="fc" id="L657">				g.drawLine(</span>
+<span class="fc" id="L658">					x1[i] + _centerX,</span>
+<span class="fc" id="L659">					y1[i] + _centerY,</span>
+<span class="fc" id="L660">					x2[i] + _centerX,</span>
+<span class="fc" id="L661">					y2[i] + _centerY);</span>
+<span class="fc" id="L662">		} else {</span>
+<span class="fc bfc" id="L663" title="All 2 branches covered.">			if (alive) {</span>
+<span class="fc bfc" id="L664" title="All 2 branches covered.">				for (i=0; i&lt;_segments; i++) {</span>
+<span class="fc" id="L665">					g.setColor(_segColor[i]);</span>
+<span class="fc" id="L666">					g.drawLine(</span>
+<span class="fc" id="L667">							x1[i] + _centerX,</span>
+<span class="fc" id="L668">							y1[i] + _centerY,</span>
+<span class="fc" id="L669">							x2[i] + _centerX,</span>
+<span class="fc" id="L670">							y2[i] + _centerY);</span>
+				}
+<span class="fc" id="L672">			} else {</span>
+<span class="fc" id="L673">				g.setColor(Utils.ColorBROWN);</span>
+<span class="fc bfc" id="L674" title="All 2 branches covered.">				for (i=0; i&lt;_segments; i++) {</span>
+<span class="fc" id="L675">					g.drawLine(</span>
+<span class="fc" id="L676">							x1[i] + _centerX,</span>
+<span class="fc" id="L677">							y1[i] + _centerY,</span>
+<span class="fc" id="L678">							x2[i] + _centerX,</span>
+<span class="fc" id="L679">							y2[i] + _centerY);</span>
+				}
+			}
+		}
+<span class="fc" id="L683">	}</span>
+	/**
+	 * Calculates the position of all organism points in the world, depending on
+	 * its rotation. It also calculates the bounding rectangle of the organism.
+	 * This method must be called from outside this class only when doing
+	 * manual drawing.  
+	 * 
+	 * @param force  To avoid calculations, segments position are only calculated
+	 * if the organism's rotation has changed in the last frame. If it is necessary
+	 * to calculate them even when the rotation hasn't changed, assign true to this
+	 * parameter.
+	 */
+	public void calculateBounds(boolean force) {
+<span class="fc" id="L696">		double left=java.lang.Double.MAX_VALUE, right=java.lang.Double.MIN_VALUE, </span>
+<span class="fc" id="L697">		top=java.lang.Double.MAX_VALUE, bottom=java.lang.Double.MIN_VALUE;</span>
+		
+		double theta;
+<span class="fc bfc" id="L700" title="All 2 branches covered.">		for (int i=_segments-1; i&gt;=0; i--) {</span>
+			/* Save calculation: if rotation hasn't changed and it is not forced,
+			 * don't calculate points again.
+			 */
+<span class="fc bfc" id="L704" title="All 4 branches covered.">			if (_lastTheta != _theta || force) {</span>
+<span class="fc" id="L705">				theta=_theta+Math.atan2(_startPointY[i] ,_startPointX[i]);</span>
+<span class="fc" id="L706">				x1[i]=(int)(_m1[i]*Math.cos(theta));</span>
+<span class="fc" id="L707">				y1[i]=(int)(_m1[i]*Math.sin(theta));</span>
+<span class="fc" id="L708">				theta=_theta+Math.atan2(_endPointY[i], _endPointX[i]);</span>
+<span class="fc" id="L709">				x2[i]=(int)(_m2[i]*Math.cos(theta));</span>
+<span class="fc" id="L710">				y2[i]=(int)(_m2[i]*Math.sin(theta));</span>
+			}
+			// Finds the rectangle that comprises the organism
+<span class="fc" id="L713">			left = Utils.min(left, x1[i]+ _dCenterX, x2[i]+ _dCenterX);</span>
+<span class="fc" id="L714">			right = Utils.max(right, x1[i]+ _dCenterX, x2[i]+ _dCenterX);</span>
+<span class="fc" id="L715">			top = Utils.min(top, y1[i]+ _dCenterY, y2[i]+ _dCenterY);</span>
+<span class="fc" id="L716">			bottom = Utils.max(bottom, y1[i]+ _dCenterY, y2[i]+ _dCenterY);</span>
+		}
+<span class="fc" id="L718">		setBounds((int)left, (int)top, (int)(right-left+1)+1, (int)(bottom-top+1)+1);</span>
+<span class="fc" id="L719">		_lastTheta = _theta;</span>
+<span class="fc" id="L720">	}</span>
+	/**
+	 * If its the time for this organism to grow, calculates its new segments and speed.
+	 * An alive organism can grow once every 8 frames until it gets its maximum size.
+	 */
+	private void grow() {
+<span class="pc bpc" id="L726" title="1 of 8 branches missed.">		if (_growthRatio &gt; 1 &amp;&amp; (_age &amp; 0x07) == 0x07 &amp;&amp; alive &amp;&amp; _energy &gt;= _mass/10) {</span>
+<span class="fc" id="L727">			_growthRatio--;</span>
+<span class="fc" id="L728">			double m = _mass;</span>
+<span class="fc" id="L729">			double I = _I;</span>
+<span class="fc" id="L730">			symmetric();</span>
+			// Cynetic energy is constant. If mass changes, speed must also change.
+<span class="fc" id="L732">			m = Math.sqrt(m/_mass);</span>
+<span class="fc" id="L733">			dx *= m;</span>
+<span class="fc" id="L734">			dy *= m;</span>
+<span class="fc" id="L735">			dtheta *= Math.sqrt(I/_I);</span>
+<span class="fc" id="L736">			hasGrown = 1;</span>
+<span class="fc" id="L737">		} else {</span>
+<span class="fc bfc" id="L738" title="All 4 branches covered.">			if (_growthRatio &lt; 15 &amp;&amp; _energy &lt; _mass/12) {</span>
+<span class="fc" id="L739">				_growthRatio++;</span>
+<span class="fc" id="L740">				double m = _mass;</span>
+<span class="fc" id="L741">				double I = _I;</span>
+<span class="fc" id="L742">				symmetric();</span>
+				// Cynetic energy is constant. If mass changes, speed must also change.
+<span class="fc" id="L744">				m = Math.sqrt(m/_mass);</span>
+<span class="fc" id="L745">				dx *= m;</span>
+<span class="fc" id="L746">				dy *= m;</span>
+<span class="fc" id="L747">				dtheta *= Math.sqrt(I/_I);</span>
+<span class="fc" id="L748">				hasGrown = -1;</span>
+<span class="fc" id="L749">			} else</span>
+<span class="fc" id="L750">				hasGrown = 0;</span>
+		}
+<span class="fc" id="L752">	}</span>
+	
+	/**
+	 * Makes this organism reproduce. It tries to create at least one
+	 * child and at maximum 8 (depending on the number of yellow segments
+	 * of the organism) and put them in the world.
+	 */
+	public void reproduce() {
+		Organism newOrg;
+		
+<span class="fc bfc" id="L762" title="All 2 branches covered.">		for (int i=0; i &lt; Utils.between(_nChildren,1,8); i++) {</span>
+<span class="fc" id="L763">			newOrg = new Organism(_world);</span>
+<span class="pc bpc" id="L764" title="1 of 4 branches missed.">			if (newOrg.inherit(this, i==0)) {</span>
+				// It can be created
+<span class="fc" id="L766">				_nTotalChildren++;</span>
+<span class="fc" id="L767">				_world.addOrganism(newOrg,this);</span>
+<span class="fc" id="L768">				_infectedGeneticCode = null;</span>
+			}
+<span class="fc" id="L770">			_timeToReproduce = 20;</span>
+		}
+<span class="fc" id="L772">	}</span>
+	/**
+	 * Executes the organism's movement for this frame.
+	 * This includes segments upkeep and activation,
+	 * movement, growth, collision detection, reproduction,
+	 * respiration and death.
+	 */
+	public boolean move() {
+<span class="fc" id="L780">		boolean collision = false;</span>
+<span class="fc" id="L781">		hasMoved = false;</span>
+<span class="fc" id="L782">		lastFrame.setBounds(this);</span>
+<span class="fc bfc" id="L783" title="All 2 branches covered.">		if (Math.abs(dx) &lt; Utils.tol) dx = 0;</span>
+<span class="fc bfc" id="L784" title="All 2 branches covered.">		if (Math.abs(dy) &lt; Utils.tol) dy = 0;</span>
+<span class="fc bfc" id="L785" title="All 2 branches covered.">		if (Math.abs(dtheta) &lt; Utils.tol) dtheta = 0;</span>
+		// Apply segment effects for this frame.
+<span class="fc" id="L787">		segmentsFrameEffects();</span>
+		// Apply rubbing effects
+<span class="fc" id="L789">		rubbingFramesEffects();</span>
+		// Check if it can grow or shrink
+<span class="fc" id="L791">		grow();</span>
+		// Movement
+<span class="fc" id="L793">		double dxbak=dx, dybak=dy, dthetabak=dtheta;</span>
+<span class="fc" id="L794">		offset(dx,dy,dtheta);</span>
+<span class="fc bfc" id="L795" title="All 2 branches covered.">		calculateBounds(hasGrown!=0);</span>
+		
+<span class="fc bfc" id="L797" title="All 8 branches covered.">		if (hasGrown!=0 || dx!=0 || dy!=0 || dtheta!=0) {</span>
+<span class="fc" id="L798">			hasMoved = true;</span>
+			// Check it is inside the world
+<span class="fc bfc" id="L800" title="All 2 branches covered.">			collision = !isInsideWorld();</span>
+			// Collision detection with biological corridors
+<span class="fc bfc" id="L802" title="All 2 branches covered.">			if (alive) {</span>
+<span class="fc" id="L803">				OutCorridor c = _world.checkHitCorridor(this);</span>
+<span class="pc bpc" id="L804" title="3 of 4 branches missed.">				if (c != null &amp;&amp; c.canSendOrganism()) {</span>
+<span class="nc bnc" id="L805" title="All 2 branches missed.">					if (c.sendOrganism(this))</span>
+<span class="nc" id="L806">						return false;</span>
+				}
+			}
+			// Collision detection with other organisms.
+<span class="fc bfc" id="L810" title="All 2 branches covered.">			if (_world.checkHit(this) != null)</span>
+<span class="fc" id="L811">				collision = true;</span>
+			// If there is a collision, undo movement.
+<span class="fc bfc" id="L813" title="All 2 branches covered.">			if (collision) {</span>
+<span class="fc" id="L814">				hasMoved = false;</span>
+<span class="fc" id="L815">				offset(-dxbak,-dybak,-dthetabak);</span>
+<span class="fc bfc" id="L816" title="All 2 branches covered.">				if (hasGrown!=0) {</span>
+<span class="fc" id="L817">					_growthRatio+=hasGrown;</span>
+<span class="fc" id="L818">					symmetric();</span>
+				}
+<span class="fc bfc" id="L820" title="All 2 branches covered.">				calculateBounds(hasGrown!=0);</span>
+			}
+		}
+		// Substract one to the time needed to reproduce
+<span class="fc bfc" id="L824" title="All 2 branches covered.">		if (_timeToReproduce &gt; 0)</span>
+<span class="fc" id="L825">			_timeToReproduce--;</span>
+		// Check if it can reproduce: it needs enough energy and to be adult
+<span class="fc bfc" id="L827" title="All 2 branches covered.">		if (_energy &gt; _geneticCode.getReproduceEnergy() + Utils.YELLOW_ENERGY_CONSUMPTION*(_nChildren-1)</span>
+<span class="pc bpc" id="L828" title="3 of 6 branches missed.">				&amp;&amp; _growthRatio==1 &amp;&amp; _timeToReproduce==0 &amp;&amp; alive)</span>
+<span class="fc" id="L829">			reproduce();</span>
+		// Check that it don't exceed the maximum chemical energy
+<span class="pc bpc" id="L831" title="1 of 2 branches missed.">		if (_energy &gt; 2*_geneticCode.getReproduceEnergy())</span>
+<span class="nc" id="L832">			useEnergy(_energy - 2*_geneticCode.getReproduceEnergy());</span>
+		// Maintenance
+<span class="fc" id="L834">		breath();</span>
+		// Check that the organism has energy after this frame
+<span class="fc bfc" id="L836" title="All 2 branches covered.">		return _energy &gt; Utils.tol;</span>
+	}
+	/**
+	 * Makes the organism spend an amount of energy using the
+	 * respiration process.
+	 * 
+	 * @param q  The quantity of energy to spend.
+	 * @return  true if the organism has enough energy and there are
+	 * enough oxygen in the atmosphere, false otherwise.
+	 */
+	public boolean useEnergy(double q) {
+<span class="pc bpc" id="L847" title="1 of 2 branches missed.">		if (_energy &lt; q) {</span>
+<span class="nc" id="L848">			return false;</span>
+		}
+<span class="fc" id="L850">		double respiration = _world.respiration(q);</span>
+<span class="fc" id="L851">		_energy -= respiration;</span>
+<span class="pc bpc" id="L852" title="1 of 2 branches missed.">		if (respiration &lt; q)</span>
+<span class="nc" id="L853">			return false;</span>
+<span class="fc" id="L854">		return true;</span>
+	}
+	/**
+	 * Realize the respiration process to maintain its structure.
+	 * Aging is applied here too.
+	 */
+	public void breath() {
+<span class="fc bfc" id="L861" title="All 2 branches covered.">		if (alive) {</span>
+<span class="fc" id="L862">			_age++;</span>
+			// Respiration process
+<span class="fc" id="L864">			boolean canBreath = useEnergy(Math.min(_mass / Utils.SEGMENT_COST_DIVISOR, _energy));</span>
+<span class="pc bpc" id="L865" title="2 of 4 branches missed.">			if ((_age &gt;&gt; 8) &gt; _geneticCode.getMaxAge() || !canBreath) {</span>
+				// It's dead, but still may have energy
+<span class="nc" id="L867">				die(null);</span>
+<span class="nc" id="L868">			} else {</span>
+<span class="fc bfc" id="L869" title="All 2 branches covered.">				if (_energy &lt;= Utils.tol) {</span>
+<span class="fc" id="L870">					alive = false;</span>
+<span class="fc" id="L871">					_world.decreasePopulation();</span>
+<span class="fc" id="L872">					_world.organismHasDied(this, null);</span>
+				}
+			}
+<span class="fc" id="L875">		} else {</span>
+			// The corpse slowly decays
+<span class="fc" id="L877">			useEnergy(Math.min(_energy, Utils.DECAY_ENERGY));</span>
+		}
+<span class="fc" id="L879">	}</span>
+	/**
+	 * Kills the organism. Sets its segments to brown and tells the world
+	 * about the event.
+	 * 
+	 * @param killingOrganism  The organism that has killed this organism,
+	 * or null if it has died of natural causes.
+	 */
+	public void die(Organism killingOrganism) {
+<span class="fc" id="L888">		alive = false;</span>
+<span class="fc" id="L889">		hasMoved = true;</span>
+<span class="fc bfc" id="L890" title="All 2 branches covered.">		for (int i=0; i&lt;_segments; i++) {</span>
+<span class="fc" id="L891">			_segColor[i] = Utils.ColorBROWN;</span>
+		}
+<span class="fc" id="L893">		_world.decreasePopulation();</span>
+<span class="pc bpc" id="L894" title="1 of 2 branches missed.">		if (killingOrganism != null)</span>
+<span class="fc" id="L895">			killingOrganism._nTotalKills++;</span>
+<span class="fc" id="L896">		_world.organismHasDied(this, killingOrganism);</span>
+<span class="fc" id="L897">	}</span>
+	/**
+	 * Infects this organism with a genetic code.
+	 * Tells the world about this event.
+	 * Not currently used.
+	 * 
+	 * @param infectingCode  The genetic code that infects this organism.
+	 */
+	public void infectedBy(GeneticCode infectingCode) {
+<span class="nc" id="L906">		_infectedGeneticCode = infectingCode;</span>
+<span class="nc" id="L907">		_world.organismHasBeenInfected(this, null);</span>
+<span class="nc" id="L908">	}</span>
+	/**
+	 * Infects this organism with the genetic code of another organism.
+	 * Tells the world about this event.
+	 * 
+	 * @param infectingOrganism  The organism that is infecting this one.
+	 */
+	public void infectedBy(Organism infectingOrganism) {
+<span class="fc" id="L916">		infectingOrganism._nTotalInfected++;</span>
+<span class="fc" id="L917">		_infectedGeneticCode = infectingOrganism.getGeneticCode();</span>
+<span class="fc" id="L918">		_world.organismHasBeenInfected(this, infectingOrganism);</span>
+<span class="fc" id="L919">	}</span>
+	/**
+	 * Calculates the resulting speeds after a collision between two organisms, following
+	 * physical rules.
+	 * 
+	 * @param org  The other organism in the collision.
+	 * @param p  Intersection point between the organisms.
+	 * @param l  Line that has collided. Of the two lines, this is the one that collided
+	 * on the center, not on the vertex.
+	 * @param thisOrganism  true if l is a line of this organism, false if l is a line of org.
+	 */
+	private void touchMove(Organism org, Point2D.Double p, Line2D l, boolean thisOrganism) {
+		// Distance vector between centers of mass and p
+<span class="fc" id="L932">		double rapx = p.x - _dCenterX;</span>
+<span class="fc" id="L933">		double rapy = p.y - _dCenterY;</span>
+<span class="fc" id="L934">		double rbpx = p.x - org._dCenterX;</span>
+<span class="fc" id="L935">		double rbpy = p.y - org._dCenterY;</span>
+		// Speeds of point p in the body A and B, before collision.
+<span class="fc" id="L937">		double vap1x = dx - dtheta * rapy + hasGrown*rapx/10d;</span>
+<span class="fc" id="L938">		double vap1y = dy + dtheta * rapx + hasGrown*rapy/10d;</span>
+<span class="fc" id="L939">		double vbp1x = org.dx - org.dtheta * rbpy;</span>
+<span class="fc" id="L940">		double vbp1y = org.dy + org.dtheta * rbpx;</span>
+		// Relative speeds between the two collision points.
+<span class="fc" id="L942">		double vab1x = vap1x - vbp1x;</span>
+<span class="fc" id="L943">		double vab1y = vap1y - vbp1y;</span>
+		// Normal vector to the impact line
+		//First: perpendicular vector to the line
+<span class="fc" id="L946">		double nx = l.getY1() - l.getY2();</span>
+<span class="fc" id="L947">		double ny = l.getX2() - l.getX1();</span>
+		//Second: normalize, modulus 1
+<span class="fc" id="L949">		double modn = Math.sqrt(nx * nx + ny * ny);</span>
+<span class="fc" id="L950">		nx /= modn;</span>
+<span class="fc" id="L951">		ny /= modn;</span>
+		/*Third: of the two possible normal vectors we need the one that points to the
+		 * outside; we choose the one that its final point is the nearest to the center
+		 * of the other line.
+		 */
+<span class="fc bfc" id="L956" title="All 2 branches covered.">		if (thisOrganism) {</span>
+<span class="fc" id="L957">			if ((p.x+nx-org._dCenterX)*(p.x+nx-org._dCenterX)+(p.y+ny-org._dCenterY)*(p.y+ny-org._dCenterY) &lt;</span>
+<span class="fc bfc" id="L958" title="All 2 branches covered.">				(p.x-nx-org._dCenterX)*(p.x-nx-org._dCenterX)+(p.y-ny-org._dCenterY)*(p.y-ny-org._dCenterY)) {</span>
+<span class="fc" id="L959">				nx = -nx;</span>
+<span class="fc" id="L960">				ny = -ny;</span>
+			}
+<span class="fc" id="L962">		} else {</span>
+<span class="fc" id="L963">			if ((p.x+nx-_dCenterX)*(p.x+nx-_dCenterX)+(p.y+ny-_dCenterY)*(p.y+ny-_dCenterY) &gt;</span>
+<span class="fc bfc" id="L964" title="All 2 branches covered.">				(p.x-nx-_dCenterX)*(p.x-nx-_dCenterX)+(p.y-ny-_dCenterY)*(p.y-ny-_dCenterY)) {</span>
+<span class="fc" id="L965">				nx = -nx;</span>
+<span class="fc" id="L966">				ny = -ny;</span>
+			}
+		}
+		// This is the j in the parallel axis theorem
+<span class="fc" id="L970">		double j = (-(1+Utils.ELASTICITY) * (vab1x * nx + vab1y * ny)) / </span>
+<span class="fc" id="L971">			(1/_mass + 1/org._mass + Math.pow(rapx * ny - rapy * nx, 2) / _I +</span>
+<span class="fc" id="L972">					Math.pow(rbpx * ny - rbpy * nx, 2) / org._I);</span>
+		// Final speed
+<span class="fc" id="L974">		dx = Utils.between(dx + j*nx/_mass, -Utils.MAX_VEL, Utils.MAX_VEL);</span>
+<span class="fc" id="L975">		dy = Utils.between(dy + j*ny/_mass, -Utils.MAX_VEL, Utils.MAX_VEL);</span>
+<span class="fc" id="L976">		org.dx = Utils.between(org.dx - j*nx/org._mass, -Utils.MAX_VEL, Utils.MAX_VEL);</span>
+<span class="fc" id="L977">		org.dy = Utils.between(org.dy - j*ny/org._mass, -Utils.MAX_VEL, Utils.MAX_VEL);</span>
+<span class="fc" id="L978">		dtheta = Utils.between(dtheta + j * (rapx * ny - rapy * nx) / _I, -Utils.MAX_ROT, Utils.MAX_ROT);</span>
+<span class="fc" id="L979">		org.dtheta = Utils.between(org.dtheta - j * (rbpx * ny - rbpy * ny) / org._I, -Utils.MAX_ROT, Utils.MAX_ROT);</span>
+<span class="fc" id="L980">	}</span>
+	/**
+	 * Checks if the organism is inside the world. If it is not, calculates its
+	 * speed after the collision with the world border.
+	 * This calculation should be updated to follow the parallel axis theorem, just
+	 * like the collision between two organisms.
+	 * 
+	 * @return  true if the organism is inside the world, false otherwise.
+	 */
+	private boolean isInsideWorld() {
+		// Check it is inside the world
+<span class="fc bfc" id="L991" title="All 8 branches covered.">		if (x&lt;0 || y&lt;0 || x+width&gt;=_world.getWidth() || y+height&gt;=_world.getHeight()) {</span>
+			// Adjust direction
+<span class="fc bfc" id="L993" title="All 4 branches covered.">			if (x &lt; 0 || x + width &gt;= _world.getWidth())</span>
+<span class="fc" id="L994">				dx = -dx;</span>
+<span class="fc bfc" id="L995" title="All 4 branches covered.">			if (y &lt; 0 || y + height &gt;= _world.getHeight())</span>
+<span class="fc" id="L996">				dy = -dy;</span>
+<span class="fc" id="L997">			dtheta = 0;</span>
+<span class="fc" id="L998">			return false;</span>
+		}
+<span class="fc" id="L1000">		return true;</span>
+	}
+	/**
+	 * Moves the organism and rotates it.
+	 * 
+	 * @param offsetx  displacement on the x axis.
+	 * @param offsety  displacement on the y axis.
+	 * @param offsettheta  rotation degree.
+	 */
+	private void offset(double offsetx, double offsety, double offsettheta) {
+<span class="fc" id="L1010">		_dCenterX += offsetx; _dCenterY += offsety; _theta += offsettheta;</span>
+<span class="fc" id="L1011">		_centerX = (int)_dCenterX; _centerY = (int)_dCenterY; </span>
+<span class="fc" id="L1012">	}</span>
+	/**
+	 * Finds if two organism are touching and if so applies the effects of the
+	 * collision.
+	 * 
+	 * @param org  The organism to check for collisions.
+	 * @return  true if the two organisms are touching, false otherwise.
+	 */
+	public final boolean contact(Organism org) {
+		int i,j;
+<span class="fc" id="L1022">		ExLine2DDouble line = new ExLine2DDouble();</span>
+<span class="fc" id="L1023">		ExLine2DDouble bline = new ExLine2DDouble();</span>
+		// Check collisions for all segments
+<span class="fc bfc" id="L1025" title="All 2 branches covered.">		for (i = _segments-1; i &gt;= 0; i--) {</span>
+			// Consider only segments with modulus greater than 1
+<span class="fc bfc" id="L1027" title="All 2 branches covered.">			if (_m[i]&gt;=1) { </span>
+<span class="fc" id="L1028">				line.setLine(x1[i]+_centerX, y1[i]+_centerY, x2[i]+_centerX, y2[i]+_centerY);</span>
+				// First check if the line intersects the bounding box of the other organism
+<span class="fc bfc" id="L1030" title="All 2 branches covered.">				if (org.intersectsLine(line)) {</span>
+					// Do the same for the other organism's segments.
+<span class="fc bfc" id="L1032" title="All 2 branches covered.">					for (j = org._segments-1; j &gt;= 0; j--) {</span>
+<span class="fc bfc" id="L1033" title="All 2 branches covered.">						if (org._m[j]&gt;=1) {</span>
+<span class="fc" id="L1034">							bline.setLine(org.x1[j] + org._centerX, org.y1[j] + org._centerY,</span>
+<span class="fc" id="L1035">									org.x2[j] + org._centerX, org.y2[j] + org._centerY);</span>
+<span class="fc bfc" id="L1036" title="All 4 branches covered.">							if (intersectsLine(bline) &amp;&amp; line.intersectsLine(bline)) {</span>
+								// If we found two intersecting segments, apply effects
+<span class="fc" id="L1038">								touchEffects(org,i,j,true);</span>
+								// Intersection point
+<span class="fc" id="L1040">								Point2D.Double intersec= line.getIntersection(bline);</span>
+								/* touchMove needs to know which is the line that collides from the middle (not
+								 * from a vertex). Try to guess it by finding the vertex nearest to the
+								 * intersection point.
+								 */
+								double dl1, dl2, dbl1, dbl2;
+<span class="fc" id="L1046">								dl1 = intersec.distanceSq(line.getP1());</span>
+<span class="fc" id="L1047">								dl2 = intersec.distanceSq(line.getP2());</span>
+<span class="fc" id="L1048">								dbl1 = intersec.distanceSq(bline.getP1());</span>
+<span class="fc" id="L1049">								dbl2 = intersec.distanceSq(bline.getP2());</span>
+								// Use this to send the best choice to touchMove
+<span class="fc bfc" id="L1051" title="All 2 branches covered.">								if (Math.min(dl1, dl2) &lt; Math.min(dbl1, dbl2))</span>
+<span class="fc" id="L1052">									touchMove(org,intersec,bline,false);</span>
+								else
+<span class="fc" id="L1054">									touchMove(org,intersec,line,true);</span>
+								
+<span class="fc" id="L1056">								OrganismCollidedEvent event = new OrganismCollidedEvent();</span>
+<span class="fc" id="L1057">								actionCollidedListeners.fire().perform(event);</span>
+								
+								// Find only one collision to speed up.
+<span class="fc" id="L1060">								return true;</span>
+							}
+						}
+					}
+				}
+			}
+		}
+<span class="fc" id="L1067">		return false;</span>
+	}
+
+	/**
+	 * Applies the effects produced by two touching segments.
+	 * 
+	 * @param org  The organism which is touching.
+	 * @param seg  Index of this organism's segment. 
+	 * @param oseg  Index of the other organism's segment.
+	 * @param firstCall  Indicates if this organism is the one that has detected the collision
+	 * or this method is called by this same method in the other organism. 
+	 */
+	private void touchEffects(Organism org, int seg, int oseg, boolean firstCall) {
+<span class="pc bpc" id="L1080" title="4 of 6 branches missed.">		if ((_parentID == org._ID || _ID == org._parentID) &amp;&amp; org.alive)</span>
+<span class="nc" id="L1081">			return;</span>
+<span class="fc" id="L1082">		double takenEnergy = 0;</span>
+<span class="fc bfc" id="L1083" title="All 4 branches covered.">		switch (getTypeColor(_segColor[seg])) {</span>
+		case RED:
+		// Red segment: try to get energy from the other organism
+			// If the other segment is blue, it acts as a shield
+<span class="fc bfc" id="L1087" title="All 3 branches covered.">			switch (getTypeColor(org._segColor[oseg])) {</span>
+			case BLUE:
+<span class="pc bpc" id="L1089" title="1 of 2 branches missed.">				if (org.useEnergy(Utils.BLUE_ENERGY_CONSUMPTION)) {</span>
+<span class="fc" id="L1090">					org.setColor(Color.BLUE);</span>
+<span class="fc" id="L1091">				} else {</span>
+					// Doesn't have energy to use the shield
+<span class="nc bnc" id="L1093" title="All 2 branches missed.">					if (useEnergy(Utils.RED_ENERGY_CONSUMPTION)) {</span>
+						// Get energy depending on segment length
+<span class="nc" id="L1095">						takenEnergy = Utils.between(_m[seg] * Utils.ORGANIC_OBTAINED_ENERGY, 0, org._energy);</span>
+						// The other organism will be shown in yellow
+<span class="nc" id="L1097">						org.setColor(Color.YELLOW);</span>
+					}	
+				}
+<span class="nc" id="L1100">				break;</span>
+			case RED:
+<span class="pc bpc" id="L1102" title="1 of 2 branches missed.">				if (useEnergy(Utils.RED_ENERGY_CONSUMPTION)) {</span>
+					// Get energy depending on segment length
+<span class="fc" id="L1104">					takenEnergy = Utils.between(_m[seg] * Utils.ORGANIC_OBTAINED_ENERGY, 0, org._energy);</span>
+					// The other organism will be shown in red
+<span class="fc" id="L1106">					org.setColor(Color.RED);</span>
+				}
+<span class="fc" id="L1108">				break;</span>
+			default:
+<span class="pc bpc" id="L1110" title="1 of 2 branches missed.">				if (useEnergy(Utils.RED_ENERGY_CONSUMPTION)) {</span>
+					// Get energy depending on segment length
+<span class="fc" id="L1112">					takenEnergy = Utils.between(_m[seg] * Utils.ORGANIC_OBTAINED_ENERGY, 0, org._energy);</span>
+					// The other organism will be shown in yellow
+<span class="fc" id="L1114">					org.setColor(Color.YELLOW);</span>
+				}
+			}
+			// energy interchange
+<span class="fc" id="L1118">			org._energy -= takenEnergy;</span>
+<span class="fc" id="L1119">			_energy += takenEnergy;</span>
+<span class="fc" id="L1120">			double CO2freed = takenEnergy * Utils.ORGANIC_SUBS_PRODUCED;</span>
+<span class="fc" id="L1121">			useEnergy(CO2freed);</span>
+			// This organism will be shown in red
+<span class="fc" id="L1123">			setColor(Color.RED);</span>
+<span class="fc" id="L1124">			break;</span>
+		case WHITE:
+			// White segment: try to infect the other organism
+<span class="fc bfc" id="L1127" title="All 3 branches covered.">			switch (getTypeColor(org._segColor[oseg])) {</span>
+			case BLUE:
+<span class="pc bpc" id="L1129" title="1 of 2 branches missed.">				if (org.useEnergy(Utils.BLUE_ENERGY_CONSUMPTION)) {</span>
+<span class="fc" id="L1130">					setColor(Color.WHITE);</span>
+<span class="fc" id="L1131">					org.setColor(Color.BLUE);</span>
+<span class="fc" id="L1132">				} else {</span>
+<span class="nc bnc" id="L1133" title="All 2 branches missed.">					if (org._infectedGeneticCode != _geneticCode) {</span>
+<span class="nc bnc" id="L1134" title="All 2 branches missed.">						if (useEnergy(Utils.WHITE_ENERGY_CONSUMPTION)) {</span>
+<span class="nc" id="L1135">							org.infectedBy(this);</span>
+<span class="nc" id="L1136">							org.setColor(Color.YELLOW);</span>
+<span class="nc" id="L1137">							setColor(Color.WHITE);</span>
+						}
+					}	
+				}
+<span class="nc" id="L1141">				break;</span>
+			case BROWN:
+<span class="fc" id="L1143">				break;</span>
+			default:
+<span class="fc bfc" id="L1145" title="All 2 branches covered.">				if (org._infectedGeneticCode != _geneticCode) {</span>
+<span class="pc bpc" id="L1146" title="1 of 2 branches missed.">					if (useEnergy(Utils.WHITE_ENERGY_CONSUMPTION)) {</span>
+<span class="fc" id="L1147">						org.infectedBy(this);</span>
+<span class="fc" id="L1148">						org.setColor(Color.YELLOW);</span>
+<span class="fc" id="L1149">						setColor(Color.WHITE);</span>
+					}
+				}
+			}
+<span class="fc" id="L1153">			break;</span>
+		case GRAY:
+<span class="fc bfc" id="L1155" title="All 3 branches covered.">			switch (getTypeColor(org._segColor[oseg])) {</span>
+			case BLUE:
+<span class="pc bpc" id="L1157" title="1 of 2 branches missed.">				if (org.useEnergy(Utils.BLUE_ENERGY_CONSUMPTION)) {</span>
+<span class="fc" id="L1158">					org.setColor(Color.BLUE);</span>
+<span class="fc" id="L1159">					setColor(Color.GRAY);</span>
+<span class="fc" id="L1160">				} else {</span>
+<span class="nc bnc" id="L1161" title="All 2 branches missed.">					if (useEnergy(Utils.GRAY_ENERGY_CONSUMPTION)) {</span>
+<span class="nc" id="L1162">						org.die(this);</span>
+<span class="nc" id="L1163">						setColor(Color.GRAY);</span>
+					}
+				}
+<span class="nc" id="L1166">				break;</span>
+			case BROWN:
+<span class="fc" id="L1168">				break;</span>
+			default:
+<span class="pc bpc" id="L1170" title="1 of 2 branches missed.">				if (useEnergy(Utils.GRAY_ENERGY_CONSUMPTION)) {</span>
+<span class="fc" id="L1171">					org.die(this);</span>
+<span class="fc" id="L1172">					setColor(Color.GRAY);</span>
+				}
+			}
+			break;
+		}
+		// Check if the other organism has died
+<span class="pc bpc" id="L1178" title="1 of 4 branches missed.">		if (org.isAlive() &amp;&amp; org._energy &lt; Utils.tol) {</span>
+<span class="nc" id="L1179">			org.die(this);</span>
+		}
+<span class="fc bfc" id="L1181" title="All 2 branches covered.">		if (firstCall)</span>
+<span class="fc" id="L1182">			org.touchEffects(this, oseg, seg, false);</span>
+<span class="fc" id="L1183">	}</span>
+	
+	/*
+	 * Perd velocitat pel fregament.
+	 */
+	private void rubbingFramesEffects() {
+<span class="fc" id="L1189">		dx *= Utils.RUBBING;</span>
+<span class="fc bfc" id="L1190" title="All 2 branches covered.">		if (Math.abs(dx) &lt; Utils.tol) dx=0;</span>
+<span class="fc" id="L1191">		dy *= Utils.RUBBING;</span>
+<span class="fc bfc" id="L1192" title="All 2 branches covered.">		if (Math.abs(dy) &lt; Utils.tol) dy = 0;</span>
+<span class="fc" id="L1193">		dtheta *= Utils.RUBBING;</span>
+<span class="fc bfc" id="L1194" title="All 2 branches covered.">		if (Math.abs(dtheta) &lt; Utils.tol) dtheta = 0;</span>
+<span class="fc" id="L1195">	}</span>
+	
+	/*
+	 * Perd el cost de manteniment dels segments
+	 * Aplica l'efecte de cadascun dels segments
+	 */
+	private void segmentsFrameEffects() {
+<span class="fc bfc" id="L1202" title="All 2 branches covered.">		if (alive) {</span>
+			int i;
+			// Energy obtained through photosynthesis
+<span class="fc" id="L1205">			double photosynthesis = 0;</span>
+<span class="fc" id="L1206">			_nChildren = 1;</span>
+<span class="fc bfc" id="L1207" title="All 2 branches covered.">			for (i=_segments-1; i&gt;=0; i--) {</span>
+				// Manteniment
+<span class="fc bfc" id="L1209" title="All 4 branches covered.">				switch (getTypeColor(_segColor[i])) {</span>
+				// 	Segments cilis
+				case CYAN:
+<span class="pc bpc" id="L1212" title="1 of 4 branches missed.">					if (Utils.random.nextInt(100)&lt;8 &amp;&amp; useEnergy(Utils.CYAN_ENERGY_CONSUMPTION)) {</span>
+<span class="fc" id="L1213">						dx=Utils.between(dx+12d*(x2[i]-x1[i])/_mass, -Utils.MAX_VEL, Utils.MAX_VEL);</span>
+<span class="fc" id="L1214">						dy=Utils.between(dy+12d*(y2[i]-y1[i])/_mass, -Utils.MAX_VEL, Utils.MAX_VEL);</span>
+<span class="fc" id="L1215">						dtheta=Utils.between(dtheta+Utils.randomSign()*_m[i]*Math.PI/_I, -Utils.MAX_ROT, Utils.MAX_ROT);</span>
+					}
+<span class="fc" id="L1217">					break;</span>
+					// Segments fotosintï¿½tics
+				case GREEN:
+<span class="pc bpc" id="L1220" title="1 of 2 branches missed.">					if (useEnergy(Utils.GREEN_ENERGY_CONSUMPTION))</span>
+<span class="fc" id="L1221">						photosynthesis += _m[i];</span>
+<span class="fc" id="L1222">					break;</span>
+					// Segments que obtenen energia de subs1
+					// 	Segments relacionats amb la fertilitat
+				case YELLOW:
+<span class="fc" id="L1226">					_nChildren++;</span>
+					break;
+				}
+			}
+			// Photosynthesis process
+			//Get sun's energy
+<span class="fc" id="L1232">			_energy += _world.photosynthesis(photosynthesis);</span>
+		}
+<span class="fc" id="L1234">	}</span>
+	
+	private static final int NOCOLOR=-1;
+	private static final int GREEN=0;
+	private static final int RED=1;
+	private static final int CYAN=2;
+	private static final int BLUE=3;
+	private static final int MAGENTA=4;
+	private static final int PINK=5;
+	private static final int ORANGE=6;
+	private static final int WHITE=7;
+	private static final int GRAY=8;
+	private static final int YELLOW=9;
+<span class="fc" id="L1247">	private static final int BROWN=10;</span>
+	private static int getTypeColor(Color c) {
+<span class="pc bpc" id="L1249" title="1 of 4 branches missed.">		if (c.equals(Color.RED) || c.equals(Utils.ColorDARK_RED))</span>
+<span class="fc" id="L1250">			return RED;</span>
+<span class="pc bpc" id="L1251" title="1 of 4 branches missed.">		if (c.equals(Color.GREEN) || c.equals(Utils.ColorDARK_GREEN))</span>
+<span class="fc" id="L1252">			return GREEN;</span>
+<span class="pc bpc" id="L1253" title="1 of 4 branches missed.">		if (c.equals(Color.CYAN) || c.equals(Utils.ColorDARK_CYAN))</span>
+<span class="fc" id="L1254">			return CYAN;</span>
+<span class="pc bpc" id="L1255" title="1 of 4 branches missed.">		if (c.equals(Color.BLUE) || c.equals(Utils.ColorDARK_BLUE))</span>
+<span class="fc" id="L1256">			return BLUE;</span>
+<span class="pc bpc" id="L1257" title="2 of 4 branches missed.">		if (c.equals(Color.MAGENTA) || c.equals(Utils.ColorDARK_MAGENTA))</span>
+<span class="nc" id="L1258">			return MAGENTA;</span>
+<span class="pc bpc" id="L1259" title="2 of 4 branches missed.">		if (c.equals(Color.PINK) || c.equals(Utils.ColorDARK_PINK))</span>
+<span class="nc" id="L1260">			return PINK;</span>
+<span class="pc bpc" id="L1261" title="2 of 4 branches missed.">		if (c.equals(Color.ORANGE) || c.equals(Utils.ColorDARK_ORANGE))</span>
+<span class="nc" id="L1262">			return ORANGE;</span>
+<span class="pc bpc" id="L1263" title="1 of 4 branches missed.">		if (c.equals(Color.WHITE) || c.equals(Utils.ColorDARK_WHITE))</span>
+<span class="fc" id="L1264">			return WHITE;</span>
+<span class="pc bpc" id="L1265" title="1 of 4 branches missed.">		if (c.equals(Color.GRAY) || c.equals(Utils.ColorDARK_GRAY))</span>
+<span class="fc" id="L1266">			return GRAY;</span>
+<span class="pc bpc" id="L1267" title="1 of 4 branches missed.">		if (c.equals(Color.YELLOW) || c.equals(Utils.ColorDARK_YELLOW))</span>
+<span class="fc" id="L1268">			return YELLOW;</span>
+<span class="pc bpc" id="L1269" title="1 of 2 branches missed.">		if (c.equals(Utils.ColorBROWN))</span>
+<span class="fc" id="L1270">			return BROWN;</span>
+<span class="nc" id="L1271">		return NOCOLOR;</span>
+	}
+	
+	private void setColor(Color c) {
+<span class="fc" id="L1275">		_color = c;</span>
+<span class="fc" id="L1276">		_framesColor = 10;</span>
+<span class="fc" id="L1277">	}</span>
+	
+	public BufferedImage getImage() {
+<span class="nc" id="L1280">		BufferedImage image = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);</span>
+<span class="nc" id="L1281">		Graphics2D g = image.createGraphics();</span>
+<span class="nc" id="L1282">		g.setBackground(Color.BLACK);</span>
+<span class="nc" id="L1283">		g.clearRect(0,0,width,height);</span>
+<span class="nc bnc" id="L1284" title="All 2 branches missed.">		for (int i=_segments-1; i&gt;=0; i--) {</span>
+<span class="nc" id="L1285">				g.setColor(_segColor[i]);</span>
+<span class="nc" id="L1286">				g.drawLine(x1[i] -x + _centerX, y1[i] - y + _centerY, x2[i] - x + _centerX, y2[i] - y+_centerY);</span>
+		}
+<span class="nc" id="L1288">		return image;</span>
+	}
+	
+	public void addListener(OrganismCreatedListener listener) {
+<span class="fc" id="L1292">		actionListeners.addListener(listener);</span>
+<span class="fc" id="L1293">	}</span>
+	
+	public void addListener(OrganismCollidedListener listener) {
+<span class="fc" id="L1296">		actionCollidedListeners.addListener(listener);</span>
+<span class="fc" id="L1297">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

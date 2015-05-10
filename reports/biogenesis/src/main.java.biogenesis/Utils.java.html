@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Utils.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">Utils.java</span></div><h1>Utils.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.util.*;
+import java.util.prefs.*;
+import java.awt.*;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+/**
+ * This class contains all global program parameters and a few useful methods for
+ * reading or writing them from the user preferences.
+ */
+<span class="nc" id="L31">public final class Utils {</span>
+	/**
+	 * This value indicates the version of the program.
+	 * There are two digits for version, two for subversion and two for revision, so
+	 * a value of 400 or 000400 means version 0, subversion 4 and revision 0.
+	 * 
+	 * All serializable classes use this value as their serialVersionUID.
+	 */
+	static final int FILE_VERSION = 700;
+	static final int VERSION = 900; //two digits for version, subversion and revision
+
+	// Default values for parameters
+	final static int DEF_WINDOW_X = 0;
+	final static int DEF_WINDOW_Y = 0;
+	final static int DEF_WINDOW_WIDTH = 640;
+	final static int DEF_WINDOW_HEIGHT = 480;
+	final static int DEF_WINDOW_STATE = JFrame.NORMAL;
+	/**
+	 * This is the default value of organisms that are created when a new world begins.
+	 */
+	final static int DEF_INITIAL_ORGANISMS = 15;
+	/**
+	 * This is the default amount of O2 that exists in a newly created world.
+	 */
+	final static double DEF_INITIAL_O2 = 0;
+	/**
+	 * This is the default amount of CO2 that exists in a newly created world.
+	 */
+	final static double DEF_INITIAL_CO2 = 5000;
+	/**
+	 * This is the initial size of the organisms vector.
+	 */
+	final static int DEF_ORGANISMS_VECTOR_SIZE = 50;
+	/**
+	 * This is the default world's width.
+	 */
+	final static int DEF_WORLD_WIDTH = 1000;
+	/**
+	 * This is the default world's height.
+	 */
+	final static int DEF_WORLD_HEIGHT = 1000;
+	/**
+	 * This is the default maximum age than an organism can achieve. From it,
+	 * the organism quickly decays.
+	 */
+	final static int DEF_MAX_AGE = 30;
+	/**
+	 * This is the default rubbing coefficient that is applied to movements. This value is
+	 * multiplied by the speed at every frame.
+	 */
+	final static double DEF_RUBBING = 0.98d;
+	/**
+	 * This is the default probability that an specified gene has to be modified when
+	 * reproducing organisms. 
+	 */
+	final static double DEF_MUTATION_RATE = 0.05d;
+	/**
+	 * This default value is used to calculate the energy cost that an organism must
+	 * pay to maintain a segment. It spends the length of the segment divided by this
+	 * number units of energy.  
+	 */
+	final static int DEF_SEGMENT_COST_DIVISOR = 5000;
+	/**
+	 * This default value is multiplied by the length of red segments to calculate
+	 * the amount of energy that is stolen from an organism when it is touched.
+	 */
+	final static double DEF_ORGANIC_OBTAINED_ENERGY = 0.5d;
+	/**
+	 * This default value divides the length of green segments to calculate the
+	 * amount of solar energy that the segment can get in a frame.
+	 */
+	final static int DEF_GREEN_OBTAINED_ENERGY_DIVISOR = 500;
+	/**
+	 * This is the default value that determines how much energy will be released
+	 * to the atmosphere when an organism touches another organism with a red segment.
+	 * The energy that the target lost is multiplied by this value and the result
+	 * is added to the atmospheric CO2. The rest is added to the attacker's energy.
+	 */
+	final static double DEF_ORGANIC_SUBS_PRODUCED = 0.1d;
+	/**
+	 * This is the default energy that is consumed when a red segment is used.
+	 */
+	final static double DEF_RED_ENERGY_CONSUMPTION = 0d;
+	/**
+	 * This is the default energy that is consumed when a green segment is used.
+	 */
+	final static double DEF_GREEN_ENERGY_CONSUMPTION = 0d;
+	/**
+	 * This is the default energy that is consumed when a blue segment is used.
+	 */
+	final static double DEF_BLUE_ENERGY_CONSUMPTION = 0d;
+	/**
+	 * This is the default energy that is consumed when a cyan segment is used.
+	 */
+	final static double DEF_CYAN_ENERGY_CONSUMPTION = 0d;
+	/**
+	 * This is the default energy that is consumed when a white segment is used.
+	 */
+	final static double DEF_WHITE_ENERGY_CONSUMPTION = 1d;
+	/**
+	 * This is the default energy that is consumed when a gray segment is used.
+	 */
+	final static double DEF_GRAY_ENERGY_CONSUMPTION = 1d;
+	/**
+	 * This is the default energy that is consumed when a yellow segment is used.
+	 */
+	final static double DEF_YELLOW_ENERGY_CONSUMPTION = 0d;
+	/**
+	 * This is the default probability for a new segment to be red.
+	 */
+	final static int DEF_RED_PROB = 10;
+	/**
+	 * This is the default probability for a new segment to be green.
+	 */
+	final static int DEF_GREEN_PROB = 30;
+	/**
+	 * This is the default probability for a new segment to be blue.
+	 */
+	final static int DEF_BLUE_PROB = 10;
+	/**
+	 * This is the default probability for a new segment to be cyan.
+	 */
+	final static int DEF_CYAN_PROB = 20;
+	/**
+	 * This is the default probability for a new segment to be white.
+	 */
+	final static int DEF_WHITE_PROB = 10;
+	/**
+	 * This is the default probability for a new segment to be gray.
+	 */
+	final static int DEF_GRAY_PROB = 10;
+	/**
+	 * This is the default probability for a new segment to be yellow.
+	 */
+	final static int DEF_YELLOW_PROB = 10;
+	/**
+	 * This default value divides the amount of CO2 in the atmosphere to
+	 * establish how many CO2 an organism can drain in a frame.
+	 */
+	final static int DEF_DRAIN_SUBS_DIVISOR = 5000;
+	/**
+	 * This is the default value for the initial energy that an organism has
+	 * if it isn't a child of another organism.
+	 */
+	final static int DEF_INITIAL_ENERGY = 50;
+	/**
+	 * This is the default value for the maximum speed that an organism can
+	 * achieve.
+	 */
+	final static double DEF_MAX_VEL = 5d;
+	/**
+	 * This is the default value for the maximum rotational speed that an organism
+	 * can achieve.
+	 */
+	final static double DEF_MAX_ROT = Math.PI / 16d;
+	/**
+	 * This is the default elasticity coefficient. This value is used to establish
+	 * the energy that a movement keeps after a collision.
+	 */
+	final static double DEF_ELASTICITY = 0.8d;
+	/**
+	 * This is the default number of miliseconds that pas between frames.
+	 */
+	final static int DEF_DELAY = 50;
+	/**
+	 * This is the default port where the net server will listen for connections.
+	 */
+	final static int DEF_LOCAL_PORT = 8888;
+	/**
+	 * This is the default value for the maximum number of network connections allowed.
+	 */
+	final static int DEF_MAX_CONNECTIONS = 1;
+	/**
+	 * This is the default value for accepting or not new connections from other hosts.
+	 */
+	final static boolean DEF_ACCEPT_CONNECTIONS = false;
+	/**
+	 * This is the default value for using or not a meta-server to find other instances
+	 * of biogenesis running. At the moment it is not used.
+	 */
+	final static boolean DEF_CONNECT_TO_SERVER = false;
+	/**
+	 * This is the default IP that the meta-server will have. At the moment it is not used.
+	 */
+	final static String DEF_SERVER_ADDRESS = &quot;&quot;; //$NON-NLS-1$
+	/**
+	 * This is the default port where the meta-server will listen. At the moment it is not used.
+	 */
+	final static int DEF_SERVER_PORT = 0;
+	/**
+	 * This is the default hardware acceleration applied when drawing
+	 */
+	final static int DEF_HARDWARE_ACCELERATION = 0; //0 none, 1 try opengl, 2 opengl
+	
+	final static double DEF_DECAY_ENERGY = 0.1d;
+	// Effective parameters values
+<span class="fc" id="L227">	static int WINDOW_X = DEF_WINDOW_X;</span>
+<span class="fc" id="L228">	static int WINDOW_Y = DEF_WINDOW_Y;</span>
+<span class="fc" id="L229">	static int WINDOW_WIDTH = DEF_WINDOW_WIDTH;</span>
+<span class="fc" id="L230">	static int WINDOW_HEIGHT = DEF_WINDOW_HEIGHT;</span>
+<span class="fc" id="L231">	static int WINDOW_STATE = DEF_WINDOW_STATE;</span>
+	/**
+	 * This is the effective value of organisms that are created when a new world begins.
+	 */
+<span class="fc" id="L235">	static int INITIAL_ORGANISMS = DEF_INITIAL_ORGANISMS;</span>
+	/**
+	 * This is the effective amount of O2 that exists in a newly created world.
+	 */
+<span class="fc" id="L239">	static double INITIAL_O2 = DEF_INITIAL_O2;</span>
+	/**
+	 * This is the effective amount of CO2 that exists in a newly created world.
+	 */
+<span class="fc" id="L243">	static double INITIAL_CO2 = DEF_INITIAL_CO2;</span>
+	/**
+	 * This is the effective size of the organisms vector.
+	 */
+<span class="fc" id="L247">	static int ORGANISMS_VECTOR_SIZE = DEF_ORGANISMS_VECTOR_SIZE;</span>
+	/**
+	 * This is the effective world's width for new worlds.
+	 */
+<span class="fc" id="L251">	static int WORLD_WIDTH = DEF_WORLD_WIDTH;</span>
+	/**
+	 * This is the effective world's height for new worlds.
+	 */
+<span class="fc" id="L255">	static int WORLD_HEIGHT = DEF_WORLD_HEIGHT;</span>
+	/**
+	 * This is the maximum age than an organism can achieve. From it, the organism
+	 * quickly decays.
+	 */
+<span class="fc" id="L260">	static int MAX_AGE = DEF_MAX_AGE;</span>
+	/**
+	 * This is the rubbing coefficient that is applied to movements. This value is
+	 * multiplied by the speed at every frame.
+	 */
+<span class="fc" id="L265">	static double RUBBING = DEF_RUBBING;</span>
+	/**
+	 * This is the probability that an specified gene has to be modified when
+	 * reproducing organisms. 
+	 */
+<span class="fc" id="L270">	static double MUTATION_RATE = DEF_MUTATION_RATE;</span>
+	/**
+	 * This value is used to calculate the energy cost that an organism must
+	 * pay to maintain a segment. It spends the length of the segment divided by this
+	 * number units of energy.  
+	 */
+<span class="fc" id="L276">	static int SEGMENT_COST_DIVISOR = DEF_SEGMENT_COST_DIVISOR;</span>
+	/**
+	 * This value is multiplied by the length of red segments to calculate
+	 * the amount of energy that is stolen from an organism when it is touched.
+	 */
+<span class="fc" id="L281">	static double ORGANIC_OBTAINED_ENERGY = DEF_ORGANIC_OBTAINED_ENERGY;</span>
+	/**
+	 * This value divides the length of green segments to calculate the
+	 * amount of solar energy that the segment can get in a frame.
+	 */
+<span class="fc" id="L286">	static int GREEN_OBTAINED_ENERGY_DIVISOR = DEF_GREEN_OBTAINED_ENERGY_DIVISOR;</span>
+	/**
+	 * This is the effective value that determines how much energy will be released
+	 * to the atmosphere when an organism touches another organism with a red segment.
+	 * The energy that the target lost is multiplied by this value and the result
+	 * is added to the atmospheric CO2. The rest is added to the attacker's energy.
+	 */
+<span class="fc" id="L293">	static double ORGANIC_SUBS_PRODUCED = DEF_ORGANIC_SUBS_PRODUCED;</span>
+	/**
+	 * This is the energy that is consumed when a red segment is used.
+	 */
+<span class="fc" id="L297">	static double RED_ENERGY_CONSUMPTION = DEF_RED_ENERGY_CONSUMPTION;</span>
+	/**
+	 * This is the energy that is consumed when a green segment is used.
+	 */
+<span class="fc" id="L301">	static double GREEN_ENERGY_CONSUMPTION = DEF_GREEN_ENERGY_CONSUMPTION;</span>
+	/**
+	 * This is the energy that is consumed when a blue segment is used.
+	 */
+<span class="fc" id="L305">	static double BLUE_ENERGY_CONSUMPTION = DEF_BLUE_ENERGY_CONSUMPTION;</span>
+	/**
+	 * This is the energy that is consumed when a cyan segment is used.
+	 */
+<span class="fc" id="L309">	static double CYAN_ENERGY_CONSUMPTION = DEF_CYAN_ENERGY_CONSUMPTION;</span>
+	/**
+	 * This is the energy that is consumed when a white segment is used.
+	 */
+<span class="fc" id="L313">	static double WHITE_ENERGY_CONSUMPTION = DEF_WHITE_ENERGY_CONSUMPTION;</span>
+	/**
+	 * This is the energy that is consumed when a gray segment is used.
+	 */
+<span class="fc" id="L317">	static double GRAY_ENERGY_CONSUMPTION = DEF_GRAY_ENERGY_CONSUMPTION;</span>
+	/**
+	 * This is the energy that is consumed when a yellow segment is used.
+	 */
+<span class="fc" id="L321">	static double YELLOW_ENERGY_CONSUMPTION = DEF_YELLOW_ENERGY_CONSUMPTION;</span>
+	/**
+	 * This is the probability for a new segment to be red.
+	 */
+<span class="fc" id="L325">	static int RED_PROB = DEF_RED_PROB;</span>
+	/**
+	 * This is the probability for a new segment to be green.
+	 */
+<span class="fc" id="L329">	static int GREEN_PROB = DEF_GREEN_PROB;</span>
+	/**
+	 * This is the probability for a new segment to be blue.
+	 */
+<span class="fc" id="L333">	static int BLUE_PROB = DEF_BLUE_PROB;</span>
+	/**
+	 * This is the probability for a new segment to be cyan.
+	 */
+<span class="fc" id="L337">	static int CYAN_PROB = DEF_CYAN_PROB;</span>
+	/**
+	 * This is the probability for a new segment to be white.
+	 */
+<span class="fc" id="L341">	static int WHITE_PROB = DEF_WHITE_PROB;</span>
+	/**
+	 * This is the probability for a new segment to be gray.
+	 */
+<span class="fc" id="L345">	static int GRAY_PROB = DEF_GRAY_PROB;</span>
+	/**
+	 * This is the probability for a new segment to be yellow.
+	 */
+<span class="fc" id="L349">	static int YELLOW_PROB = DEF_YELLOW_PROB;</span>
+	/**
+	 * This value divides the amount of CO2 in the atmosphere to
+	 * establish how many CO2 an organism can drain in a frame.
+	 */
+<span class="fc" id="L354">	static int DRAIN_SUBS_DIVISOR = DEF_DRAIN_SUBS_DIVISOR;</span>
+	/**
+	 * This is the value for the initial energy that an organism has
+	 * if it isn't a child of another organism.
+	 */
+<span class="fc" id="L359">	static int INITIAL_ENERGY = DEF_INITIAL_ENERGY;</span>
+	/**
+	 * This is the value for the maximum speed that an organism can
+	 * achieve.
+	 */
+<span class="fc" id="L364">	static double MAX_VEL = DEF_MAX_VEL;</span>
+	/**
+	 * This is the value for the maximum rotational speed that an organism
+	 * can achieve.
+	 */
+<span class="fc" id="L369">	static double MAX_ROT = DEF_MAX_ROT;</span>
+	/**
+	 * This is the elasticity coefficient. This value is used to establish
+	 * the energy that a movement keeps after a collision.
+	 */
+<span class="fc" id="L374">	static double ELASTICITY = DEF_ELASTICITY;</span>
+	/**
+	 * This is the number of miliseconds that pas between frames.
+	 */
+<span class="fc" id="L378">	static int DELAY = DEF_DELAY;</span>
+	/**
+	 * This is the port where the net server will listen for connections.
+	 */
+<span class="fc" id="L382">	static int LOCAL_PORT = DEF_LOCAL_PORT;</span>
+	/**
+	 * This is the value for the maximum number of network connections allowed.
+	 */
+<span class="fc" id="L386">	static int MAX_CONNECTIONS = DEF_MAX_CONNECTIONS;</span>
+	/**
+	 * This is the value for accepting or not new connections from other hosts.
+	 */
+<span class="fc" id="L390">	static boolean ACCEPT_CONNECTIONS = DEF_ACCEPT_CONNECTIONS;</span>
+	/**
+	 * This is the value for using or not a meta-server to find other instances
+	 * of biogenesis running. At the moment it is not used.
+	 */
+<span class="fc" id="L395">	static boolean CONNECT_TO_SERVER = DEF_CONNECT_TO_SERVER;</span>
+	/**
+	 * This is the IP that the meta-server will have. At the moment it is not used.
+	 */
+<span class="fc" id="L399">	static String SERVER_ADDRESS = DEF_SERVER_ADDRESS;</span>
+	/**
+	 * This is the hardware acceleration applied when drawing.
+	 * 0 none, 1 try opengl next time, 2 trying opengl, 3 opengl
+	 * 4 try opengl without fbobject next time, 5 trying opengl without fbobject,
+	 * 6 opengl without fbobject
+	 */
+<span class="fc" id="L406">	static int HARDWARE_ACCELERATION = DEF_HARDWARE_ACCELERATION;</span>
+	/**
+	 * This is the port where the meta-server will listen. At the moment it is not used.
+	 */
+<span class="fc" id="L410">	static int SERVER_PORT = DEF_SERVER_PORT;</span>
+	
+<span class="fc" id="L412">	static double DECAY_ENERGY = DEF_DECAY_ENERGY;</span>
+	/**
+	 * Tolerance. Smaller numbers are considered equal to 0.
+	 */
+	static final double tol = 0.0000001;
+	/**
+	 * Indicates the eight possible directions. The row is the direction we want, from 0 to 7, first
+	 * column is the x coordinate and second column the y coordinate.  
+	 */
+<span class="fc" id="L421">	static final int side[][] = {{1,0},{1,1},{0,1},{-1,1},{-1,0},{-1,-1},{0,-1},{1,-1}};</span>
+	/**
+	 * These are the scale factor applied to segments depending on the growth rate of the
+	 * organism. Segment length is divided by scale[i], where i is the growth rate.
+	 * scale[0] indicates that the organism is fully developed and scale[15] that it has just
+	 * been born. 
+	 */
+<span class="fc" id="L428">	static final double scale[] = {1.00, 1.12, 1.25, 1.40, 1.57, 1.76, 1.97, 2.21,</span>
+<span class="fc" id="L429">        2.47, 2.77, 3.11, 3.48, 3.90, 4.36, 4.89, 5.47};</span>
+	
+	/**
+	 * Precalculated dark green color
+	 */
+<span class="fc" id="L434">	static final Color ColorDARK_GREEN = Color.GREEN.darker();</span>
+	/**
+	 * Precalculated dark red color
+	 */
+<span class="fc" id="L438">	static final Color ColorDARK_RED = Color.RED.darker();</span>
+	/**
+	 * Precalculated dark cyan color
+	 */
+<span class="fc" id="L442">	static final Color ColorDARK_CYAN = Color.CYAN.darker();</span>
+	/**
+	 * Precalculated dark blue color
+	 */
+<span class="fc" id="L446">	static final Color ColorDARK_BLUE = Color.BLUE.darker();</span>
+	/**
+	 * Precalculated dark magenta color
+	 */
+<span class="fc" id="L450">	static final Color ColorDARK_MAGENTA = Color.MAGENTA.darker();</span>
+	/**
+	 * Precalculated dark pink color
+	 */
+<span class="fc" id="L454">	static final Color ColorDARK_PINK = Color.PINK.darker();</span>
+	/**
+	 * Precalculated dark orange color
+	 */
+<span class="fc" id="L458">	static final Color ColorDARK_ORANGE = Color.ORANGE.darker();</span>
+	/**
+	 * Precalculated dark white color
+	 */
+<span class="fc" id="L462">	static final Color ColorDARK_WHITE = Color.WHITE.darker();</span>
+	/**
+	 * Precalculated dark gray color
+	 */
+<span class="fc" id="L466">	static final Color ColorDARK_GRAY = Color.GRAY.darker();</span>
+	/**
+	 * Precalculated dark yellow color
+	 */
+<span class="fc" id="L470">	static final Color ColorDARK_YELLOW = Color.YELLOW.darker();</span>
+	/**
+	 * Precalculated brown color
+	 */
+<span class="fc" id="L474">	static final Color ColorBROWN = new Color(150,75,0);</span>
+	/**
+	 * Precalculated light blue color
+	 */
+<span class="fc" id="L478">	static final Color ColorLIGHT_BLUE = new Color(0,0,100);</span>
+	/**
+	 * Precalculated light red color
+	 */
+<span class="fc" id="L482">	static final Color ColorLIGHT_RED = new Color(100,0,0);</span>
+	/**
+	 * Used through all program to calculate random numbers
+	 */
+<span class="fc" id="L486">	public static Random random = new Random();</span>
+	/**
+	 * Used to get a random -1 or 1 to create numbers with random sign. 
+	 * 
+	 * @return  a random -1 or 1
+	 */
+	public static int randomSign() {
+<span class="fc" id="L493">		return (random.nextInt(2)&lt;&lt;1)-1;</span>
+	}
+	/**
+	 * Calculates the minimum of three integers
+	 * 
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @return  The minimum of a, b, and c
+	 */
+	public static int min(int a, int b, int c) {
+<span class="nc" id="L504">		return Math.min(Math.min(a,b),c);</span>
+	}
+	/**
+	 * Calculates the minimum of three doubles
+	 * 
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @return  The minimum of a, b, and c
+	 */
+	public static double min(double a, double b, double c) {
+<span class="fc" id="L515">		return Math.min(Math.min(a,b),c);</span>
+	}
+	/**
+	 * Calculates the maximum of three integers
+	 * 
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @return  The maximum of a, b, and c
+	 */
+	public static int max(int a, int b, int c) {
+<span class="nc" id="L526">		return Math.max(Math.max(a,b),c);</span>
+	}
+	/**
+	 * Calculates the maximum of three doubles 
+	 * 
+	 * @param a
+	 * @param b
+	 * @param c
+	 * @return  The maximum of a, b, and c
+	 */
+	public static double max(double a, double b, double c) {
+<span class="fc" id="L537">		return Math.max(Math.max(a,b),c);</span>
+	}
+	/**
+	 * Return min if value&lt;min, max if value&gt;max and value otherwise.
+	 * 
+	 * @param value
+	 * @param min
+	 * @param max
+	 * @return  min if value&lt;min, max if value&gt;max and value otherwise
+	 */
+	public static int between(int value, int min, int max) {
+<span class="fc" id="L548">		return Math.max(Math.min(max, value), min);</span>
+	}
+	/**
+	 * Return min if value&lt;min, max if value&gt;max and value otherwise.
+	 * 
+	 * @param value
+	 * @param min
+	 * @param max
+	 * @return  min if value&lt;min, max if value&gt;max and value otherwise
+	 */
+	public static double between(double value, double min, double max) {
+<span class="fc" id="L559">		return Math.max(Math.min(max, value), min);</span>
+	}
+	/**
+	 * Check if a mutation is produced or not, using a random number.
+	 * 
+	 * @return  true if a mutations is produced and false otherwise
+	 */
+	public static boolean randomMutation() {
+<span class="fc bfc" id="L567" title="All 2 branches covered.">		return (random.nextDouble() &lt; MUTATION_RATE);</span>
+	}
+	/**
+	 * Return the localized name of a color.
+	 * 
+	 * @param c  A color
+	 * @return  A String representing the name of the color
+	 */
+	public static String colorToString(Color c) {
+<span class="nc bnc" id="L576" title="All 2 branches missed.">		if (c.equals(Color.RED)) return Messages.getString(&quot;T_RED&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L577" title="All 2 branches missed.">		if (c.equals(Color.GREEN)) return Messages.getString(&quot;T_GREEN&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L578" title="All 2 branches missed.">		if (c.equals(Color.BLUE)) return Messages.getString(&quot;T_BLUE&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L579" title="All 2 branches missed.">		if (c.equals(Color.CYAN)) return Messages.getString(&quot;T_CYAN&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L580" title="All 2 branches missed.">		if (c.equals(Color.MAGENTA)) return Messages.getString(&quot;T_MAGENTA&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L581" title="All 2 branches missed.">		if (c.equals(Color.PINK)) return Messages.getString(&quot;T_PINK&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L582" title="All 2 branches missed.">		if (c.equals(Color.ORANGE)) return Messages.getString(&quot;T_ORANGE&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L583" title="All 2 branches missed.">		if (c.equals(Color.WHITE)) return Messages.getString(&quot;T_WHITE&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L584" title="All 2 branches missed.">		if (c.equals(Color.GRAY)) return Messages.getString(&quot;T_GRAY&quot;); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L585" title="All 2 branches missed.">		if (c.equals(Color.YELLOW)) return Messages.getString(&quot;T_YELLOW&quot;); //$NON-NLS-1$</span>
+<span class="nc" id="L586">		return &quot;&quot;; //$NON-NLS-1$</span>
+	}
+	/**
+	 * Save user preferences to disk
+	 */
+	public static void savePreferences() {
+		try {
+<span class="nc" id="L593">			Preferences prefs = Preferences.userNodeForPackage(Utils.class);</span>
+<span class="nc" id="L594">			prefs.putInt(&quot;VERSION&quot;,FILE_VERSION); //$NON-NLS-1$</span>
+<span class="nc" id="L595">			prefs.putInt(&quot;INITIAL_ORGANISMS&quot;,INITIAL_ORGANISMS); //$NON-NLS-1$</span>
+<span class="nc" id="L596">			prefs.putDouble(&quot;INITIAL_O2&quot;,INITIAL_O2); //$NON-NLS-1$</span>
+<span class="nc" id="L597">			prefs.putDouble(&quot;INITIAL_CO2&quot;,INITIAL_CO2); //$NON-NLS-1$</span>
+<span class="nc" id="L598">			prefs.putInt(&quot;ORGANISMS_VECTOR_SIZE&quot;,ORGANISMS_VECTOR_SIZE); //$NON-NLS-1$</span>
+<span class="nc" id="L599">			prefs.putInt(&quot;WORLD_WIDTH&quot;,WORLD_WIDTH); //$NON-NLS-1$</span>
+<span class="nc" id="L600">			prefs.putInt(&quot;WORLD_HEIGHT&quot;,WORLD_HEIGHT); //$NON-NLS-1$</span>
+<span class="nc" id="L601">			prefs.putInt(&quot;MAX_AGE&quot;,MAX_AGE); //$NON-NLS-1$</span>
+<span class="nc" id="L602">			prefs.putDouble(&quot;RUBBING&quot;,RUBBING); //$NON-NLS-1$</span>
+<span class="nc" id="L603">			prefs.putDouble(&quot;MUTATION_RATE&quot;,MUTATION_RATE); //$NON-NLS-1$</span>
+<span class="nc" id="L604">			prefs.putInt(&quot;SEGMENT_COST_DIVISOR&quot;,SEGMENT_COST_DIVISOR); //$NON-NLS-1$</span>
+<span class="nc" id="L605">			prefs.putDouble(&quot;ORGANIC_OBTAINED_ENERGY&quot;,ORGANIC_OBTAINED_ENERGY); //$NON-NLS-1$</span>
+<span class="nc" id="L606">			prefs.putInt(&quot;GREEN_OBTAINED_ENERGY_DIVISOR&quot;,GREEN_OBTAINED_ENERGY_DIVISOR); //$NON-NLS-1$</span>
+<span class="nc" id="L607">			prefs.putDouble(&quot;ORGANIC_SUBS_PRODUCED&quot;,ORGANIC_SUBS_PRODUCED); //$NON-NLS-1$</span>
+<span class="nc" id="L608">			prefs.putDouble(&quot;RED_ENERGY_CONSUMPTION&quot;,RED_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="nc" id="L609">			prefs.putDouble(&quot;GREEN_ENERGY_CONSUMPTION&quot;,GREEN_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="nc" id="L610">			prefs.putDouble(&quot;BLUE_ENERGY_CONSUMPTION&quot;,BLUE_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="nc" id="L611">			prefs.putDouble(&quot;CYAN_ENERGY_CONSUMPTION&quot;,CYAN_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="nc" id="L612">			prefs.putDouble(&quot;WHITE_ENERGY_CONSUMPTION&quot;,WHITE_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="nc" id="L613">			prefs.putDouble(&quot;GRAY_ENERGY_CONSUMPTION&quot;,GRAY_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="nc" id="L614">			prefs.putDouble(&quot;YELLOW_ENERGY_CONSUMPTION&quot;,YELLOW_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="nc" id="L615">			prefs.putInt(&quot;RED_PROB&quot;,RED_PROB); //$NON-NLS-1$</span>
+<span class="nc" id="L616">			prefs.putInt(&quot;GREEN_PROB&quot;,GREEN_PROB); //$NON-NLS-1$</span>
+<span class="nc" id="L617">			prefs.putInt(&quot;BLUE_PROB&quot;,BLUE_PROB); //$NON-NLS-1$</span>
+<span class="nc" id="L618">			prefs.putInt(&quot;CYAN_PROB&quot;,CYAN_PROB); //$NON-NLS-1$</span>
+<span class="nc" id="L619">			prefs.putInt(&quot;WHITE_PROB&quot;,WHITE_PROB); //$NON-NLS-1$</span>
+<span class="nc" id="L620">			prefs.putInt(&quot;GRAY_PROB&quot;,GRAY_PROB); //$NON-NLS-1$</span>
+<span class="nc" id="L621">			prefs.putInt(&quot;YELLOW_PROB&quot;,YELLOW_PROB); //$NON-NLS-1$</span>
+<span class="nc" id="L622">			prefs.putInt(&quot;DRAIN_SUBS_DIVISOR&quot;,DRAIN_SUBS_DIVISOR); //$NON-NLS-1$</span>
+<span class="nc" id="L623">			prefs.putInt(&quot;INITIAL_ENERGY&quot;,INITIAL_ENERGY); //$NON-NLS-1$</span>
+<span class="nc" id="L624">			prefs.putDouble(&quot;MAX_VEL&quot;,MAX_VEL); //$NON-NLS-1$</span>
+<span class="nc" id="L625">			prefs.putDouble(&quot;MAX_ROT&quot;,MAX_ROT); //$NON-NLS-1$</span>
+<span class="nc" id="L626">			prefs.putDouble(&quot;ELASTICITY&quot;,ELASTICITY); //$NON-NLS-1$</span>
+<span class="nc" id="L627">			prefs.putInt(&quot;DELAY&quot;,DELAY); //$NON-NLS-1$</span>
+<span class="nc" id="L628">			prefs.putInt(&quot;LOCAL_PORT&quot;,LOCAL_PORT); //$NON-NLS-1$</span>
+<span class="nc" id="L629">			prefs.putBoolean(&quot;ACCEPT_CONNECTIONS&quot;,ACCEPT_CONNECTIONS); //$NON-NLS-1$</span>
+<span class="nc" id="L630">			prefs.putBoolean(&quot;CONNECT_TO_SERVER&quot;,CONNECT_TO_SERVER); //$NON-NLS-1$</span>
+<span class="nc" id="L631">			prefs.put(&quot;SERVER_ADDRESS&quot;,SERVER_ADDRESS); //$NON-NLS-1$</span>
+<span class="nc" id="L632">			prefs.putInt(&quot;SERVER_PORT&quot;,SERVER_PORT); //$NON-NLS-1$</span>
+<span class="nc" id="L633">			prefs.putInt(&quot;MAX_CONNECTIONS&quot;,MAX_CONNECTIONS); //$NON-NLS-1$</span>
+<span class="nc" id="L634">			prefs.putInt(&quot;HARDWARE_ACCELERATION&quot;, HARDWARE_ACCELERATION); //$NON-NLS-1$</span>
+<span class="nc" id="L635">			prefs.putDouble(&quot;DECAY_ENERGY&quot;, DECAY_ENERGY); //$NON-NLS-1$</span>
+<span class="nc" id="L636">			prefs.put(&quot;LOCALE&quot;,Messages.getLanguage()); //$NON-NLS-1$</span>
+<span class="nc" id="L637">		}</span>
+<span class="nc" id="L638">		catch (SecurityException ex) {</span>
+			// If we can't write, don't do it
+		}
+<span class="nc" id="L641">	}</span>
+	/**
+	 * Read user preferences from disc
+	 */
+	public static void readPreferences() {
+		try {
+<span class="fc" id="L647">			Preferences prefs = Preferences.userNodeForPackage(Utils.class);</span>
+<span class="fc" id="L648">			int previous_version = prefs.getInt(&quot;VERSION&quot;,0); //$NON-NLS-1$</span>
+<span class="pc bpc" id="L649" title="1 of 2 branches missed.">			if (previous_version != FILE_VERSION)</span>
+				try {
+<span class="fc" id="L651">					prefs.clear();</span>
+<span class="pc" id="L652">				} catch (BackingStoreException e) {</span>
+					//do nothing
+				}
+<span class="fc" id="L655">			WINDOW_X = prefs.getInt(&quot;WINDOW_X&quot;, DEF_WINDOW_X);</span>
+<span class="fc" id="L656">			WINDOW_Y = prefs.getInt(&quot;WINDOW_Y&quot;, DEF_WINDOW_Y);</span>
+<span class="fc" id="L657">			WINDOW_WIDTH = prefs.getInt(&quot;WINDOW_WIDTH&quot;, DEF_WINDOW_WIDTH);</span>
+<span class="fc" id="L658">			WINDOW_HEIGHT = prefs.getInt(&quot;WINDOW_HEIGHT&quot;, DEF_WINDOW_HEIGHT);</span>
+<span class="fc" id="L659">			WINDOW_STATE = prefs.getInt(&quot;WINDOW_STATE&quot;, DEF_WINDOW_STATE);</span>
+<span class="fc" id="L660">			INITIAL_ORGANISMS = prefs.getInt(&quot;INITIAL_ORGANISMS&quot;,DEF_INITIAL_ORGANISMS); //$NON-NLS-1$</span>
+<span class="fc" id="L661">			INITIAL_O2 = prefs.getDouble(&quot;INITIAL_O2&quot;,DEF_INITIAL_O2); //$NON-NLS-1$</span>
+<span class="fc" id="L662">			INITIAL_CO2 = prefs.getDouble(&quot;INITIAL_CO2&quot;,DEF_INITIAL_CO2); //$NON-NLS-1$</span>
+<span class="fc" id="L663">			ORGANISMS_VECTOR_SIZE = prefs.getInt(&quot;ORGANISMS_VECTOR_SIZE&quot;,DEF_ORGANISMS_VECTOR_SIZE); //$NON-NLS-1$</span>
+<span class="fc" id="L664">			WORLD_WIDTH = prefs.getInt(&quot;WORLD_WIDTH&quot;,DEF_WORLD_WIDTH); //$NON-NLS-1$</span>
+<span class="fc" id="L665">			WORLD_HEIGHT = prefs.getInt(&quot;WORLD_HEIGHT&quot;,DEF_WORLD_HEIGHT); //$NON-NLS-1$</span>
+<span class="fc" id="L666">			MAX_AGE = prefs.getInt(&quot;MAX_AGE&quot;,DEF_MAX_AGE); //$NON-NLS-1$</span>
+<span class="fc" id="L667">			RUBBING = prefs.getDouble(&quot;RUBBING&quot;,DEF_RUBBING); //$NON-NLS-1$</span>
+<span class="fc" id="L668">			MUTATION_RATE = prefs.getDouble(&quot;MUTATION_RATE&quot;,DEF_MUTATION_RATE); //$NON-NLS-1$</span>
+<span class="fc" id="L669">			SEGMENT_COST_DIVISOR = prefs.getInt(&quot;SEGMENT_COST_DIVISOR&quot;,DEF_SEGMENT_COST_DIVISOR); //$NON-NLS-1$</span>
+<span class="fc" id="L670">			ORGANIC_OBTAINED_ENERGY = prefs.getDouble(&quot;ORGANIC_OBTAINED_ENERGY&quot;,DEF_ORGANIC_OBTAINED_ENERGY); //$NON-NLS-1$</span>
+<span class="fc" id="L671">			GREEN_OBTAINED_ENERGY_DIVISOR = prefs.getInt(&quot;GREEN_OBTAINED_ENERGY_DIVISOR&quot;,DEF_GREEN_OBTAINED_ENERGY_DIVISOR); //$NON-NLS-1$</span>
+<span class="fc" id="L672">			ORGANIC_SUBS_PRODUCED = prefs.getDouble(&quot;ORGANIC_SUBS_PRODUCED&quot;,DEF_ORGANIC_SUBS_PRODUCED); //$NON-NLS-1$</span>
+<span class="fc" id="L673">			RED_ENERGY_CONSUMPTION = prefs.getDouble(&quot;RED_ENERGY_CONSUMPTION&quot;,DEF_RED_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="fc" id="L674">			GREEN_ENERGY_CONSUMPTION = prefs.getDouble(&quot;GREEN_ENERGY_CONSUMPTION&quot;,DEF_GREEN_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="fc" id="L675">			BLUE_ENERGY_CONSUMPTION = prefs.getDouble(&quot;BLUE_ENERGY_CONSUMPTION&quot;,DEF_BLUE_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="fc" id="L676">			CYAN_ENERGY_CONSUMPTION = prefs.getDouble(&quot;CYAN_ENERGY_CONSUMPTION&quot;,DEF_CYAN_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="fc" id="L677">			WHITE_ENERGY_CONSUMPTION = prefs.getDouble(&quot;WHITE_ENERGY_CONSUMPTION&quot;,DEF_WHITE_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="fc" id="L678">			GRAY_ENERGY_CONSUMPTION = prefs.getDouble(&quot;GRAY_ENERGY_CONSUMPTION&quot;,DEF_GRAY_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="fc" id="L679">			YELLOW_ENERGY_CONSUMPTION = prefs.getDouble(&quot;YELLOW_ENERGY_CONSUMPTION&quot;,DEF_YELLOW_ENERGY_CONSUMPTION); //$NON-NLS-1$</span>
+<span class="fc" id="L680">			RED_PROB = prefs.getInt(&quot;RED_PROB&quot;,DEF_RED_PROB); //$NON-NLS-1$</span>
+<span class="fc" id="L681">			GREEN_PROB = prefs.getInt(&quot;GREEN_PROB&quot;,DEF_GREEN_PROB); //$NON-NLS-1$</span>
+<span class="fc" id="L682">			BLUE_PROB = prefs.getInt(&quot;BLUE_PROB&quot;,DEF_BLUE_PROB); //$NON-NLS-1$</span>
+<span class="fc" id="L683">			CYAN_PROB = prefs.getInt(&quot;CYAN_PROB&quot;,DEF_CYAN_PROB); //$NON-NLS-1$</span>
+<span class="fc" id="L684">			WHITE_PROB = prefs.getInt(&quot;WHITE_PROB&quot;,DEF_WHITE_PROB); //$NON-NLS-1$</span>
+<span class="fc" id="L685">			GRAY_PROB = prefs.getInt(&quot;GRAY_PROB&quot;,DEF_GRAY_PROB); //$NON-NLS-1$</span>
+<span class="fc" id="L686">			YELLOW_PROB = prefs.getInt(&quot;YELLOW_PROB&quot;,DEF_YELLOW_PROB); //$NON-NLS-1$</span>
+<span class="fc" id="L687">			DRAIN_SUBS_DIVISOR = prefs.getInt(&quot;DRAIN_SUBS_DIVISOR&quot;,DEF_DRAIN_SUBS_DIVISOR); //$NON-NLS-1$</span>
+<span class="fc" id="L688">			INITIAL_ENERGY = prefs.getInt(&quot;INITIAL_ENERGY&quot;,DEF_INITIAL_ENERGY); //$NON-NLS-1$</span>
+<span class="fc" id="L689">			MAX_VEL = prefs.getDouble(&quot;MAX_VEL&quot;,DEF_MAX_VEL); //$NON-NLS-1$</span>
+<span class="fc" id="L690">			MAX_ROT = prefs.getDouble(&quot;MAX_ROT&quot;,DEF_MAX_ROT); //$NON-NLS-1$</span>
+<span class="fc" id="L691">			ELASTICITY = prefs.getDouble(&quot;ELASTICITY&quot;,DEF_ELASTICITY); //$NON-NLS-1$</span>
+<span class="fc" id="L692">			DELAY = prefs.getInt(&quot;DELAY&quot;,DEF_DELAY); //$NON-NLS-1$</span>
+<span class="fc" id="L693">			LOCAL_PORT = prefs.getInt(&quot;LOCAL_PORT&quot;,DEF_LOCAL_PORT); //$NON-NLS-1$</span>
+<span class="fc" id="L694">			MAX_CONNECTIONS = prefs.getInt(&quot;MAX_CONNECTIONS&quot;,DEF_MAX_CONNECTIONS); //$NON-NLS-1$</span>
+<span class="fc" id="L695">			ACCEPT_CONNECTIONS = prefs.getBoolean(&quot;ACCEPT_CONNECTIONS&quot;,DEF_ACCEPT_CONNECTIONS); //$NON-NLS-1$</span>
+<span class="fc" id="L696">			CONNECT_TO_SERVER = prefs.getBoolean(&quot;CONNECT_TO_SERVER&quot;,DEF_CONNECT_TO_SERVER); //$NON-NLS-1$</span>
+<span class="fc" id="L697">			SERVER_ADDRESS = prefs.get(&quot;SERVER_ADDRESS&quot;,DEF_SERVER_ADDRESS); //$NON-NLS-1$</span>
+<span class="fc" id="L698">			SERVER_PORT = prefs.getInt(&quot;SERVER_PORT&quot;,DEF_SERVER_PORT); //$NON-NLS-1$</span>
+<span class="fc" id="L699">			DECAY_ENERGY = prefs.getDouble(&quot;DECAY_ENERGY&quot;, DEF_DECAY_ENERGY); //$NON-NLS-1$</span>
+<span class="fc" id="L700">			setHardwareAcceleration(prefs.getInt(&quot;HARDWARE_ACCELERATION&quot;, DEF_HARDWARE_ACCELERATION)); //$NON-NLS-1$</span>
+<span class="pc bpc" id="L701" title="2 of 4 branches missed.">			if (HARDWARE_ACCELERATION == 1 || HARDWARE_ACCELERATION == 4) {</span>
+<span class="nc" id="L702">				prefs.putInt(&quot;HARDWARE_ACCELERATION&quot;, 0); //$NON-NLS-1$</span>
+<span class="nc" id="L703">				HARDWARE_ACCELERATION += 1;</span>
+			}
+<span class="fc" id="L705">			Messages.setLocale(prefs.get(&quot;LOCALE&quot;,Messages.getLanguage())); //$NON-NLS-1$</span>
+			
+<span class="pc" id="L707">		} catch (SecurityException ex) {</span>
+<span class="nc" id="L708">			Messages.setLocale(Messages.getLanguage());</span>
+		}
+<span class="fc" id="L710">	}</span>
+	public static void quitProgram(MainWindow window) {
+		try {
+<span class="nc" id="L713">			Preferences prefs = Preferences.userNodeForPackage(Utils.class);</span>
+<span class="nc bnc" id="L714" title="All 4 branches missed.">			if (HARDWARE_ACCELERATION == 2 || HARDWARE_ACCELERATION == 5) {</span>
+<span class="nc" id="L715">				String[] options = {Messages.getString(&quot;T_YES&quot;), Messages.getString(&quot;T_NO&quot;)}; //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L716">				int answer = JOptionPane.showOptionDialog(null, Messages.getString(&quot;T_DID_OPENGL_WORK_WELL&quot;), Messages.getString(&quot;T_OPENGL_CONFIRMATION&quot;), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc bnc" id="L717" title="All 2 branches missed.">				if (answer == JOptionPane.YES_OPTION)</span>
+<span class="nc" id="L718">					prefs.putInt(&quot;HARDWARE_ACCELERATION&quot;, HARDWARE_ACCELERATION+1); //$NON-NLS-1$</span>
+			}
+		
+<span class="nc" id="L721">			prefs.putInt(&quot;WINDOW_X&quot;, window.getX());</span>
+<span class="nc" id="L722">			prefs.putInt(&quot;WINDOW_Y&quot;, window.getY());</span>
+<span class="nc" id="L723">			prefs.putInt(&quot;WINDOW_WIDTH&quot;, window.getWidth());</span>
+<span class="nc" id="L724">			prefs.putInt(&quot;WINDOW_HEIGHT&quot;, window.getHeight());</span>
+<span class="nc" id="L725">			prefs.putInt(&quot;WINDOW_STATE&quot;, window.getExtendedState());</span>
+<span class="nc" id="L726">		} catch (SecurityException ex) {</span>
+			// do nothing
+		}
+<span class="nc" id="L729">		savePreferences();</span>
+<span class="nc" id="L730">	}</span>
+	
+	public static void setHardwareAcceleration(int newValue) {
+		try {
+<span class="pc bpc" id="L734" title="3 of 4 branches missed.">			switch (newValue) {</span>
+			case 0:
+			case 2:
+			case 5:
+<span class="fc" id="L738">				System.setProperty(&quot;sun.java2d.opengl&quot;, &quot;false&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="fc" id="L739">				break;</span>
+			case 1:
+			case 3:
+<span class="nc" id="L742">				System.setProperty(&quot;sun.java2d.opengl&quot;, &quot;True&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L743">				System.setProperty(&quot;sun.java2d.noddraw&quot;, &quot;true&quot;);  //$NON-NLS-1$//$NON-NLS-2$</span>
+<span class="nc" id="L744">				break;</span>
+			case 4:
+			case 6:
+<span class="nc" id="L747">				System.setProperty(&quot;sun.java2d.opengl&quot;, &quot;True&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+<span class="nc" id="L748">				System.setProperty(&quot;sun.java2d.noddraw&quot;, &quot;true&quot;);  //$NON-NLS-1$//$NON-NLS-2$</span>
+				// Used to workaround problems with some drivers 
+<span class="nc" id="L750">				System.setProperty(&quot;sun.java2d.opengl.fbobject&quot;,&quot;false&quot;); //$NON-NLS-1$ //$NON-NLS-2$</span>
+			}
+<span class="fc" id="L752">			HARDWARE_ACCELERATION = newValue;</span>
+<span class="pc" id="L753">		} catch (Exception e) {</span>
+<span class="nc" id="L754">			System.err.println(e.getLocalizedMessage());</span>
+		}
+<span class="fc" id="L756">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

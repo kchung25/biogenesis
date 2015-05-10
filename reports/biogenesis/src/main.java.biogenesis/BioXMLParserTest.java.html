@@ -1,0 +1,708 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>BioXMLParserTest.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">BioXMLParserTest.java</span></div><h1>BioXMLParserTest.java</h1><pre class="source lang-java linenums">package main.java.biogenesis;
+
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.metadata.IIOMetadataNode;
+import javax.xml.parsers.DocumentBuilder;
+import org.junit.*;
+import static org.junit.Assert.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.Locator;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.ext.Locator2Impl;
+
+/**
+ * The class &lt;code&gt;BioXMLParserTest&lt;/code&gt; contains tests for the class &lt;code&gt;{@link BioXMLParser}&lt;/code&gt;.
+ *
+ * @generatedBy CodePro at 5/9/15 3:21 PM
+ * @author User
+ * @version $Revision: 1.0 $
+ */
+<span class="fc" id="L28">public class BioXMLParserTest {</span>
+	/**
+	 * Run the BioXMLParser() constructor test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testBioXMLParser_1()
+		throws Exception {
+
+<span class="fc" id="L40">		BioXMLParser result = new BioXMLParser();</span>
+
+		// add additional test code here
+<span class="fc" id="L43">		assertNotNull(result);</span>
+<span class="fc" id="L44">	}</span>
+
+	/**
+	 * Run the BioXMLParser() constructor test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testBioXMLParser_2()
+		throws Exception {
+
+<span class="fc" id="L57">		BioXMLParser result = new BioXMLParser();</span>
+
+		// add additional test code here
+<span class="fc" id="L60">		assertNotNull(result);</span>
+<span class="fc" id="L61">	}</span>
+
+	/**
+	 * Run the void error(SAXParseException) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test(expected = org.xml.sax.SAXException.class)
+	public void testError_1()
+		throws Exception {
+<span class="nc" id="L73">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L74">		fixture.builder = null;</span>
+<span class="nc" id="L75">		fixture.doc = null;</span>
+<span class="nc" id="L76">		SAXParseException arg0 = new SAXParseException(&quot;&quot;, new Locator2Impl());</span>
+
+<span class="nc" id="L78">		fixture.error(arg0);</span>
+
+		// add additional test code here
+<span class="nc" id="L81">	}</span>
+
+	/**
+	 * Run the void fatalError(SAXParseException) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test(expected = org.xml.sax.SAXException.class)
+	public void testFatalError_1()
+		throws Exception {
+<span class="nc" id="L93">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L94">		fixture.builder = null;</span>
+<span class="nc" id="L95">		fixture.doc = null;</span>
+<span class="nc" id="L96">		SAXParseException arg0 = new SAXParseException(&quot;&quot;, new Locator2Impl());</span>
+
+<span class="nc" id="L98">		fixture.fatalError(arg0);</span>
+
+		// add additional test code here
+<span class="nc" id="L101">	}</span>
+
+	/**
+	 * Run the Gene parseGene(Element) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGene_1()
+		throws Exception {
+<span class="nc" id="L113">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L114">		fixture.builder = null;</span>
+<span class="nc" id="L115">		fixture.doc = null;</span>
+<span class="nc" id="L116">		Element gene = new IIOMetadataNode();</span>
+
+<span class="nc" id="L118">		Gene result = fixture.parseGene(gene);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGene(BioXMLParser.java:133)
+<span class="nc" id="L124">		assertNotNull(result);</span>
+<span class="nc" id="L125">	}</span>
+
+	/**
+	 * Run the Gene parseGene(Element) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGene_2()
+		throws Exception {
+<span class="nc" id="L137">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L138">		fixture.builder = null;</span>
+<span class="nc" id="L139">		fixture.doc = null;</span>
+<span class="nc" id="L140">		Element gene = new IIOMetadataNode();</span>
+
+<span class="nc" id="L142">		Gene result = fixture.parseGene(gene);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGene(BioXMLParser.java:133)
+<span class="nc" id="L148">		assertNotNull(result);</span>
+<span class="nc" id="L149">	}</span>
+
+	/**
+	 * Run the Gene parseGene(Element) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGene_3()
+		throws Exception {
+<span class="nc" id="L161">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L162">		fixture.builder = null;</span>
+<span class="nc" id="L163">		fixture.doc = null;</span>
+<span class="nc" id="L164">		Element gene = new IIOMetadataNode();</span>
+
+<span class="nc" id="L166">		Gene result = fixture.parseGene(gene);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGene(BioXMLParser.java:133)
+<span class="nc" id="L172">		assertNotNull(result);</span>
+<span class="nc" id="L173">	}</span>
+
+	/**
+	 * Run the Gene parseGene(Element) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGene_4()
+		throws Exception {
+<span class="nc" id="L185">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L186">		fixture.builder = null;</span>
+<span class="nc" id="L187">		fixture.doc = null;</span>
+<span class="nc" id="L188">		Element gene = new IIOMetadataNode();</span>
+
+<span class="nc" id="L190">		Gene result = fixture.parseGene(gene);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGene(BioXMLParser.java:133)
+<span class="nc" id="L196">		assertNotNull(result);</span>
+<span class="nc" id="L197">	}</span>
+
+	/**
+	 * Run the Gene parseGene(Element) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGene_5()
+		throws Exception {
+<span class="nc" id="L209">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L210">		fixture.builder = null;</span>
+<span class="nc" id="L211">		fixture.doc = null;</span>
+<span class="nc" id="L212">		Element gene = new IIOMetadataNode();</span>
+
+<span class="nc" id="L214">		Gene result = fixture.parseGene(gene);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGene(BioXMLParser.java:133)
+<span class="nc" id="L220">		assertNotNull(result);</span>
+<span class="nc" id="L221">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_1()
+		throws Exception {
+<span class="nc" id="L233">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L234">		fixture.builder = null;</span>
+<span class="nc" id="L235">		fixture.doc = null;</span>
+<span class="nc" id="L236">		File f = new File(&quot;&quot;);</span>
+
+<span class="nc" id="L238">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L244">		assertNotNull(result);</span>
+<span class="nc" id="L245">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_2()
+		throws Exception {
+<span class="nc" id="L257">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L258">		fixture.builder = null;</span>
+<span class="nc" id="L259">		fixture.doc = null;</span>
+<span class="nc" id="L260">		File f = new File(&quot;&quot;);</span>
+
+<span class="nc" id="L262">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L268">		assertNotNull(result);</span>
+<span class="nc" id="L269">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_3()
+		throws Exception {
+<span class="nc" id="L281">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L282">		fixture.builder = null;</span>
+<span class="nc" id="L283">		fixture.doc = null;</span>
+<span class="nc" id="L284">		File f = new File(&quot;&quot;);</span>
+
+<span class="nc" id="L286">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L292">		assertNotNull(result);</span>
+<span class="nc" id="L293">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_4()
+		throws Exception {
+<span class="nc" id="L305">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L306">		fixture.builder = null;</span>
+<span class="nc" id="L307">		fixture.doc = null;</span>
+<span class="nc" id="L308">		File f = new File(&quot;a&quot;);</span>
+
+<span class="nc" id="L310">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L316">		assertNotNull(result);</span>
+<span class="nc" id="L317">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_5()
+		throws Exception {
+<span class="nc" id="L329">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L330">		fixture.builder = null;</span>
+<span class="nc" id="L331">		fixture.doc = null;</span>
+<span class="nc" id="L332">		File f = new File(&quot;a&quot;);</span>
+
+<span class="nc" id="L334">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L340">		assertNotNull(result);</span>
+<span class="nc" id="L341">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_6()
+		throws Exception {
+<span class="nc" id="L353">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L354">		fixture.builder = null;</span>
+<span class="nc" id="L355">		fixture.doc = null;</span>
+<span class="nc" id="L356">		File f = new File(&quot;a&quot;);</span>
+
+<span class="nc" id="L358">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L364">		assertNotNull(result);</span>
+<span class="nc" id="L365">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_7()
+		throws Exception {
+<span class="nc" id="L377">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L378">		fixture.builder = null;</span>
+<span class="nc" id="L379">		fixture.doc = null;</span>
+<span class="nc" id="L380">		File f = new File(&quot;a&quot;);</span>
+
+<span class="nc" id="L382">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L388">		assertNotNull(result);</span>
+<span class="nc" id="L389">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_8()
+		throws Exception {
+<span class="nc" id="L401">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L402">		fixture.builder = null;</span>
+<span class="nc" id="L403">		fixture.doc = null;</span>
+<span class="nc" id="L404">		File f = new File(&quot;a&quot;);</span>
+
+<span class="nc" id="L406">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L412">		assertNotNull(result);</span>
+<span class="nc" id="L413">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_9()
+		throws Exception {
+<span class="nc" id="L425">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L426">		fixture.builder = null;</span>
+<span class="nc" id="L427">		fixture.doc = null;</span>
+<span class="nc" id="L428">		File f = new File(&quot;a&quot;);</span>
+
+<span class="nc" id="L430">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L436">		assertNotNull(result);</span>
+<span class="nc" id="L437">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_10()
+		throws Exception {
+<span class="nc" id="L449">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L450">		fixture.builder = null;</span>
+<span class="nc" id="L451">		fixture.doc = null;</span>
+<span class="nc" id="L452">		File f = new File(&quot;a&quot;);</span>
+
+<span class="nc" id="L454">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L460">		assertNotNull(result);</span>
+<span class="nc" id="L461">	}</span>
+
+	/**
+	 * Run the GeneticCode parseGeneticCode(File) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testParseGeneticCode_11()
+		throws Exception {
+<span class="nc" id="L473">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L474">		fixture.builder = null;</span>
+<span class="nc" id="L475">		fixture.doc = null;</span>
+<span class="nc" id="L476">		File f = new File(&quot;&quot;);</span>
+
+<span class="nc" id="L478">		GeneticCode result = fixture.parseGeneticCode(f);</span>
+
+		// add additional test code here
+		// An unexpected exception was thrown in user code while executing this test:
+		//    java.lang.NullPointerException
+		//       at main.java.biogenesis.BioXMLParser.parseGeneticCode(BioXMLParser.java:85)
+<span class="nc" id="L484">		assertNotNull(result);</span>
+<span class="nc" id="L485">	}</span>
+
+	/**
+	 * Run the void warning(SAXParseException) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test(expected = org.xml.sax.SAXException.class)
+	public void testWarning_1()
+		throws Exception {
+<span class="nc" id="L497">		BioXMLParser fixture = new BioXMLParser();</span>
+<span class="nc" id="L498">		fixture.builder = null;</span>
+<span class="nc" id="L499">		fixture.doc = null;</span>
+<span class="nc" id="L500">		SAXParseException arg0 = new SAXParseException(&quot;&quot;, new Locator2Impl());</span>
+
+<span class="nc" id="L502">		fixture.warning(arg0);</span>
+
+		// add additional test code here
+<span class="nc" id="L505">	}</span>
+
+	/**
+	 * Run the void writeGene(PrintStream,Gene) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGene_1()
+		throws Exception {
+<span class="fc" id="L517">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L518">		Gene gene = new Gene(1.0, 1.0, new Color(1));</span>
+
+<span class="fc" id="L520">		BioXMLParser.writeGene(ps, gene);</span>
+
+		// add additional test code here
+<span class="fc" id="L523">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_1()
+		throws Exception {
+<span class="fc" id="L535">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L536">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 1, false);</span>
+
+<span class="fc" id="L538">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L541">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_2()
+		throws Exception {
+<span class="fc" id="L553">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L554">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 0, false);</span>
+
+<span class="fc" id="L556">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L559">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_3()
+		throws Exception {
+<span class="fc" id="L571">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L572">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 1, true);</span>
+
+<span class="fc" id="L574">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L577">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_4()
+		throws Exception {
+<span class="fc" id="L589">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L590">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 0, true);</span>
+
+<span class="fc" id="L592">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L595">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_5()
+		throws Exception {
+<span class="fc" id="L607">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L608">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 1, false);</span>
+
+<span class="fc" id="L610">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L613">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_6()
+		throws Exception {
+<span class="fc" id="L625">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L626">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 0, false);</span>
+
+<span class="fc" id="L628">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L631">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_7()
+		throws Exception {
+<span class="fc" id="L643">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L644">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 1, true);</span>
+
+<span class="fc" id="L646">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L649">	}</span>
+
+	/**
+	 * Run the void writeGeneticCode(PrintStream,GeneticCode) method test.
+	 *
+	 * @throws Exception
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Test
+	public void testWriteGeneticCode_8()
+		throws Exception {
+<span class="fc" id="L661">		PrintStream ps = new PrintStream(new ByteArrayOutputStream());</span>
+<span class="fc" id="L662">		GeneticCode geneticCode = new GeneticCode(new ArrayList&lt;Gene&gt;(), 1, 0, true);</span>
+
+<span class="fc" id="L664">		BioXMLParser.writeGeneticCode(ps, geneticCode);</span>
+
+		// add additional test code here
+<span class="fc" id="L667">	}</span>
+
+	/**
+	 * Perform pre-test initialization.
+	 *
+	 * @throws Exception
+	 *         if the initialization fails for some reason
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@Before
+	public void setUp()
+		throws Exception {
+		// add additional set up code here
+<span class="fc" id="L681">	}</span>
+
+	/**
+	 * Perform post-test clean-up.
+	 *
+	 * @throws Exception
+	 *         if the clean-up fails for some reason
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	@After
+	public void tearDown()
+		throws Exception {
+		// Add additional tear down code here
+<span class="fc" id="L695">	}</span>
+
+	/**
+	 * Launch the test.
+	 *
+	 * @param args the command line arguments
+	 *
+	 * @generatedBy CodePro at 5/9/15 3:21 PM
+	 */
+	public static void main(String[] args) {
+<span class="nc" id="L705">		new org.junit.runner.JUnitCore().run(BioXMLParserTest.class);</span>
+<span class="nc" id="L706">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

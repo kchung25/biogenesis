@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>BioFileFilter.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">BioFileFilter.java</span></div><h1>BioFileFilter.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.io.File;
+
+import javax.swing.filechooser.FileFilter;
+
+public class BioFileFilter extends FileFilter {
+<span class="fc" id="L25">	private String validExtension = &quot;&quot;; //$NON-NLS-1$</span>
+	public static final String WORLD_EXTENSION = &quot;bgw&quot;; //$NON-NLS-1$
+	public static final String GENETIC_CODE_EXTENSION = &quot;bgg&quot;; //$NON-NLS-1$
+	
+	public BioFileFilter(String ext) {
+<span class="fc" id="L30">		super();</span>
+<span class="fc" id="L31">		validExtension = ext;</span>
+<span class="fc" id="L32">	}</span>
+	
+	public String getValidExtension() {
+<span class="fc" id="L35">		return validExtension;</span>
+	}
+	
+	public BioFileFilter(Object obj) {
+<span class="fc" id="L39">		super();</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">		if (obj instanceof World)</span>
+<span class="fc" id="L41">			validExtension = WORLD_EXTENSION;</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">		if (obj instanceof GeneticCode)</span>
+<span class="fc" id="L43">			validExtension = GENETIC_CODE_EXTENSION;</span>
+<span class="fc" id="L44">	}</span>
+	
+	
+
+	@Override
+	public boolean accept(File f) {
+<span class="fc bfc" id="L50" title="All 2 branches covered.">		if (f.isDirectory())</span>
+<span class="fc" id="L51">			return true;</span>
+		
+<span class="fc" id="L53">		String extension = null;</span>
+<span class="fc" id="L54">        String s = f.getName();</span>
+<span class="fc" id="L55">        int i = s.lastIndexOf('.');</span>
+
+<span class="pc bpc" id="L57" title="1 of 4 branches missed.">        if (i &gt; 0 &amp;&amp;  i &lt; s.length() - 1) {</span>
+<span class="fc" id="L58">            extension = s.substring(i+1).toLowerCase();</span>
+        }
+        
+<span class="fc bfc" id="L61" title="All 2 branches covered.">		if (extension != null) {</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">			if (extension.equals(validExtension)) {</span>
+<span class="nc" id="L63">				return true;</span>
+		    }
+		}
+<span class="fc" id="L66">		return false;</span>
+	}
+
+	@Override
+	public String getDescription() {
+<span class="fc bfc" id="L71" title="All 2 branches covered.">		if (validExtension.equals(WORLD_EXTENSION))</span>
+<span class="fc" id="L72">			return Messages.getString(&quot;T_BIOGENESIS_WORLD_FILES&quot;); //$NON-NLS-1$</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">		if (validExtension.equals(GENETIC_CODE_EXTENSION))</span>
+<span class="fc" id="L74">			return Messages.getString(&quot;T_BIOGENESIS_GENETIC_CODE_FILES&quot;); //$NON-NLS-1$</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		if (validExtension.equals(&quot;png&quot;)) //$NON-NLS-1$</span>
+<span class="fc" id="L76">			return Messages.getString(&quot;T_PNG_IMAGE_FILES&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L77">		return null;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>Connection.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">Connection.java</span></div><h1>Connection.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">/* Copyright (C) 2006-2010  Joan Queralt Molina</span>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.net.InetAddress;
+import java.util.Timer;
+import java.util.TimerTask;
+/**
+ * This class implements an application level connection between two instances of biogenesis.
+ * The connection will create the biological corridors with the other host when it connects and
+ * will remove them when it disconnects.
+ */
+public class Connection {
+	/**
+	 * The IP address of the other host
+	 */
+	protected InetAddress remoteAddress;
+	/**
+	 * The port of the other host
+	 */
+	protected int remotePort;
+	/**
+	 * The state of the connection. Can be STATE_NOT_INITIALIZED for a new connection,
+	 * STATE_CONNECTED for a working connection and STATE_DISCONNECTED for an
+	 * already finished connection.
+	 */
+	protected int state;
+	/**
+	 * A number that identifies this connection to distinguish it from other connections
+	 * to the same address. Useful to avoid confusion when connecting through NAT routers.
+	 */
+	protected int netCode;
+	/**
+	 * A reference to the main application in order to obtain some its information.
+	 */
+	protected MainWindow mainWindow;
+	/**
+	 * The time that the connection will wait without receiving any signal from the
+	 * server on the other host before it tries to send a ping signal.
+	 */
+	private static final long CHECK_CONNECTION_TIME = 30000;
+	/**
+	 * The time when the last message from the server on the other host was received
+	 */
+	private long time;
+	/**
+	 * A timer used to activate ping message to the server on the other host when
+	 * necessary
+	 */
+	private Timer timer;
+	/**
+	 * The biological corridor used to receive organism from the other host
+	 */
+	protected InCorridor inCorridor;
+	/**
+	 * The biological corridor used to send organism to the other host
+	 */
+	protected OutCorridor outCorridor;
+	/**
+	 * State of the connection that indicates that the connection has just been created
+	 * and no attemp to connect to the other host has been done.
+	 */
+	public static final int STATE_DISCONNECTED = 50;
+	/**
+	 * State of the connection that indicates that the connection is active.
+	 */
+	public static final int STATE_CONNECTED = 51;
+	/**
+	 * State of the connection that indicates that the connection has been closed.
+	 */
+	public static final int STATE_NOT_INITIALIZED = 52;
+	/**
+	 * Return the IP address of the remote host
+	 * 
+	 * @return  the IP address of the remote host
+	 */
+	public InetAddress getRemoteAddress() {
+<span class="nc" id="L93">		return remoteAddress;</span>
+	}
+	/**
+	 * Return the port of the remote host
+	 * 
+	 * @return  the port of the remote host
+	 */
+	public int getRemotePort() {
+<span class="nc" id="L101">		return remotePort;</span>
+	}
+	/**
+	 * Create a new connection to the specified IP address and port
+	 * 
+	 * @param app  Reference to the main application window
+	 * @param a  Address of the remote host
+	 * @param p  Port of the remote host
+	 */	
+<span class="fc" id="L110">	public Connection(MainWindow app, InetAddress a, int p) {</span>
+<span class="fc" id="L111">		remotePort = p;</span>
+<span class="fc" id="L112">		remoteAddress = a;</span>
+<span class="fc" id="L113">		state = STATE_NOT_INITIALIZED;</span>
+<span class="fc" id="L114">		netCode = Utils.random.nextInt();</span>
+<span class="fc" id="L115">		mainWindow = app;</span>
+<span class="fc" id="L116">		createCorridors();</span>
+<span class="fc" id="L117">	}</span>
+	/**
+	 * Create a new connection to the specified IP address and port using
+	 * the specified netcode to identify the connection. Used to connect this client
+	 * to the remote server when this server is already connected with the remote
+	 * client.
+	 * 
+	 * @param app  Reference to the main application window
+	 * @param a  Address of the remote host
+	 * @param p  Port of the remote host
+	 * @param nCode  Identifying code to use for this connection
+	 */
+<span class="nc" id="L129">	public Connection(MainWindow app, InetAddress a, int p, int nCode) {</span>
+<span class="nc" id="L130">		remotePort = p;</span>
+<span class="nc" id="L131">		remoteAddress = a;</span>
+<span class="nc" id="L132">		state = STATE_NOT_INITIALIZED;</span>
+<span class="nc" id="L133">		netCode = nCode;</span>
+<span class="nc" id="L134">		mainWindow = app;</span>
+<span class="nc" id="L135">		createCorridors();	</span>
+<span class="nc" id="L136">	}</span>
+	/**
+	 * Create the pair of biological corridors, but don't add them to the world yet.
+	 */
+	private void createCorridors() {
+<span class="fc" id="L141">		inCorridor = new InCorridor(mainWindow.getWorld());</span>
+<span class="fc" id="L142">		outCorridor = new OutCorridor(mainWindow.getWorld(), this);</span>
+<span class="fc" id="L143">	}</span>
+	/**
+	 * Send a message to the remote host server. The message is send in a new thread and
+	 * the method returns immidiately.
+	 * 
+	 * @param m  the message to send. See {@link NetServerThread} to see the possible
+	 * messages to send. 
+	 */
+	public void send(int m) {
+<span class="nc" id="L152">		NetSend n = new NetSend(this, m, null);</span>
+<span class="nc" id="L153">		n.start();</span>
+<span class="nc" id="L154">	}</span>
+	/**
+	 * Send a genetic code to the remote host server. The code is send in a new thread
+	 * and the method returns immidiately.
+	 * 
+	 * @param c  the genetic code to send.
+	 */
+	public void send(GeneticCode c) {
+<span class="nc" id="L162">		NetSend n = new NetSend(this, NetServerThread.SEND_CODE, c);</span>
+<span class="nc" id="L163">		n.start();</span>
+<span class="nc" id="L164">	}</span>
+	/**
+	 * Inform the connection that its state has changed. Used by {@link NetSend} and
+	 * {@link NetServerThread}.
+	 * 
+	 * @param newState  STATE_CONNECTED if the connection has been stablished or 
+	 * STATE_DISCONNECTED if the connection has been closed.
+	 */
+	public void setState(int newState) {
+<span class="nc bnc" id="L173" title="All 2 branches missed.">		if (state != newState) {</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">			if (newState == STATE_CONNECTED) {</span>
+<span class="nc" id="L175">				mainWindow.getWorld().addCorridors(inCorridor, outCorridor);</span>
+<span class="nc" id="L176">				keepAliveThread();</span>
+<span class="nc" id="L177">				mainWindow.setStatusMessage(Messages.getString(&quot;T_CONNECTION_STABLISHED&quot;, remoteAddress.toString())); //$NON-NLS-1$</span>
+			}
+<span class="nc bnc" id="L179" title="All 2 branches missed.">			if (newState == STATE_DISCONNECTED) {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">				if (timer != null)</span>
+<span class="nc" id="L181">					timer.cancel();</span>
+<span class="nc" id="L182">				mainWindow.setStatusMessage(Messages.getString(&quot;T_CONNECTION_LOST&quot;, remoteAddress.toString())); //$NON-NLS-1$</span>
+<span class="nc" id="L183">				mainWindow.getWorld().removeCorridors(inCorridor, outCorridor);</span>
+<span class="nc" id="L184">				mainWindow.serverThread.removeConnection(this);</span>
+			}
+		}
+<span class="nc" id="L187">		state = newState;</span>
+<span class="nc" id="L188">	}</span>
+	/**
+	 * Returns the state of the connection.
+	 * 
+	 * @return  the state of the connection
+	 */
+	public int getState() {
+<span class="nc" id="L195">		return state;</span>
+	}
+	/**
+	 * Send a request connection message to the remote host. This is the same
+	 * as calling {@code send(NetServerThread.CONNECT)}.
+	 */
+	public void connect() {
+		// send a connection message
+<span class="nc" id="L203">		NetSend n = new NetSend(this, NetServerThread.CONNECT, null);</span>
+<span class="nc" id="L204">		n.start();</span>
+<span class="nc" id="L205">	}</span>
+	/**
+	 * Inform the connection that a message from the server has been received in
+	 * order to avoid unnecessary ping messages.
+	 */
+	public void resetTime() {
+<span class="nc" id="L211">		time = System.currentTimeMillis();</span>
+<span class="nc" id="L212">	}</span>
+	/**
+	 * Start a new thread that will perform periodical pings to the remote
+	 * server in order to keep the connection alive.
+	 */
+	private void keepAliveThread() {
+<span class="nc bnc" id="L218" title="All 2 branches missed.">		if (timer != null)</span>
+<span class="nc" id="L219">			timer.cancel();</span>
+<span class="nc" id="L220">		resetTime();</span>
+<span class="nc" id="L221">		timer = new Timer();</span>
+<span class="nc" id="L222">		TimerTask keepAliveTask = new TimerTask() {</span>
+		    @Override
+			public void run() {
+<span class="nc" id="L225">		    	keepAlive();</span>
+<span class="nc" id="L226">		    }</span>
+		};
+<span class="nc" id="L228">		timer.schedule(keepAliveTask, CHECK_CONNECTION_TIME, CHECK_CONNECTION_TIME);</span>
+<span class="nc" id="L229">	}</span>
+	/**
+	 * Make sure the connection is alive. If enough time has passed since the last
+	 * message from the remote server, send a ping. This is done in a separated thread
+	 * and this method returns immidiately.
+	 */
+	protected void keepAlive() {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">		if (System.currentTimeMillis() - time &gt; CHECK_CONNECTION_TIME) {</span>
+<span class="nc" id="L237">			NetSend n = new NetSend(this, NetServerThread.KEEP_ALIVE, null);</span>
+<span class="nc" id="L238">			n.start();</span>
+		}
+<span class="nc" id="L240">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

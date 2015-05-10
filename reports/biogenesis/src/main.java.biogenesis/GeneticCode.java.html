@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>GeneticCode.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">GeneticCode.java</span></div><h1>GeneticCode.java</h1><pre class="source lang-java linenums">/* Copyright (C) 2006-2010  Joan Queralt Molina
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.io.*;
+import java.util.List;
+
+/**
+ * This class implements a full organism's genetic code. A genetic code is
+ * composed by a number of genes, a symmetry, optional mirroring, optional children
+ * dispersing, maximum life age, and energy needed to reproduce it.
+ * 
+ * Genes are represented with segments that form the organism's body and are
+ * drawn one behind the other. This basic set is repeated symmetry times in one
+ * of two possible ways:
+ * 
+ * If mirroring is not applied, each repetition is rotated so they are distributed
+ * in a uniform way around the central (starting) point.
+ * 
+ * When mirrored, segments are calculated as follows:
+ * First, third, fifth and septh repetitions are applied a rotation of
+ * 0, 180, 90, 270 degrees respectively.
+ * 
+ * Second repetition is like the first one with opposite x coordinate.
+ * Fourth repetition is like the third one with opposite x coordinate.
+ * Sixth repetition is like the fifth one with opposite y coordinate.
+ * Eigth repetition is like the septh one with opposite y coordinate.
+ */
+public class GeneticCode implements Cloneable, Serializable {
+	/**
+	 * The version of this class
+	 */
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+	/**
+	 * Maximum number of segments that an organism can have.
+	 * The genes number multiplied by the symmetry is the number
+	 * of segments.
+	 */
+	static final int MAX_SEGMENTS = 64;
+	/**
+	 * Minimum number of segments that an organism can have.
+	 * The genes number multiplied by the symmetry is the number
+	 * of segments.
+	 */
+	static final int MIN_SEGMENTS = 4;
+	/**
+	 * Array with the genes. Every gene is represented by symmetry
+	 * segments when drawing the organism.
+	 */
+	protected Gene[] _genes;
+	/**
+	 * The symmetry used when drawing the organism. Possible values are
+	 * 2, 4 or 8. 
+	 */
+	protected int _symmetry;
+	/**
+	 * Mirroring indicates if symmetric segments are drawn in the same
+	 * way than the original, only changing their angle, or if they are
+	 * drawn like in a mirror. 0 = not mirrored, 1 = mirrored
+	 */
+	protected int _mirror;
+	/**
+	 * Indicates if children will be placed moving towards the same
+	 * direction than the father or to a different direction to move
+	 * away.
+	 */
+	protected boolean _disperseChildren;
+	/**
+	 * Minimum required energy to reproduce this genetic code.
+	 * More genes, means more energy is needed. 
+	 */
+	protected int _reproduceEnergy;
+	/**
+	 * The maximum time that the organism can be alive.
+	 * At the moment, this is the same for all organisms.
+	 */
+	protected int _max_age;
+	// Getters
+	/**
+	 * Returns the symmetry applied to organisms with this genetic code
+	 * 
+	 * @return  a value of 2, 4 or 8.
+	 */
+	public int getSymmetry() {
+<span class="fc" id="L102">		return _symmetry;</span>
+	}
+	/**
+	 * Returns if mirroring is applied to organisms with this genetic code
+	 * 
+	 * @return  0 if no mirroring is applied, 1 if mirroring is applied.
+	 */
+	public int getMirror() {
+<span class="fc" id="L110">		return _mirror;</span>
+	}
+	/**
+	 * Returns if organisms with this genetic code will disperse their children or not.
+	 * 
+	 * @return  true if the organism disperses its children, false otherwise.
+	 */
+	public boolean getDisperseChildren() {
+<span class="fc" id="L118">		return _disperseChildren;</span>
+	}
+	/**
+	 * Returns the energy needed to replicate this genetic code.
+	 * This energy is equal to 40 plus 3 for each segment.
+	 * 
+	 * @return  the energy needed to replicate this genetic code.
+	 */
+	public int getReproduceEnergy() {
+<span class="fc" id="L127">		return _reproduceEnergy;</span>
+	}
+	/**
+	 * Returns the maximum age that the organism can be.
+	 * This is fixed at 30.  
+	 * 
+	 * @return  The maximum age that the organism can be.
+	 */
+	public int getMaxAge() {
+<span class="fc" id="L136">		return _max_age;</span>
+	}
+	/**
+	 * Return a reference to a gene.
+	 * 
+	 * @param i  The index of the gene in the genetic code.
+	 * @return  A reference to the gene
+	 */
+	public Gene getGene(int i) {
+<span class="fc" id="L145">		return _genes[i];</span>
+	}
+	/**
+	 * Return the number of genes of this code
+	 * 
+	 * @return  The number of genes
+	 */
+	public int getNGenes() {
+<span class="fc" id="L153">		return _genes.length;</span>
+	}
+	/**
+	 * Gives mirror a random value (0 or 1)
+	 */
+	private void randomMirror() {
+<span class="fc" id="L159">		_mirror = Utils.random.nextInt(2);</span>
+<span class="fc" id="L160">	}</span>
+	/**
+	 * Gives symmetry a random value (2, 4 or 8)
+	 */
+	private void randomSymmetry() {
+<span class="fc" id="L165">		_symmetry = Utils.random.nextInt(8)+1;</span>
+<span class="fc" id="L166">	}</span>
+	/**
+	 * Create a random genes array making sure that there will be more or equal than
+	 * MIN_SEGMENTS and less or equal than MAX_SEGMENTS segments.
+	 * It needs symmetry to have a valid value. 
+	 */
+	private void randomGenes() {
+<span class="fc" id="L173">		int nSegments = MIN_SEGMENTS + Utils.random.nextInt(MAX_SEGMENTS-MIN_SEGMENTS+1); // 4 - 64</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">		if (nSegments % _symmetry != 0)</span>
+<span class="fc" id="L175">		    nSegments += (_symmetry - (nSegments % _symmetry));</span>
+<span class="fc" id="L176">		int nGenes = nSegments / _symmetry;</span>
+<span class="fc" id="L177">		_genes = new Gene[nGenes];</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">		for (int i=0; i&lt;nGenes; i++) {</span>
+<span class="fc" id="L179">			_genes[i] = new Gene();</span>
+<span class="fc" id="L180">			_genes[i].randomize();</span>
+		}
+<span class="fc" id="L182">	}</span>
+	/**
+	 * Decide randomly if organisms with this genetic code will try to
+	 * disperse their children or not.
+	 */
+	private void randomDisperseChildren() {
+<span class="fc" id="L188">		_disperseChildren =  Utils.random.nextBoolean();</span>
+<span class="fc" id="L189">	}</span>
+	/**
+	 * Calculates the energy required to reproduce this genetic code.
+	 * This energy is 40 plus 3 for each segment.
+	 */
+	private void calculateReproduceEnergy() {
+<span class="fc" id="L195">		_reproduceEnergy = 40 + 3 * _genes.length * _symmetry;</span>
+<span class="fc" id="L196">	}</span>
+	/**
+	 * Creates a new random genetic code.
+	 */
+<span class="fc" id="L200">	public GeneticCode() {</span>
+<span class="fc" id="L201">		randomMirror(); </span>
+<span class="fc" id="L202">		randomSymmetry();</span>
+<span class="fc" id="L203">		randomGenes();</span>
+<span class="fc" id="L204">		randomDisperseChildren();</span>
+<span class="fc" id="L205">		calculateReproduceEnergy();</span>
+<span class="fc" id="L206">		_max_age = Utils.MAX_AGE;</span>
+<span class="fc" id="L207">	}	</span>
+	/**
+	 * Creates a genetic code given its content.
+	 * No check about the validity of the information is done.
+	 * 
+	 * @param genes  A list containing the genes
+	 * @param symmetry  The symmetry that an organism with this genetic code will have.
+	 * @param mirror  0 if the organism won't be mirrored, 1 if it will.
+	 * @param disperseChildren  true if the organism will disperse its children.
+	 */
+<span class="fc" id="L217">	public GeneticCode(List&lt;Gene&gt; genes, int symmetry, int mirror, boolean disperseChildren) {</span>
+<span class="fc" id="L218">		int nGenes = genes.size();</span>
+<span class="fc" id="L219">		_genes = new Gene[nGenes];</span>
+<span class="fc" id="L220">		genes.toArray(_genes);</span>
+<span class="fc" id="L221">		_max_age = Utils.MAX_AGE;</span>
+<span class="fc" id="L222">		_mirror = mirror;</span>
+<span class="fc" id="L223">		_symmetry = symmetry;</span>
+<span class="fc" id="L224">		_disperseChildren = disperseChildren;</span>
+<span class="fc" id="L225">		calculateReproduceEnergy();</span>
+<span class="fc" id="L226">	}</span>
+	/**
+	 * Creates a new genetic code based on the father genetic code but
+	 * applying random mutations to it.
+	 * 
+	 * @param parentCode  The genetic code that this code will be based on.
+	 */
+<span class="fc" id="L233">	public GeneticCode(GeneticCode parentCode) {</span>
+		int i,j;
+<span class="fc" id="L235">		int addedGene = -1;</span>
+<span class="fc" id="L236">		int removedGene = -1;</span>
+		int nGenes;
+		boolean randomLength;
+		boolean randomTheta;
+		boolean randomColor;
+		boolean randomBack;
+		
+<span class="pc bpc" id="L243" title="1 of 2 branches missed.">		if (Utils.randomMutation())</span>
+<span class="nc" id="L244">			randomMirror();</span>
+		else
+<span class="fc" id="L246">			_mirror = parentCode.getMirror();</span>
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">		if (Utils.randomMutation()) {</span>
+			// change symmetry
+<span class="nc bnc" id="L249" title="All 2 branches missed.">			if (Utils.random.nextInt(10) &lt; 2)</span>
+<span class="nc" id="L250">				randomSymmetry();</span>
+			else
+<span class="nc" id="L252">				_symmetry = Utils.between(_symmetry+Utils.randomSign(), 1, 8);</span>
+<span class="nc" id="L253">			nGenes = parentCode.getNGenes();</span>
+<span class="nc bnc" id="L254" title="All 2 branches missed.">			if (nGenes * _symmetry &gt; MAX_SEGMENTS) {</span>
+<span class="nc" id="L255">				_symmetry = parentCode.getSymmetry();</span>
+			}
+<span class="nc" id="L257">		} else {</span>
+			// keep symmetry
+<span class="fc" id="L259">			_symmetry = parentCode.getSymmetry();</span>
+<span class="pc bpc" id="L260" title="1 of 2 branches missed.">			if (Utils.randomMutation()) {</span>
+			// change number of segments
+<span class="nc bnc" id="L262" title="All 2 branches missed.">				if (Utils.random.nextBoolean()) {</span>
+				// increase segments
+<span class="nc bnc" id="L264" title="All 2 branches missed.">					if (parentCode.getNGenes() * parentCode.getSymmetry() &gt;= MAX_SEGMENTS)</span>
+<span class="nc" id="L265">						nGenes = parentCode.getNGenes();</span>
+					else {
+<span class="nc" id="L267">						nGenes = parentCode.getNGenes() + 1;</span>
+<span class="nc" id="L268">						addedGene = Utils.random.nextInt(nGenes);</span>
+					}
+<span class="nc" id="L270">				} else {</span>
+				// decrease segments
+<span class="nc bnc" id="L272" title="All 2 branches missed.">					if (parentCode.getNGenes() * parentCode.getSymmetry() &lt;= MIN_SEGMENTS)</span>
+<span class="nc" id="L273">						nGenes = parentCode.getNGenes();</span>
+					else {
+<span class="nc" id="L275">						nGenes = parentCode.getNGenes() - 1;</span>
+<span class="nc" id="L276">						removedGene = Utils.random.nextInt(parentCode.getNGenes());</span>
+					}
+				}
+<span class="nc" id="L279">			} else {</span>
+			// keep number of segments
+<span class="fc" id="L281">				nGenes = parentCode.getNGenes();</span>
+			}
+		}
+		// Create genes
+<span class="fc" id="L285">		_genes = new Gene[nGenes];</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">		for (i=0,j=0; i&lt;nGenes; i++,j++) {</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">			if (removedGene == j) {</span>
+<span class="nc" id="L288">				i--;</span>
+<span class="nc" id="L289">				continue;</span>
+			}
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">			if (addedGene == i) {</span>
+<span class="nc" id="L292">				_genes[i] = new Gene();</span>
+<span class="nc" id="L293">				_genes[i].randomize();</span>
+<span class="nc" id="L294">				j--;</span>
+<span class="nc" id="L295">				continue;</span>
+			}
+<span class="fc" id="L297">			randomLength = randomTheta = randomColor = randomBack = false;</span>
+<span class="pc bpc" id="L298" title="1 of 2 branches missed.">			if (Utils.randomMutation())</span>
+<span class="nc" id="L299">				randomLength = true;</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">			if (Utils.randomMutation())</span>
+<span class="fc" id="L301">				randomTheta = true;</span>
+<span class="fc bfc" id="L302" title="All 2 branches covered.">			if (Utils.randomMutation())</span>
+<span class="fc" id="L303">				randomColor = true;</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">			if (Utils.randomMutation())</span>
+<span class="fc" id="L305">				randomBack = true;</span>
+<span class="pc bpc" id="L306" title="2 of 8 branches missed.">			if (randomLength || randomTheta || randomColor || randomBack) {</span>
+<span class="fc" id="L307">				_genes[i] = new Gene();</span>
+<span class="pc bpc" id="L308" title="1 of 2 branches missed.">				if (randomLength)</span>
+<span class="nc" id="L309">					_genes[i].randomizeLength();</span>
+				else
+<span class="fc" id="L311">					_genes[i].setLength(parentCode.getGene(j).getLength());</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">				if (randomTheta)</span>
+<span class="fc" id="L313">					_genes[i].randomizeTheta();</span>
+				else
+<span class="fc" id="L315">					_genes[i].setTheta(parentCode.getGene(j).getTheta());</span>
+<span class="fc bfc" id="L316" title="All 2 branches covered.">				if (randomColor)</span>
+<span class="fc" id="L317">					_genes[i].randomizeColor();</span>
+				else
+<span class="fc" id="L319">					_genes[i].setColor(parentCode.getGene(j).getColor());</span>
+<span class="fc" id="L320">			} else</span>
+<span class="fc" id="L321">				_genes[i] = parentCode.getGene(j);</span>
+		}
+
+<span class="pc bpc" id="L324" title="1 of 2 branches missed.">		if (Utils.randomMutation())</span>
+<span class="nc" id="L325">			randomDisperseChildren();</span>
+		else
+<span class="fc" id="L327">			_disperseChildren = parentCode.getDisperseChildren();</span>
+<span class="fc" id="L328">		calculateReproduceEnergy();</span>
+<span class="fc" id="L329">		_max_age = Utils.MAX_AGE;</span>
+<span class="fc" id="L330">	}</span>
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public Object clone() {
+<span class="nc" id="L337">		GeneticCode newCode = null;</span>
+		try {
+<span class="nc" id="L339">			newCode = (GeneticCode) super.clone();</span>
+<span class="nc" id="L340">			newCode._genes = new Gene[_genes.length];</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">			for (int i=0; i&lt;_genes.length; i++)</span>
+<span class="nc" id="L342">				newCode._genes[i] = (Gene) _genes[i].clone();</span>
+<span class="nc" id="L343">		} catch (CloneNotSupportedException e) {// We should never reach this</span>
+		}
+<span class="nc" id="L345">		return newCode;</span>
+	}
+	
+	/**
+	 * Draws a representation of this genetic code. This representation
+	 * is equivalent to draw an adult organism with this genetic code and
+	 * no rotation.
+	 * 
+	 * @param g  The place where the representation is drawn.
+	 * @param width  The width of the available space. 
+	 * @param height  The height of the available space.
+	 */
+	public void draw(Graphics g, int width, int height) {
+<span class="nc" id="L358">		int[][] x0 = new int[_symmetry][_genes.length];</span>
+<span class="nc" id="L359">		int[][] y0 = new int[_symmetry][_genes.length];</span>
+<span class="nc" id="L360">		int[][] x1 = new int[_symmetry][_genes.length];</span>
+<span class="nc" id="L361">		int[][] y1 = new int[_symmetry][_genes.length];</span>
+<span class="nc" id="L362">		int maxX = 0;</span>
+<span class="nc" id="L363">		int minX = 0;</span>
+<span class="nc" id="L364">		int maxY = 0;</span>
+<span class="nc" id="L365">		int minY = 0;</span>
+<span class="nc" id="L366">		double scale = 1.0;</span>
+<span class="nc" id="L367">		Vector2D v = new Vector2D();</span>
+<span class="nc" id="L368">		Graphics2D g2 = (Graphics2D) g;</span>
+
+<span class="nc bnc" id="L370" title="All 2 branches missed.">		for (int i=0; i&lt;_symmetry; i++) {</span>
+<span class="nc bnc" id="L371" title="All 2 branches missed.">			for (int j=0; j&lt;_genes.length; j++) {</span>
+<span class="nc" id="L372">				v.setModulus(_genes[j].getLength());</span>
+<span class="nc bnc" id="L373" title="All 2 branches missed.">				if (j==0) {</span>
+<span class="nc" id="L374">					x0[i][j]=y0[i][j]=0;</span>
+<span class="nc bnc" id="L375" title="All 4 branches missed.">					if (_mirror == 0 || i%2==0)</span>
+<span class="nc" id="L376">						v.setTheta(_genes[j].getTheta()+i*2*Math.PI/_symmetry);</span>
+					else {
+<span class="nc" id="L378">						v.setTheta(_genes[j].getTheta()+(i-1)*2*Math.PI/_symmetry);</span>
+<span class="nc" id="L379">						v.invertX();</span>
+					}
+<span class="nc" id="L381">				} else {</span>
+<span class="nc" id="L382">					x0[i][j] = x1[i][j-1];</span>
+<span class="nc" id="L383">					y0[i][j] = y1[i][j-1];</span>
+<span class="nc bnc" id="L384" title="All 4 branches missed.">					if (_mirror == 0 || i%2==0)</span>
+<span class="nc" id="L385">						v.addDegree(_genes[j].getTheta());</span>
+					else
+<span class="nc" id="L387">						v.addDegree(-_genes[j].getTheta());</span>
+				}
+				
+<span class="nc" id="L390">				x1[i][j] = (int) Math.round(v.getX() + x0[i][j]);</span>
+<span class="nc" id="L391">				y1[i][j] = (int) Math.round(v.getY() + y0[i][j]);</span>
+				
+<span class="nc" id="L393">				maxX = Math.max(maxX, Math.max(x0[i][j], x1[i][j]));</span>
+<span class="nc" id="L394">				maxY = Math.max(maxY, Math.max(y0[i][j], y1[i][j]));</span>
+<span class="nc" id="L395">				minX = Math.min(minX, Math.min(x0[i][j], x1[i][j]));</span>
+<span class="nc" id="L396">				minY = Math.min(minY, Math.min(y0[i][j], y1[i][j]));</span>
+			}
+		}
+		
+<span class="nc" id="L400">		g2.translate(width/2, height/2);</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">		if (maxX-minX &gt; width)</span>
+<span class="nc" id="L402">			scale = (double)width/(double)(maxX-minX);</span>
+<span class="nc bnc" id="L403" title="All 2 branches missed.">		if (maxY-minY &gt; height)</span>
+<span class="nc" id="L404">			scale = Math.min(scale, (double)height/(double)(maxY-minY));</span>
+<span class="nc" id="L405">		g2.scale(scale, scale);</span>
+		
+<span class="nc bnc" id="L407" title="All 2 branches missed.">		for (int i=0; i&lt;_symmetry; i++) {</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">			for (int j=0; j&lt;_genes.length; j++) {</span>
+<span class="nc" id="L409">				x0[i][j]+=(-minX-maxX)/2;</span>
+<span class="nc" id="L410">				x1[i][j]+=(-minX-maxX)/2;</span>
+<span class="nc" id="L411">				y0[i][j]+=(-minY-maxY)/2;</span>
+<span class="nc" id="L412">				y1[i][j]+=(-minY-maxY)/2;</span>
+<span class="nc" id="L413">				g2.setColor(_genes[j].getColor());</span>
+<span class="nc" id="L414">				g2.drawLine(x0[i][j],y0[i][j],x1[i][j],y1[i][j]);</span>
+			}
+		}
+<span class="nc" id="L417">	}</span>
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

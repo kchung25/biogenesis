@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>InfoToolbar.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">InfoToolbar.java</span></div><h1>InfoToolbar.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">/* Copyright (C) 2006-2010  Joan Queralt Molina</span>
+ * Copyright (c) 2012 Sebastien Le Callonnec
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.NumberFormat;
+
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JToolBar;
+
+public class InfoToolbar extends JToolBar {
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+
+	protected Organism _selOrganism;
+	protected JLabel _lEnergy, _lID, _lGeneration, _lAge, _lChildren, _lKills, _lInfected, _lMass, _lReproduceEnergy;
+	protected JButton _buttonGenes;
+	protected GeneticCodePanel _geneticCodePanel;
+<span class="fc" id="L39">	static private NumberFormat _nf = NumberFormat.getInstance();</span>
+	protected MainWindow _mainWindow;
+
+	private JLabel _lT_REPRODUCTION;
+
+	private JLabel _lT_ID;
+
+	private JLabel _lT_GENERATION;
+
+	private JLabel _lT_AGE;
+
+	private JLabel _lT_ENERGY;
+
+	private JLabel _lT_CHILDREN;
+
+	private JLabel _lT_VICTIMS;
+
+	private JLabel _lT_INFECTED;
+
+	private JLabel _lT_MASS;
+
+	public void setSelectedOrganism(Organism selectedOrganism) {
+<span class="fc" id="L61">		_selOrganism = selectedOrganism;</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">		_lID.setText(_selOrganism!=null?_nf.format(_selOrganism.getID()):&quot;-1&quot;);</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">		_lGeneration.setText(_selOrganism!=null?_nf.format(_selOrganism.getGeneration()):&quot;0&quot;);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">		_lReproduceEnergy.setText(_selOrganism!=null?_nf.format(_selOrganism.getGeneticCode().getReproduceEnergy()):&quot;0&quot;);</span>
+<span class="fc" id="L65">		recalculate();</span>
+<span class="fc" id="L66">		changeNChildren();</span>
+<span class="fc" id="L67">		changeNKills();</span>
+<span class="fc" id="L68">		changeNInfected();</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">		_buttonGenes.setEnabled(_selOrganism != null);</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">		_geneticCodePanel.setGeneticCode(_selOrganism!=null?_selOrganism.getGeneticCode():null);</span>
+<span class="fc" id="L71">		_geneticCodePanel.repaint();</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">		setVisible(_selOrganism != null);</span>
+<span class="fc" id="L73">	}</span>
+	
+	// Recalculate continuously changing parameters
+	public void recalculate() {
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">		_lEnergy.setText(_selOrganism!=null?_nf.format(_selOrganism.getEnergy()):&quot;0&quot;); //$NON-NLS-1$</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">		_lAge.setText(_selOrganism!=null?_nf.format(_selOrganism.getAge()&gt;&gt;8):&quot;0&quot;); //$NON-NLS-1$</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">		_lMass.setText(_selOrganism!=null?_nf.format(_selOrganism.getMass()):&quot;0&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L80">	}</span>
+	
+	// Notify panel of important events
+	public void changeNChildren() {
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">		_lChildren.setText(_selOrganism!=null?_nf.format(_selOrganism.getTotalChildren()):&quot;0&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L85">	}</span>
+	
+	public void changeNKills() {
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">		_lKills.setText(_selOrganism!=null?_nf.format(_selOrganism.getTotalKills()):&quot;0&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L89">	}</span>
+	
+	public void changeNInfected() {
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">		_lInfected.setText(_selOrganism!=null?_nf.format(_selOrganism.getTotalInfected()):&quot;0&quot;); //$NON-NLS-1$</span>
+<span class="fc" id="L93">	}</span>
+	
+<span class="fc" id="L95">	public InfoToolbar(Organism selectedOrganism, MainWindow mainWindow) {</span>
+<span class="fc" id="L96">		Dimension dimension = new Dimension(60,10);</span>
+<span class="fc" id="L97">		_selOrganism = selectedOrganism;</span>
+<span class="fc" id="L98">		_mainWindow = mainWindow;</span>
+		// Prepare number format
+<span class="fc" id="L100">		_nf.setMaximumFractionDigits(1);</span>
+		// Create components
+<span class="fc" id="L102">		setLayout(new GridBagLayout());</span>
+		GridBagConstraints gridBagConstraints;
+		// ID
+<span class="fc" id="L105">		gridBagConstraints = new GridBagConstraints();</span>
+<span class="fc" id="L106">	    gridBagConstraints.gridx = 0;</span>
+<span class="fc" id="L107">	    gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L108">	    gridBagConstraints.anchor = GridBagConstraints.WEST;</span>
+<span class="fc" id="L109">	    gridBagConstraints.weightx = 1.0;</span>
+<span class="fc" id="L110">	    gridBagConstraints.gridheight=3;</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">	    _geneticCodePanel = new GeneticCodePanel(_selOrganism!=null?_selOrganism.getGeneticCode():null, _mainWindow.getVisibleWorld());</span>
+<span class="fc" id="L112">	    _geneticCodePanel.setPreferredSize(new Dimension(50,50));</span>
+<span class="fc" id="L113">	    add(_geneticCodePanel, gridBagConstraints);</span>
+	    
+<span class="fc" id="L115">	    gridBagConstraints.gridheight=1;</span>
+<span class="fc" id="L116">	    gridBagConstraints.gridx = 1;</span>
+<span class="fc" id="L117">	    gridBagConstraints.gridy = 0;</span>
+
+<span class="fc" id="L119">	    _lT_ID = new JLabel(Messages.getString(&quot;T_ID&quot;), JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L120">		add(_lT_ID, gridBagConstraints);</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">		_lID = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getID()):&quot;-1&quot;,JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L122">		_lID.setPreferredSize(dimension);</span>
+<span class="fc" id="L123">		gridBagConstraints.gridx = 2;</span>
+<span class="fc" id="L124">		gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L125">		add(_lID, gridBagConstraints);</span>
+		// Generation
+<span class="fc" id="L127">		gridBagConstraints.gridx = 3;</span>
+<span class="fc" id="L128">		gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L129">		_lT_GENERATION = new JLabel(Messages.getString(&quot;T_GENERATION&quot;),JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L130">		add(_lT_GENERATION, gridBagConstraints);</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">		_lGeneration = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getGeneration()):&quot;0&quot;,JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L132">		_lGeneration.setPreferredSize(dimension);</span>
+<span class="fc" id="L133">		gridBagConstraints.gridx = 4;</span>
+<span class="fc" id="L134">		gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L135">		add(_lGeneration, gridBagConstraints);</span>
+		// Age
+<span class="fc" id="L137">		gridBagConstraints.gridx = 5;</span>
+<span class="fc" id="L138">		gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L139">		_lT_AGE = new JLabel(Messages.getString(&quot;T_AGE&quot;),JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L140">		add(_lT_AGE, gridBagConstraints);</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">		_lAge = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getAge()&gt;&gt;8):&quot;0&quot;,JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L142">		_lAge.setPreferredSize(dimension);</span>
+<span class="fc" id="L143">		gridBagConstraints.gridx = 6;</span>
+<span class="fc" id="L144">		gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L145">		add(_lAge, gridBagConstraints);</span>
+		// Energy
+<span class="fc" id="L147">		gridBagConstraints.gridx = 7;</span>
+<span class="fc" id="L148">		gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L149">		_lT_ENERGY = new JLabel(Messages.getString(&quot;T_ENERGY&quot;),JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L150">		add(_lT_ENERGY, gridBagConstraints);</span>
+<span class="pc bpc" id="L151" title="1 of 2 branches missed.">		_lEnergy = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getEnergy()):&quot;0&quot;, JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L152">		_lEnergy.setPreferredSize(dimension);</span>
+<span class="fc" id="L153">		gridBagConstraints.gridx = 8;</span>
+<span class="fc" id="L154">		gridBagConstraints.gridy = 0;</span>
+<span class="fc" id="L155">		add(_lEnergy, gridBagConstraints);</span>
+		// Number of sons
+<span class="fc" id="L157">		gridBagConstraints.gridx = 1;</span>
+<span class="fc" id="L158">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L159">		_lT_CHILDREN = new JLabel(Messages.getString(&quot;T_CHILDREN&quot;),JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L160">		add(_lT_CHILDREN, gridBagConstraints);</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">		_lChildren = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getTotalChildren()):&quot;0&quot;,JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L162">		_lChildren.setPreferredSize(dimension);</span>
+<span class="fc" id="L163">		gridBagConstraints.gridx = 2;</span>
+<span class="fc" id="L164">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L165">		add(_lChildren, gridBagConstraints);</span>
+		// Number of killed organisms
+<span class="fc" id="L167">		gridBagConstraints.gridx = 3;</span>
+<span class="fc" id="L168">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L169">		_lT_VICTIMS =new JLabel(Messages.getString(&quot;T_VICTIMS&quot;), JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L170">		add(_lT_VICTIMS, gridBagConstraints);</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">		_lKills = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getTotalKills()):&quot;0&quot;, JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L172">		_lKills.setPreferredSize(dimension);</span>
+<span class="fc" id="L173">		gridBagConstraints.gridx = 4;</span>
+<span class="fc" id="L174">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L175">		add(_lKills, gridBagConstraints);</span>
+		// Number of infected organisms
+<span class="fc" id="L177">		gridBagConstraints.gridx = 5;</span>
+<span class="fc" id="L178">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L179">		_lT_INFECTED = new JLabel(Messages.getString(&quot;T_INFECTED&quot;), JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L180">		add(_lT_INFECTED, gridBagConstraints);</span>
+<span class="pc bpc" id="L181" title="1 of 2 branches missed.">		_lInfected = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getTotalInfected()):&quot;0&quot;, JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L182">		_lInfected.setPreferredSize(dimension);</span>
+<span class="fc" id="L183">		gridBagConstraints.gridx = 6;</span>
+<span class="fc" id="L184">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L185">		add(_lInfected, gridBagConstraints);</span>
+		// Total mass
+<span class="fc" id="L187">		gridBagConstraints.gridx = 7;</span>
+<span class="fc" id="L188">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L189">		_lT_MASS = new JLabel(Messages.getString(&quot;T_MASS&quot;),JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L190">		add(_lT_MASS, gridBagConstraints);</span>
+<span class="pc bpc" id="L191" title="1 of 2 branches missed.">		_lMass = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getMass()):&quot;0&quot;,JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L192">		_lMass.setPreferredSize(dimension);</span>
+<span class="fc" id="L193">		gridBagConstraints.gridx = 8;</span>
+<span class="fc" id="L194">		gridBagConstraints.gridy = 1;</span>
+<span class="fc" id="L195">		add(_lMass, gridBagConstraints);</span>
+		// Button to view genes
+<span class="fc" id="L197">		_buttonGenes = new JButton(Messages.getString(&quot;T_EXAMINE_GENES&quot;)); //$NON-NLS-1$</span>
+<span class="fc" id="L198">		_buttonGenes.addActionListener(new ActionListener() {</span>
+			@Override
+            public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L201">            	new LabWindow(_mainWindow, _selOrganism.getGeneticCode());</span>
+<span class="nc" id="L202">            }</span>
+		});
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">		_buttonGenes.setEnabled(_selOrganism != null);</span>
+<span class="fc" id="L205">		gridBagConstraints.gridx = 1;</span>
+<span class="fc" id="L206">		gridBagConstraints.gridy = 2;</span>
+<span class="fc" id="L207">		gridBagConstraints.gridwidth = 2;</span>
+<span class="fc" id="L208">		add(_buttonGenes, gridBagConstraints);</span>
+		
+		// Add family tree button
+<span class="fc" id="L211">		JButton buttonFamilyTree = new JButton(Messages.getString(&quot;T_FAMILY_TREE_BUTTON&quot;));</span>
+<span class="fc" id="L212">		buttonFamilyTree.addActionListener(new ActionListener() {</span>
+
+			@Override
+			public void actionPerformed(ActionEvent ae) {
+<span class="nc" id="L216">				_mainWindow.displayFamilyTree(_selOrganism);</span>
+<span class="nc" id="L217">			}</span>
+		});
+<span class="fc" id="L219">		gridBagConstraints.gridx = 2;</span>
+<span class="fc" id="L220">		gridBagConstraints.gridy = 2;</span>
+<span class="fc" id="L221">		gridBagConstraints.gridwidth = 2;</span>
+<span class="fc" id="L222">		add(buttonFamilyTree, gridBagConstraints);</span>
+		
+		
+		// Reproduce energy
+<span class="fc" id="L226">		gridBagConstraints.gridx = 3;</span>
+<span class="fc" id="L227">		gridBagConstraints.gridy = 2;</span>
+<span class="fc" id="L228">		gridBagConstraints.gridwidth = 1;</span>
+<span class="fc" id="L229">		_lT_REPRODUCTION = new JLabel(Messages.getString(&quot;T_REPRODUCTION&quot;), JLabel.CENTER); //$NON-NLS-1$</span>
+<span class="fc" id="L230">		add(_lT_REPRODUCTION, gridBagConstraints);</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">		_lReproduceEnergy = new JLabel(_selOrganism!=null?_nf.format(_selOrganism.getGeneticCode().getReproduceEnergy()):&quot;0&quot;,JLabel.CENTER);</span>
+<span class="fc" id="L232">		_lReproduceEnergy.setPreferredSize(dimension);</span>
+<span class="fc" id="L233">		gridBagConstraints.gridx = 4;</span>
+<span class="fc" id="L234">		gridBagConstraints.gridy = 2;</span>
+<span class="fc" id="L235">		add(_lReproduceEnergy, gridBagConstraints);</span>
+		
+<span class="fc" id="L237">		setSize(200,200);</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">		setVisible(_selOrganism != null);</span>
+<span class="fc" id="L239">	}</span>
+	
+	public void changeLocale() {
+<span class="nc" id="L242">		_lT_ID.setText(Messages.getString(&quot;T_ID&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L243">		_lT_GENERATION.setText(Messages.getString(&quot;T_GENERATION&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L244">		_lT_AGE.setText(Messages.getString(&quot;T_AGE&quot;));  //$NON-NLS-1$</span>
+<span class="nc" id="L245">		_lT_ENERGY.setText(Messages.getString(&quot;T_ENERGY&quot;));  //$NON-NLS-1$</span>
+<span class="nc" id="L246">		_lT_CHILDREN.setText(Messages.getString(&quot;T_CHILDREN&quot;));  //$NON-NLS-1$</span>
+<span class="nc" id="L247">		_lT_VICTIMS.setText(Messages.getString(&quot;T_VICTIMS&quot;));  //$NON-NLS-1$</span>
+<span class="nc" id="L248">		_lT_INFECTED.setText(Messages.getString(&quot;T_INFECTED&quot;));  //$NON-NLS-1$</span>
+<span class="nc" id="L249">		_lT_MASS.setText(Messages.getString(&quot;T_MASS&quot;));  //$NON-NLS-1$</span>
+<span class="nc" id="L250">		_buttonGenes.setText(Messages.getString(&quot;T_EXAMINE_GENES&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L251">		_lT_REPRODUCTION.setText(Messages.getString(&quot;T_REPRODUCTION&quot;));  //$NON-NLS-1$</span>
+<span class="nc" id="L252">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>ParamDialog.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">ParamDialog.java</span></div><h1>ParamDialog.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">/* Copyright (C) 2006-2010  Joan Queralt Molina</span>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import javax.swing.*;
+import javax.swing.border.EtchedBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import java.awt.*;
+import java.awt.event.*;
+
+public class ParamDialog extends JDialog {
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+<span class="nc" id="L30">	private JComboBox localeCombo = null;</span>
+<span class="nc" id="L31">	private JTextField widthText = null;</span>
+<span class="nc" id="L32">	private JTextField heightText = null;</span>
+<span class="nc" id="L33">	private JTextField delayText = null;</span>
+<span class="nc" id="L34">	protected JRadioButton hardwareNoneRadio = null;</span>
+<span class="nc" id="L35">	protected JRadioButton hardwareOpenGLRadio = null;</span>
+<span class="nc" id="L36">	private ButtonGroup hardwareGroup = null;</span>
+<span class="nc" id="L37">	protected JCheckBox hardwareFBObjectCheck = null;</span>
+<span class="nc" id="L38">	private JTextField rubbingText = null;</span>
+<span class="nc" id="L39">	private JTextField elasticityText = null;</span>
+<span class="nc" id="L40">	private JTextField initialnumberText = null;</span>
+<span class="nc" id="L41">	private JTextField initialenergyText = null;</span>
+<span class="nc" id="L42">	private JTextField initialO2Text = null;</span>
+<span class="nc" id="L43">	private JTextField initialCO2Text = null;</span>
+<span class="nc" id="L44">	private JTextField maxageText = null;</span>
+<span class="nc" id="L45">	private JTextField mutationrateText = null;</span>
+<span class="nc" id="L46">	private JTextField redcostText = null;</span>
+<span class="nc" id="L47">	private JTextField greencostText = null;</span>
+<span class="nc" id="L48">	private JTextField bluecostText = null;</span>
+<span class="nc" id="L49">	private JTextField cyancostText = null;</span>
+<span class="nc" id="L50">	private JTextField whitecostText = null;</span>
+<span class="nc" id="L51">	private JTextField graycostText = null;</span>
+<span class="nc" id="L52">	private JTextField yellowcostText = null;</span>
+<span class="nc" id="L53">	private JTextField segmentcostText = null;</span>
+<span class="nc" id="L54">	private JTextField drainText = null;</span>
+<span class="nc" id="L55">	private JTextField greenenergyText = null;</span>
+<span class="nc" id="L56">	private JTextField organicenergyText = null;</span>
+<span class="nc" id="L57">	private JTextField organicsubsText = null;</span>
+<span class="nc" id="L58">	private JTextField redprobText = null;</span>
+<span class="nc" id="L59">	private JTextField greenprobText = null;</span>
+<span class="nc" id="L60">	private JTextField blueprobText = null;</span>
+<span class="nc" id="L61">	private JTextField cyanprobText = null;</span>
+<span class="nc" id="L62">	private JTextField whiteprobText = null;</span>
+<span class="nc" id="L63">	private JTextField grayprobText = null;</span>
+<span class="nc" id="L64">	private JTextField yellowprobText = null;</span>
+<span class="nc" id="L65">	private JTextField decayenergyText = null;</span>
+<span class="nc" id="L66">	private JButton OKButton = null;</span>
+<span class="nc" id="L67">	private JButton cancelButton = null;</span>
+<span class="nc" id="L68">	private JButton defaultButton = null;</span>
+	
+	protected MainWindow mainWindow;
+	
+	public ParamDialog(MainWindow parent) {
+		// Configurem les caracterï¿½stiques generals
+<span class="nc" id="L74">		super(parent,Messages.getString(&quot;T_PARAMETERS_CONFIGURATION&quot;),true); //$NON-NLS-1$</span>
+<span class="nc" id="L75">		mainWindow = parent;</span>
+<span class="nc" id="L76">		setDefaultCloseOperation(DISPOSE_ON_CLOSE);</span>
+<span class="nc" id="L77">		setComponents();</span>
+<span class="nc" id="L78">		pack();</span>
+<span class="nc" id="L79">		setResizable(false);</span>
+		// Configurem les accions dels butons
+<span class="nc" id="L81">		OKButton.addActionListener(new ActionListener() {</span>
+                    public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L83">                    	checkParams();</span>
+<span class="nc" id="L84">                    	Utils.savePreferences();</span>
+<span class="nc" id="L85">                    	dispose();</span>
+<span class="nc" id="L86">                    }</span>
+                    });
+<span class="nc" id="L88">		cancelButton.addActionListener(new ActionListener() {</span>
+                    public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L90">                    	dispose();</span>
+<span class="nc" id="L91">                    }</span>
+                    });
+<span class="nc" id="L93">		defaultButton.addActionListener(new ActionListener() {</span>
+			public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L95">				defaultPreferences();</span>
+<span class="nc" id="L96">			}</span>
+		});
+		// Ja estï¿½ tot apunt
+<span class="nc" id="L99">		setVisible(true);</span>
+<span class="nc" id="L100">	}</span>
+	
+	protected void defaultPreferences() {
+<span class="nc" id="L103">		widthText.setText(String.valueOf(Utils.DEF_WORLD_WIDTH));</span>
+<span class="nc" id="L104">		heightText.setText(String.valueOf(Utils.DEF_WORLD_HEIGHT));</span>
+<span class="nc" id="L105">		delayText.setText(String.valueOf(Utils.DEF_DELAY));</span>
+<span class="nc" id="L106">		rubbingText.setText(String.valueOf(Utils.DEF_RUBBING));</span>
+<span class="nc" id="L107">		elasticityText.setText(String.valueOf(Utils.DEF_ELASTICITY));</span>
+<span class="nc" id="L108">		initialnumberText.setText(String.valueOf(Utils.DEF_INITIAL_ORGANISMS));</span>
+<span class="nc" id="L109">		initialenergyText.setText(String.valueOf(Utils.DEF_INITIAL_ENERGY));</span>
+<span class="nc" id="L110">		initialO2Text.setText(String.valueOf(Utils.DEF_INITIAL_O2));</span>
+<span class="nc" id="L111">		initialCO2Text.setText(String.valueOf(Utils.DEF_INITIAL_CO2));</span>
+<span class="nc" id="L112">		maxageText.setText(String.valueOf(Utils.DEF_MAX_AGE));</span>
+<span class="nc" id="L113">		mutationrateText.setText(String.valueOf(Utils.DEF_MUTATION_RATE));</span>
+<span class="nc" id="L114">		segmentcostText.setText(String.valueOf(Utils.DEF_SEGMENT_COST_DIVISOR));</span>
+<span class="nc" id="L115">		drainText.setText(String.valueOf(Utils.DEF_DRAIN_SUBS_DIVISOR));</span>
+<span class="nc" id="L116">		greenenergyText.setText(String.valueOf(Utils.DEF_GREEN_OBTAINED_ENERGY_DIVISOR));</span>
+<span class="nc" id="L117">		organicenergyText.setText(String.valueOf(Utils.DEF_ORGANIC_OBTAINED_ENERGY));</span>
+<span class="nc" id="L118">		organicsubsText.setText(String.valueOf(Utils.DEF_ORGANIC_SUBS_PRODUCED));</span>
+<span class="nc" id="L119">		redcostText.setText(String.valueOf(Utils.DEF_RED_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L120">		greencostText.setText(String.valueOf(Utils.DEF_GREEN_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L121">		bluecostText.setText(String.valueOf(Utils.DEF_BLUE_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L122">		cyancostText.setText(String.valueOf(Utils.DEF_CYAN_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L123">		whitecostText.setText(String.valueOf(Utils.DEF_WHITE_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L124">		graycostText.setText(String.valueOf(Utils.DEF_GRAY_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L125">		yellowcostText.setText(String.valueOf(Utils.DEF_YELLOW_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L126">		redprobText.setText(String.valueOf(Utils.DEF_RED_PROB));</span>
+<span class="nc" id="L127">		greenprobText.setText(String.valueOf(Utils.DEF_GREEN_PROB));</span>
+<span class="nc" id="L128">		blueprobText.setText(String.valueOf(Utils.DEF_BLUE_PROB));</span>
+<span class="nc" id="L129">		cyanprobText.setText(String.valueOf(Utils.DEF_CYAN_PROB));</span>
+<span class="nc" id="L130">		whiteprobText.setText(String.valueOf(Utils.DEF_WHITE_PROB));</span>
+<span class="nc" id="L131">		grayprobText.setText(String.valueOf(Utils.DEF_GRAY_PROB));</span>
+<span class="nc" id="L132">		yellowprobText.setText(String.valueOf(Utils.DEF_YELLOW_PROB));</span>
+<span class="nc" id="L133">		decayenergyText.setText(String.valueOf(Utils.DEF_DECAY_ENERGY));</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">		switch (Utils.DEF_HARDWARE_ACCELERATION) {</span>
+		case 0:
+		case 2:
+		case 5:
+<span class="nc" id="L138">			hardwareNoneRadio.setSelected(true);</span>
+<span class="nc" id="L139">			hardwareFBObjectCheck.setSelected(false);</span>
+<span class="nc" id="L140">			hardwareFBObjectCheck.setEnabled(false);</span>
+<span class="nc" id="L141">			break;</span>
+		case 1:
+		case 3:
+<span class="nc" id="L144">			hardwareOpenGLRadio.setSelected(true);</span>
+<span class="nc" id="L145">			hardwareFBObjectCheck.setSelected(false);</span>
+<span class="nc" id="L146">			break;</span>
+		case 6:
+<span class="nc" id="L148">			hardwareOpenGLRadio.setSelected(true);</span>
+<span class="nc" id="L149">			hardwareFBObjectCheck.setSelected(true);</span>
+			break;
+		}
+<span class="nc" id="L152">	}</span>
+	
+	protected void setComponents() {
+<span class="nc" id="L155">		getContentPane().setLayout(new BorderLayout());</span>
+		// Set up buttons
+<span class="nc" id="L157">		JPanel buttonsPanel = new JPanel();</span>
+<span class="nc" id="L158">		OKButton = new JButton(Messages.getString(&quot;T_OK&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L159">		cancelButton = new JButton(Messages.getString(&quot;T_CANCEL&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L160">		defaultButton = new JButton(Messages.getString(&quot;T_DEFAULT_VALUES&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L161">		buttonsPanel.add(OKButton);</span>
+<span class="nc" id="L162">		buttonsPanel.add(cancelButton);</span>
+<span class="nc" id="L163">		buttonsPanel.add(defaultButton);</span>
+<span class="nc" id="L164">		getContentPane().add(buttonsPanel, BorderLayout.SOUTH);</span>
+<span class="nc" id="L165">		JTabbedPane tabbedPane = new JTabbedPane();</span>
+		// Set up general tab
+<span class="nc" id="L167">		tabbedPane.addTab(Messages.getString(&quot;T_GENERAL&quot;), setGeneralTab()); //$NON-NLS-1$</span>
+		// Set up world tab
+<span class="nc" id="L169">		tabbedPane.addTab(Messages.getString(&quot;T_WORLD&quot;), setWorldTab()); //$NON-NLS-1$</span>
+		// Set up organisms tab
+<span class="nc" id="L171">		tabbedPane.addTab(Messages.getString(&quot;T_ORGANISMS&quot;), setOrganismsTab()); //$NON-NLS-1$</span>
+		// Set up metabolism tab
+<span class="nc" id="L173">		tabbedPane.addTab(Messages.getString(&quot;T_METABOLISM&quot;), setMetabolismTab()); //$NON-NLS-1$</span>
+		// Set up genes tab
+<span class="nc" id="L175">		tabbedPane.addTab(Messages.getString(&quot;T_GENES&quot;), setGenesTab()); //$NON-NLS-1$</span>
+<span class="nc" id="L176">		getContentPane().add(tabbedPane, BorderLayout.CENTER);</span>
+<span class="nc" id="L177">	}</span>
+	
+	protected JPanel setGeneralTab() {
+<span class="nc" id="L180">		JPanel generalPanel = new JPanel();</span>
+<span class="nc" id="L181">		generalPanel.setLayout(new BoxLayout(generalPanel,BoxLayout.Y_AXIS));</span>
+		// Language
+<span class="nc" id="L183">		JPanel panel = new JPanel();</span>
+<span class="nc" id="L184">		JLabel label = new JLabel(Messages.getString(&quot;T_LANGUAGE&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L185">		panel.add(label);</span>
+<span class="nc" id="L186">		localeCombo = new JComboBox(Messages.getSupportedLocalesNames());</span>
+<span class="nc" id="L187">		localeCombo.setSelectedIndex(Messages.getLocaleIndex());</span>
+<span class="nc" id="L188">		panel.add(localeCombo);</span>
+<span class="nc" id="L189">		generalPanel.add(panel);</span>
+		//Frames per second
+<span class="nc" id="L191">		panel = new JPanel();</span>
+<span class="nc" id="L192">		label = new JLabel(Messages.getString(&quot;T_TIME_PER_FRAME&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L193">		panel.add(label);</span>
+<span class="nc" id="L194">		delayText = new JTextField(Integer.toString(Utils.DELAY),6);</span>
+<span class="nc" id="L195">		panel.add(delayText);</span>
+<span class="nc" id="L196">		label = new JLabel(Messages.getString(&quot;T_MILLISECONDS&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L197">		panel.add(label);</span>
+<span class="nc" id="L198">		generalPanel.add(panel);</span>
+		// OpenGL
+<span class="nc" id="L200">		panel = new JPanel();</span>
+<span class="nc" id="L201">		panel.setLayout(new GridLayout(5,1));</span>
+<span class="nc" id="L202">		panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),</span>
+<span class="nc" id="L203">				Messages.getString(&quot;T_HARDWARE_ACCELERATION&quot;))); //$NON-NLS-1$</span>
+<span class="nc" id="L204">		hardwareNoneRadio = new JRadioButton(Messages.getString(&quot;T_NONE&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L205">		hardwareOpenGLRadio = new JRadioButton(Messages.getString(&quot;T_OPENGL&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L206">		hardwareFBObjectCheck = new JCheckBox(Messages.getString(&quot;T_DISABLE_FBOBJECT&quot;)); //$NON-NLS-1$</span>
+<span class="nc bnc" id="L207" title="All 4 branches missed.">		switch (Utils.HARDWARE_ACCELERATION) {</span>
+		case 0:
+<span class="nc" id="L209">			hardwareNoneRadio.setSelected(true);</span>
+<span class="nc" id="L210">			hardwareFBObjectCheck.setEnabled(false);</span>
+<span class="nc" id="L211">			break;</span>
+		case 1:
+		case 2:
+		case 3:
+<span class="nc" id="L215">			hardwareOpenGLRadio.setSelected(true);</span>
+<span class="nc" id="L216">			break;</span>
+		case 4:
+		case 5:
+		case 6:
+<span class="nc" id="L220">			hardwareOpenGLRadio.setSelected(true);</span>
+<span class="nc" id="L221">			hardwareFBObjectCheck.setSelected(true);</span>
+			break;
+		}
+<span class="nc" id="L224">		hardwareGroup = new ButtonGroup();</span>
+<span class="nc" id="L225">		hardwareGroup.add(hardwareNoneRadio);</span>
+<span class="nc" id="L226">		hardwareGroup.add(hardwareOpenGLRadio);</span>
+<span class="nc" id="L227">		hardwareNoneRadio.addChangeListener(new ChangeListener() {</span>
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+<span class="nc bnc" id="L231" title="All 2 branches missed.">				hardwareFBObjectCheck.setEnabled(!hardwareNoneRadio.isSelected());</span>
+<span class="nc" id="L232">			}</span>
+		});
+<span class="nc" id="L234">		panel.add(hardwareNoneRadio);</span>
+<span class="nc" id="L235">		panel.add(hardwareOpenGLRadio);</span>
+<span class="nc" id="L236">		panel.add(hardwareFBObjectCheck);</span>
+<span class="nc" id="L237">		panel.add(new JLabel(Messages.getString(&quot;T_DIRECTX_IS_AUTOMATICALLY_DETECTED_AND_INITIALIZED&quot;))); //$NON-NLS-1$</span>
+<span class="nc" id="L238">		panel.add(new JLabel(Messages.getString(&quot;T_APPLICATION_MUST_BE_RESTARTED_TO_APPLY_CHANGES&quot;))); //$NON-NLS-1$</span>
+<span class="nc" id="L239">		generalPanel.add(panel);</span>
+<span class="nc" id="L240">		return generalPanel;</span>
+	}
+	
+	protected JPanel setWorldTab() {
+<span class="nc" id="L244">		JPanel worldPanel = new JPanel();</span>
+<span class="nc" id="L245">		worldPanel.setLayout(new BoxLayout(worldPanel,BoxLayout.Y_AXIS));</span>
+		// World size
+<span class="nc" id="L247">		JPanel panel = new JPanel();</span>
+<span class="nc" id="L248">		JLabel label = new JLabel(Messages.getString(&quot;T_WIDTH&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L249">		panel.add(label);</span>
+<span class="nc" id="L250">		widthText = new JTextField(Integer.toString(Utils.WORLD_WIDTH),6);</span>
+<span class="nc" id="L251">		panel.add(widthText);</span>
+<span class="nc" id="L252">		label = new JLabel(Messages.getString(&quot;T_HEIGHT&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L253">		panel.add(label);</span>
+<span class="nc" id="L254">		heightText = new JTextField(Integer.toString(Utils.WORLD_HEIGHT),6);</span>
+<span class="nc" id="L255">		panel.add(heightText);</span>
+<span class="nc" id="L256">		worldPanel.add(panel);</span>
+		// Initial O2 - initial CO2
+<span class="nc" id="L258">		panel = new JPanel();</span>
+<span class="nc" id="L259">		label = new JLabel(Messages.getString(&quot;T_INITIAL_OXYGEN&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L260">		panel.add(label);</span>
+<span class="nc" id="L261">		initialO2Text = new JTextField(Double.toString(Utils.INITIAL_O2),6);</span>
+<span class="nc" id="L262">		panel.add(initialO2Text);</span>
+<span class="nc" id="L263">		label = new JLabel(Messages.getString(&quot;T_INITIAL_CARBON_DIOXIDE&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L264">		panel.add(label);</span>
+<span class="nc" id="L265">		initialCO2Text = new JTextField(Double.toString(Utils.INITIAL_CO2),6);</span>
+<span class="nc" id="L266">		panel.add(initialCO2Text);</span>
+<span class="nc" id="L267">		worldPanel.add(panel);</span>
+		// Rubbing - Elasticity
+<span class="nc" id="L269">		panel = new JPanel();</span>
+<span class="nc" id="L270">		label = new JLabel(Messages.getString(&quot;T_RUBBING_COEFFICIENT&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L271">		panel.add(label);</span>
+<span class="nc" id="L272">		rubbingText = new JTextField(Double.toString(Utils.RUBBING),6);</span>
+<span class="nc" id="L273">		panel.add(rubbingText);</span>
+<span class="nc" id="L274">		worldPanel.add(panel);</span>
+<span class="nc" id="L275">		panel = new JPanel();</span>
+<span class="nc" id="L276">		label = new JLabel(Messages.getString(&quot;T_ELASTICITY_COEFFICIENT&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L277">		panel.add(label);</span>
+<span class="nc" id="L278">		elasticityText = new JTextField(Double.toString(Utils.ELASTICITY),6);</span>
+<span class="nc" id="L279">		panel.add(elasticityText);</span>
+<span class="nc" id="L280">		worldPanel.add(panel);</span>
+		
+<span class="nc" id="L282">		return worldPanel;</span>
+	}
+	
+	protected JPanel setOrganismsTab() {
+<span class="nc" id="L286">		JPanel organismsPanel = new JPanel();</span>
+<span class="nc" id="L287">		organismsPanel.setLayout(new BoxLayout(organismsPanel,BoxLayout.Y_AXIS));</span>
+		// Initial number - initial energy
+<span class="nc" id="L289">		JPanel panel = new JPanel();</span>
+<span class="nc" id="L290">		JLabel label = new JLabel(Messages.getString(&quot;T_INITIAL_NUMBER&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L291">		panel.add(label);</span>
+<span class="nc" id="L292">		initialnumberText = new JTextField(Integer.toString(Utils.INITIAL_ORGANISMS),6);</span>
+<span class="nc" id="L293">		panel.add(initialnumberText);</span>
+<span class="nc" id="L294">		label = new JLabel(Messages.getString(&quot;T_INITIAL_ENERGY&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L295">		panel.add(label);</span>
+<span class="nc" id="L296">		initialenergyText = new JTextField(Integer.toString(Utils.INITIAL_ENERGY),6);</span>
+<span class="nc" id="L297">		panel.add(initialenergyText);</span>
+<span class="nc" id="L298">		organismsPanel.add(panel);</span>
+		// Max age - Mutation rate
+<span class="nc" id="L300">		panel = new JPanel();</span>
+<span class="nc" id="L301">		label = new JLabel(Messages.getString(&quot;T_LIFE_EXPECTANCY&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L302">		panel.add(label);</span>
+<span class="nc" id="L303">		maxageText = new JTextField(Integer.toString(Utils.MAX_AGE),6);</span>
+<span class="nc" id="L304">		panel.add(maxageText);</span>
+<span class="nc" id="L305">		label = new JLabel(Messages.getString(&quot;T_MUTATION_PERCENTAGE&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L306">		panel.add(label);</span>
+<span class="nc" id="L307">		mutationrateText = new JTextField(Double.toString(Utils.MUTATION_RATE),6);</span>
+<span class="nc" id="L308">		panel.add(mutationrateText);</span>
+<span class="nc" id="L309">		organismsPanel.add(panel);</span>
+		// Upkeep cost
+<span class="nc" id="L311">		panel = new JPanel();</span>
+<span class="nc" id="L312">		label = new JLabel(Messages.getString(&quot;T_UPKEEP_COST_DIVISOR&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L313">		panel.add(label);</span>
+<span class="nc" id="L314">		segmentcostText = new JTextField(Integer.toString(Utils.SEGMENT_COST_DIVISOR),6);</span>
+<span class="nc" id="L315">		panel.add(segmentcostText);</span>
+<span class="nc" id="L316">		organismsPanel.add(panel);</span>
+		// Drain substance
+<span class="nc" id="L318">		panel = new JPanel();</span>
+<span class="nc" id="L319">		label = new JLabel(Messages.getString(&quot;T_SUBSTANCE_DRAINAGE_DIVISOR&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L320">		panel.add(label);</span>
+<span class="nc" id="L321">		drainText = new JTextField(Integer.toString(Utils.DRAIN_SUBS_DIVISOR),6);</span>
+<span class="nc" id="L322">		panel.add(drainText);</span>
+<span class="nc" id="L323">		organismsPanel.add(panel);</span>
+		// Decay energy
+<span class="nc" id="L325">		panel = new JPanel();</span>
+<span class="nc" id="L326">		label = new JLabel(Messages.getString(&quot;T_DECAY_ENERGY&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L327">		panel.add(label);</span>
+<span class="nc" id="L328">		decayenergyText = new JTextField(Double.toString(Utils.DECAY_ENERGY),6);</span>
+<span class="nc" id="L329">		panel.add(decayenergyText);</span>
+<span class="nc" id="L330">		organismsPanel.add(panel);</span>
+<span class="nc" id="L331">		return organismsPanel;</span>
+	}
+	
+	protected JPanel setMetabolismTab() {
+<span class="nc" id="L335">		JPanel metabolismPanel = new JPanel();</span>
+<span class="nc" id="L336">		metabolismPanel.setLayout(new BoxLayout(metabolismPanel,BoxLayout.Y_AXIS));</span>
+		// Photosynthetic metabolism
+<span class="nc" id="L338">		JPanel panel = new JPanel();</span>
+<span class="nc" id="L339">		JLabel label = new JLabel(Messages.getString(&quot;T_PHOTOSYNTHETIC_METABOLISM&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L340">		label.setAlignmentX(Component.CENTER_ALIGNMENT);</span>
+<span class="nc" id="L341">		metabolismPanel.add(label);</span>
+<span class="nc" id="L342">		metabolismPanel.add(Box.createVerticalStrut(10));</span>
+		// Obtained energy
+<span class="nc" id="L344">		label = new JLabel(Messages.getString(&quot;T_OBTAINED_ENERGY_DIVISOR&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L345">		panel.add(label);</span>
+<span class="nc" id="L346">		greenenergyText = new JTextField(Integer.toString(Utils.GREEN_OBTAINED_ENERGY_DIVISOR),6);</span>
+<span class="nc" id="L347">		panel.add(greenenergyText);</span>
+<span class="nc" id="L348">		metabolismPanel.add(panel);</span>
+		// Chemoorganotrophic metabolism
+<span class="nc" id="L350">		label = new JLabel(Messages.getString(&quot;T_CHEMOORGANOTROPHIC_METABOLISM&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L351">		label.setAlignmentX(Component.CENTER_ALIGNMENT);</span>
+<span class="nc" id="L352">		metabolismPanel.add(Box.createVerticalStrut(10));</span>
+<span class="nc" id="L353">		metabolismPanel.add(label);</span>
+<span class="nc" id="L354">		metabolismPanel.add(Box.createVerticalStrut(10));</span>
+		// Obtained energy
+<span class="nc" id="L356">		panel = new JPanel();</span>
+<span class="nc" id="L357">		label = new JLabel(Messages.getString(&quot;T_OBTAINED_ENERGY&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L358">		panel.add(label);</span>
+<span class="nc" id="L359">		organicenergyText = new JTextField(Double.toString(Utils.ORGANIC_OBTAINED_ENERGY),6);</span>
+<span class="nc" id="L360">		panel.add(organicenergyText);</span>
+<span class="nc" id="L361">		metabolismPanel.add(panel);</span>
+		// Released energy
+<span class="nc" id="L363">		panel = new JPanel();</span>
+<span class="nc" id="L364">		label = new JLabel(Messages.getString(&quot;T_RELEASED_ENERGY_PROPORTION&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L365">		panel.add(label);</span>
+<span class="nc" id="L366">		organicsubsText = new JTextField(Double.toString(Utils.ORGANIC_SUBS_PRODUCED),6);</span>
+<span class="nc" id="L367">		panel.add(organicsubsText);</span>
+<span class="nc" id="L368">		metabolismPanel.add(panel);</span>
+		
+<span class="nc" id="L370">		return metabolismPanel;</span>
+	}
+	
+	protected JPanel setGenesTab() {
+<span class="nc" id="L374">		JPanel genesPanel = new JPanel();</span>
+<span class="nc" id="L375">		genesPanel.setLayout(new GridLayout(8,3));</span>
+		JLabel label;
+
+<span class="nc" id="L378">		genesPanel.add(new JLabel(Messages.getString(&quot;T_COLOR2&quot;),SwingConstants.CENTER)); //$NON-NLS-1$</span>
+<span class="nc" id="L379">		genesPanel.add(new JLabel(Messages.getString(&quot;T_PROBABILITY&quot;),SwingConstants.CENTER)); //$NON-NLS-1$</span>
+<span class="nc" id="L380">		genesPanel.add(new JLabel(Messages.getString(&quot;T_COST&quot;),SwingConstants.CENTER)); //$NON-NLS-1$</span>
+		
+<span class="nc" id="L382">		label = new JLabel(Messages.getString(&quot;T_RED&quot;),SwingConstants.CENTER); //$NON-NLS-1$</span>
+<span class="nc" id="L383">		genesPanel.add(label);</span>
+<span class="nc" id="L384">		redprobText = new JTextField(Integer.toString(Utils.RED_PROB));</span>
+<span class="nc" id="L385">		genesPanel.add(redprobText);</span>
+<span class="nc" id="L386">		redcostText = new JTextField(Double.toString(Utils.RED_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L387">		genesPanel.add(redcostText);</span>
+		
+<span class="nc" id="L389">		label = new JLabel(Messages.getString(&quot;T_GREEN&quot;),SwingConstants.CENTER); //$NON-NLS-1$</span>
+<span class="nc" id="L390">		genesPanel.add(label);</span>
+<span class="nc" id="L391">		greenprobText = new JTextField(Integer.toString(Utils.GREEN_PROB));</span>
+<span class="nc" id="L392">		genesPanel.add(greenprobText);</span>
+<span class="nc" id="L393">		greencostText = new JTextField(Double.toString(Utils.GREEN_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L394">		genesPanel.add(greencostText);</span>
+		
+<span class="nc" id="L396">		label = new JLabel(Messages.getString(&quot;T_BLUE&quot;),SwingConstants.CENTER); //$NON-NLS-1$</span>
+<span class="nc" id="L397">		genesPanel.add(label);</span>
+<span class="nc" id="L398">		blueprobText = new JTextField(Integer.toString(Utils.BLUE_PROB));</span>
+<span class="nc" id="L399">		genesPanel.add(blueprobText);</span>
+<span class="nc" id="L400">		bluecostText = new JTextField(Double.toString(Utils.BLUE_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L401">		genesPanel.add(bluecostText);</span>
+		
+<span class="nc" id="L403">		label = new JLabel(Messages.getString(&quot;T_CYAN&quot;),SwingConstants.CENTER); //$NON-NLS-1$</span>
+<span class="nc" id="L404">		genesPanel.add(label);</span>
+<span class="nc" id="L405">		cyanprobText = new JTextField(Integer.toString(Utils.CYAN_PROB));</span>
+<span class="nc" id="L406">		genesPanel.add(cyanprobText);</span>
+<span class="nc" id="L407">		cyancostText = new JTextField(Double.toString(Utils.CYAN_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L408">		genesPanel.add(cyancostText);</span>
+		
+<span class="nc" id="L410">		label = new JLabel(Messages.getString(&quot;T_WHITE&quot;),SwingConstants.CENTER); //$NON-NLS-1$</span>
+<span class="nc" id="L411">		genesPanel.add(label);</span>
+<span class="nc" id="L412">		whiteprobText = new JTextField(Integer.toString(Utils.WHITE_PROB));</span>
+<span class="nc" id="L413">		genesPanel.add(whiteprobText);</span>
+<span class="nc" id="L414">		whitecostText = new JTextField(Double.toString(Utils.WHITE_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L415">		genesPanel.add(whitecostText);</span>
+		
+<span class="nc" id="L417">		label = new JLabel(Messages.getString(&quot;T_GRAY&quot;),SwingConstants.CENTER); //$NON-NLS-1$</span>
+<span class="nc" id="L418">		genesPanel.add(label);</span>
+<span class="nc" id="L419">		grayprobText = new JTextField(Integer.toString(Utils.GRAY_PROB));</span>
+<span class="nc" id="L420">		genesPanel.add(grayprobText);</span>
+<span class="nc" id="L421">		graycostText = new JTextField(Double.toString(Utils.GRAY_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L422">		genesPanel.add(graycostText);</span>
+	
+<span class="nc" id="L424">		label = new JLabel(Messages.getString(&quot;T_YELLOW&quot;),SwingConstants.CENTER); //$NON-NLS-1$</span>
+<span class="nc" id="L425">		genesPanel.add(label);</span>
+<span class="nc" id="L426">		yellowprobText = new JTextField(Integer.toString(Utils.YELLOW_PROB));</span>
+<span class="nc" id="L427">		genesPanel.add(yellowprobText);</span>
+<span class="nc" id="L428">		yellowcostText = new JTextField(Double.toString(Utils.YELLOW_ENERGY_CONSUMPTION));</span>
+<span class="nc" id="L429">		genesPanel.add(yellowcostText);</span>
+		
+<span class="nc" id="L431">		return genesPanel;</span>
+	}
+	
+	void checkParams() {
+		int i;
+		double d;
+<span class="nc bnc" id="L437" title="All 2 branches missed.">		if (Messages.getLocaleIndex() != localeCombo.getSelectedIndex()) {</span>
+<span class="nc" id="L438">			Messages.setLocale(localeCombo.getSelectedIndex());</span>
+<span class="nc" id="L439">			mainWindow.changeLocale();</span>
+		}
+		try {
+<span class="nc" id="L442">			i = Integer.parseInt(widthText.getText());</span>
+<span class="nc bnc" id="L443" title="All 2 branches missed.">			if (i &gt; 0) Utils.WORLD_WIDTH = i;</span>
+<span class="nc" id="L444">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L448">			i = Integer.parseInt(heightText.getText());</span>
+<span class="nc bnc" id="L449" title="All 2 branches missed.">			if (i &gt; 0) Utils.WORLD_HEIGHT = i;</span>
+<span class="nc" id="L450">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L454">			i = Integer.parseInt(delayText.getText());</span>
+<span class="nc bnc" id="L455" title="All 2 branches missed.">			if (i &gt; 0) {</span>
+<span class="nc" id="L456">				Utils.DELAY = i;</span>
+			}
+<span class="nc" id="L458">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L462">			d = Double.parseDouble(initialO2Text.getText());</span>
+<span class="nc bnc" id="L463" title="All 2 branches missed.">			if (d &gt;= 0) Utils.INITIAL_O2 = d;</span>
+<span class="nc" id="L464">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L468">			d = Double.parseDouble(initialCO2Text.getText());</span>
+<span class="nc bnc" id="L469" title="All 2 branches missed.">			if (d &gt;= 0) Utils.INITIAL_CO2 = d;</span>
+<span class="nc" id="L470">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L474">			d = Double.parseDouble(rubbingText.getText());</span>
+<span class="nc bnc" id="L475" title="All 4 branches missed.">			if (d &gt;= 0 &amp;&amp; d &lt;= 1) Utils.RUBBING = d;</span>
+<span class="nc" id="L476">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L480">			d = Double.parseDouble(elasticityText.getText());</span>
+<span class="nc bnc" id="L481" title="All 4 branches missed.">			if (d &gt;= 0 &amp;&amp; d &lt;= 1) Utils.ELASTICITY = d;</span>
+<span class="nc" id="L482">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L486">			i = Integer.parseInt(initialnumberText.getText());</span>
+<span class="nc bnc" id="L487" title="All 2 branches missed.">			if (i &gt;= 0) Utils.INITIAL_ORGANISMS = i;</span>
+<span class="nc" id="L488">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L492">			i = Integer.parseInt(initialenergyText.getText());</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">			if (i &gt; 0) Utils.INITIAL_ENERGY = i;</span>
+<span class="nc" id="L494">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L498">			i = Integer.parseInt(maxageText.getText());</span>
+<span class="nc bnc" id="L499" title="All 2 branches missed.">			if (i &gt; 0) Utils.MAX_AGE = i;</span>
+<span class="nc" id="L500">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L504">			d = Double.parseDouble(mutationrateText.getText());</span>
+<span class="nc bnc" id="L505" title="All 4 branches missed.">			if (d &gt;= 0 &amp;&amp; d &lt;= 100) Utils.MUTATION_RATE = d;</span>
+<span class="nc" id="L506">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L510">			d = Double.parseDouble(redcostText.getText());</span>
+<span class="nc bnc" id="L511" title="All 2 branches missed.">			if (d &gt;= 0) Utils.RED_ENERGY_CONSUMPTION = d;</span>
+<span class="nc" id="L512">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L516">			d = Double.parseDouble(greencostText.getText());</span>
+<span class="nc bnc" id="L517" title="All 2 branches missed.">			if (d &gt;= 0) Utils.GREEN_ENERGY_CONSUMPTION = d;</span>
+<span class="nc" id="L518">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L522">			d = Double.parseDouble(bluecostText.getText());</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">			if (d &gt;= 0) Utils.BLUE_ENERGY_CONSUMPTION = d;</span>
+<span class="nc" id="L524">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L528">			d = Double.parseDouble(cyancostText.getText());</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">			if (d &gt;= 0) Utils.CYAN_ENERGY_CONSUMPTION = d;</span>
+<span class="nc" id="L530">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L534">			d = Double.parseDouble(whitecostText.getText());</span>
+<span class="nc bnc" id="L535" title="All 2 branches missed.">			if (d &gt;= 0) Utils.WHITE_ENERGY_CONSUMPTION = d;</span>
+<span class="nc" id="L536">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L540">			d = Double.parseDouble(graycostText.getText());</span>
+<span class="nc bnc" id="L541" title="All 2 branches missed.">			if (d &gt;= 0) Utils.GRAY_ENERGY_CONSUMPTION = d;</span>
+<span class="nc" id="L542">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L546">			d = Double.parseDouble(yellowcostText.getText());</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">			if (d &gt;= 0) Utils.YELLOW_ENERGY_CONSUMPTION = d;</span>
+<span class="nc" id="L548">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L552">			i = Integer.parseInt(redprobText.getText());</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">			if (i &gt;= 0) Utils.RED_PROB = i;</span>
+<span class="nc" id="L554">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L558">			i = Integer.parseInt(greenprobText.getText());</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">			if (i &gt; 0) Utils.GREEN_PROB = i;</span>
+<span class="nc" id="L560">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L564">			i = Integer.parseInt(blueprobText.getText());</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">			if (i &gt;= 0) Utils.BLUE_PROB = i;</span>
+<span class="nc" id="L566">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L570">			i = Integer.parseInt(cyanprobText.getText());</span>
+<span class="nc bnc" id="L571" title="All 2 branches missed.">			if (i &gt;= 0) Utils.CYAN_PROB = i;</span>
+<span class="nc" id="L572">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L576">			i = Integer.parseInt(whiteprobText.getText());</span>
+<span class="nc bnc" id="L577" title="All 2 branches missed.">			if (i &gt;= 0) Utils.WHITE_PROB = i;</span>
+<span class="nc" id="L578">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L582">			i = Integer.parseInt(grayprobText.getText());</span>
+<span class="nc bnc" id="L583" title="All 2 branches missed.">			if (i &gt;= 0) Utils.GRAY_PROB = i;</span>
+<span class="nc" id="L584">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L588">			i = Integer.parseInt(yellowprobText.getText());</span>
+<span class="nc bnc" id="L589" title="All 2 branches missed.">			if (i &gt;= 0) Utils.YELLOW_PROB = i;</span>
+<span class="nc" id="L590">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L594">			i = Integer.parseInt(segmentcostText.getText());</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">			if (i &gt; 0) Utils.SEGMENT_COST_DIVISOR = i;</span>
+<span class="nc" id="L596">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L600">			i = Integer.parseInt(drainText.getText());</span>
+<span class="nc bnc" id="L601" title="All 2 branches missed.">			if (i &gt; 0) Utils.DRAIN_SUBS_DIVISOR = i;</span>
+<span class="nc" id="L602">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		
+		try {
+<span class="nc" id="L607">			i = Integer.parseInt(greenenergyText.getText());</span>
+<span class="nc bnc" id="L608" title="All 2 branches missed.">			if (i &gt; 0) Utils.GREEN_OBTAINED_ENERGY_DIVISOR = i;</span>
+<span class="nc" id="L609">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L613">			d = Double.parseDouble(organicenergyText.getText());</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">			if (d &gt;= 0) Utils.ORGANIC_OBTAINED_ENERGY = d;</span>
+<span class="nc" id="L615">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L619">			d = Double.parseDouble(organicsubsText.getText());</span>
+<span class="nc bnc" id="L620" title="All 4 branches missed.">			if (d &gt;= 0 &amp;&amp; d &lt;= 1) Utils.ORGANIC_SUBS_PRODUCED = d;</span>
+<span class="nc" id="L621">		} catch (NumberFormatException ex) {</span>
+			// Keep old value if there is a problem
+		}
+<span class="nc bnc" id="L624" title="All 2 branches missed.">		if (hardwareNoneRadio.isSelected()) {</span>
+<span class="nc" id="L625">			Utils.setHardwareAcceleration(0);</span>
+		}
+<span class="nc bnc" id="L627" title="All 2 branches missed.">		if (hardwareOpenGLRadio.isSelected()) {</span>
+<span class="nc bnc" id="L628" title="All 2 branches missed.">			if (hardwareFBObjectCheck.isSelected()) {</span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">				if (Utils.HARDWARE_ACCELERATION &lt; 4)</span>
+<span class="nc" id="L630">					Utils.setHardwareAcceleration(4);</span>
+<span class="nc" id="L631">			} else {</span>
+<span class="nc bnc" id="L632" title="All 4 branches missed.">				if (Utils.HARDWARE_ACCELERATION != 0 &amp;&amp; Utils.HARDWARE_ACCELERATION &gt; 3)</span>
+<span class="nc" id="L633">					Utils.setHardwareAcceleration(1);</span>
+			}
+		}
+<span class="nc" id="L636">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>

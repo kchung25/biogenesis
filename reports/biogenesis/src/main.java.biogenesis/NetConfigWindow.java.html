@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../../.resources/report.gif" type="image/gif"/><title>NetConfigWindow.java</title><link rel="stylesheet" href="../../../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../../.sessions.html" class="el_session">Sessions</a></span><a href="../../../index.html" class="el_report">biogenesis (May 9, 2015 6:48:54 PM)</a> &gt; <a href="../../index.html" class="el_group">biogenesis</a> &gt; <a href="../index.html" class="el_bundle">src</a> &gt; <a href="index.source.html" class="el_package">main.java.biogenesis</a> &gt; <span class="el_source">NetConfigWindow.java</span></div><h1>NetConfigWindow.java</h1><pre class="source lang-java linenums"><span class="nc" id="L1">/* Copyright (C) 2006-2010  Joan Queralt Molina</span>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ */
+package main.java.biogenesis;
+
+import java.awt.BorderLayout;
+import java.awt.event.*;
+
+import javax.swing.*;
+
+public class NetConfigWindow extends JDialog {
+	private static final long serialVersionUID = Utils.FILE_VERSION;
+	protected JCheckBox acceptConnectionsCheck;
+	protected boolean acceptConnections;
+	//protected JCheckBox connectToServerCheck;
+	//protected boolean connectToServer = Utils.CONNECT_TO_SERVER;
+	//protected JTextField serverAddressText;
+	//protected JTextField serverPortText;
+	protected JTextField localPortText;
+	protected JTextField remotePortText;
+	protected JTextField remoteAddressText;
+	protected JTextField maxConnectionsText;
+	protected JButton cancelButton;
+	protected JButton okButton;
+	
+	protected MainWindow mainWindow;
+	
+	public NetConfigWindow(MainWindow parent) {
+<span class="nc" id="L43">		super(parent,Messages.getString(&quot;T_NETWORK_CONFIGURATION&quot;),true); //$NON-NLS-1$</span>
+<span class="nc" id="L44">		mainWindow = parent;</span>
+<span class="nc" id="L45">		acceptConnections = mainWindow.isAcceptingConnections();</span>
+<span class="nc" id="L46">		setDefaultCloseOperation(DISPOSE_ON_CLOSE);	</span>
+<span class="nc" id="L47">		setComponents();</span>
+<span class="nc" id="L48">		pack();</span>
+<span class="nc" id="L49">		setResizable(false);</span>
+<span class="nc" id="L50">		cancelButton.addActionListener(new ActionListener() {</span>
+            public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L52">            	dispose();</span>
+<span class="nc" id="L53">            }</span>
+            });
+<span class="nc" id="L55">		okButton.addActionListener(new ActionListener() {</span>
+            public void actionPerformed(ActionEvent evt) {
+<span class="nc" id="L57">            	int oldPort = Utils.LOCAL_PORT;</span>
+<span class="nc" id="L58">            	checkParams();</span>
+<span class="nc" id="L59">            	Utils.savePreferences();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            	if (oldPort != Utils.LOCAL_PORT) {</span>
+<span class="nc" id="L61">            		mainWindow.stopServer();</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            		if (mainWindow.isAcceptingConnections())</span>
+<span class="nc" id="L63">            			mainWindow.startServer();</span>
+            	}
+<span class="nc" id="L65">            	dispose();</span>
+<span class="nc" id="L66">            }</span>
+            });
+<span class="nc" id="L68">		setVisible(true);</span>
+<span class="nc" id="L69">	}</span>
+
+	protected void setComponents() {
+<span class="nc" id="L72">		getContentPane().setLayout(new BorderLayout());</span>
+		// Set up buttons
+<span class="nc" id="L74">		JPanel buttonsPanel = new JPanel();</span>
+<span class="nc" id="L75">		okButton = new JButton(Messages.getString(&quot;T_OK&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L76">		cancelButton = new JButton(Messages.getString(&quot;T_CANCEL&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L77">		buttonsPanel.add(okButton);</span>
+<span class="nc" id="L78">		buttonsPanel.add(cancelButton);</span>
+<span class="nc" id="L79">		getContentPane().add(buttonsPanel, BorderLayout.SOUTH);</span>
+		// Accept connections + use server
+<span class="nc" id="L81">		JPanel generalPanel = new JPanel();</span>
+<span class="nc" id="L82">		generalPanel.setLayout(new BoxLayout(generalPanel,BoxLayout.Y_AXIS));</span>
+<span class="nc" id="L83">		JPanel panel = new JPanel();</span>
+<span class="nc" id="L84">		acceptConnectionsCheck = new JCheckBox(Messages.getString(&quot;T_ALLOW_CONNECTIONS_FROM_OTHER_USERS&quot;), //$NON-NLS-1$</span>
+<span class="nc" id="L85">				acceptConnections);</span>
+<span class="nc" id="L86">		acceptConnectionsCheck.addItemListener(new ItemListener() {</span>
+			public void itemStateChanged(ItemEvent arg0) {
+<span class="nc bnc" id="L88" title="All 2 branches missed.">				acceptConnections = (arg0.getStateChange() == ItemEvent.SELECTED);	</span>
+<span class="nc" id="L89">			}</span>
+		});
+<span class="nc" id="L91">		panel.add(acceptConnectionsCheck);</span>
+<span class="nc" id="L92">		generalPanel.add(panel);</span>
+		/*panel = new JPanel();
+		connectToServerCheck = new JCheckBox(&quot;Utilitza el servidor per trobar altres usuaris&quot;,
+				connectToServer);
+		connectToServerCheck.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent arg0) {
+				connectToServer = (arg0.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		panel.add(connectToServerCheck);
+		generalPanel.add(panel);*/
+		/*panel = new JPanel();
+		JLabel label = new JLabel(&quot;Adreï¿½a del servidor: &quot;);
+		panel.add(label);
+		serverAddressText = new JTextField(Utils.SERVER_ADDRESS,25);
+		panel.add(serverAddressText);
+		label = new JLabel(&quot;Port del servidor: &quot;);
+		panel.add(label);
+		serverPortText = new JTextField(String.valueOf(Utils.SERVER_PORT),5);
+		panel.add(serverPortText);
+		generalPanel.add(panel);*/
+<span class="nc" id="L113">		panel = new JPanel();</span>
+<span class="nc" id="L114">		JLabel label = new JLabel(Messages.getString(&quot;T_MAXIMUM_NUMBER_OF_ALLOWED_CONNECTIONS&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L115">		panel.add(label);</span>
+<span class="nc" id="L116">		maxConnectionsText = new JTextField(String.valueOf(Utils.MAX_CONNECTIONS),4);</span>
+<span class="nc" id="L117">		panel.add(maxConnectionsText);</span>
+<span class="nc" id="L118">		generalPanel.add(panel);</span>
+<span class="nc" id="L119">		panel = new JPanel();</span>
+<span class="nc" id="L120">		label = new JLabel(Messages.getString(&quot;T_LOCAL_PORT_TO_RECEIVE_CONNECTIONS&quot;)); //$NON-NLS-1$</span>
+<span class="nc" id="L121">		panel.add(label);</span>
+<span class="nc" id="L122">		localPortText = new JTextField(String.valueOf(Utils.LOCAL_PORT),6);</span>
+<span class="nc" id="L123">		panel.add(localPortText);</span>
+<span class="nc" id="L124">		generalPanel.add(panel);</span>
+<span class="nc" id="L125">		getContentPane().add(generalPanel, BorderLayout.CENTER);</span>
+<span class="nc" id="L126">	}</span>
+	
+	void checkParams() {
+		int i;
+<span class="nc" id="L130">		mainWindow.setAcceptConnections(acceptConnections);</span>
+		
+		/*Utils.CONNECT_TO_SERVER = connectToServer;
+		Utils.SERVER_ADDRESS = serverAddressText.getText();
+		try {
+			i = Integer.parseInt(serverPortText.getText());
+			if (i&gt;=0) Utils.SERVER_PORT = i;
+		} catch (NumberFormatException e) {
+			// Keep old value if there is a problem
+		}*/
+		try {
+<span class="nc" id="L141">			i = Integer.parseInt(localPortText.getText());</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">			if (i&gt;=0) Utils.LOCAL_PORT = i;</span>
+<span class="nc" id="L143">		} catch (NumberFormatException e) {</span>
+			// Keep old value if there is a problem
+		}
+		try {
+<span class="nc" id="L147">			i = Integer.parseInt(maxConnectionsText.getText());</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">			if (i&gt;=0) Utils.MAX_CONNECTIONS = i;</span>
+<span class="nc" id="L149">		} catch (NumberFormatException e) {</span>
+			// Keep old value if there is a problem
+		}
+<span class="nc" id="L152">	}</span>
+	/*
+	protected void defaultPreferences() {
+		acceptConnectionsCheck.setSelected(Utils.ACCEPT_CONNECTIONS);
+		connectToServerCheck.setSelected(Utils.CONNECT_TO_SERVER);
+		serverAddressText.setText(Utils.SERVER_ADDRESS);
+		serverPortText.setText(String.valueOf(Utils.SERVER_PORT));
+		localPortText.setText(String.valueOf(Utils.LOCAL_PORT));
+		remotePortText.setText(&quot;&quot;);
+		remoteAddressText.setText(&quot;&quot;);
+		maxConnectionsText.setText(String.valueOf(Utils.MAX_CONNECTIONS));
+	}*/
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.2.201409121644</span>biogenesis (May 9, 2015 6:48:54 PM)</div></body></html>
